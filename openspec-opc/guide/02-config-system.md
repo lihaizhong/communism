@@ -1114,7 +1114,7 @@ AI 会读取所有三层配置：
 3. {{AI_CONFIG_DIR}}/skills/openspec-spike/SKILL.md
     定义 spike 技能的详细执行逻辑
 
-4. docs/openspec/03-workflows.md
+4. guide/03-workflows.md
    添加 spike 工作流文档
 ```
 
