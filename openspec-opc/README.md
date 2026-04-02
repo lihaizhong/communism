@@ -11,6 +11,23 @@
 - 🔄 **流程化**：从想法到代码到归档，完整的工作流
 - 📚 **可追溯**：每个变更都有完整的历史记录
 
+## 🚀 最快开始方式
+
+**零配置 AI 安装** — 直接将 [install.md](https://github.com/lihaizhong/communism/blob/main/openspec-opc/install.md) 文件交给 AI：
+
+```
+🔗 https://github.com/lihaizhong/communism/blob/main/openspec-opc/install.md
+```
+
+AI 会按照文档指引，自动完成：
+- ✅ 检查前置依赖
+- ✅ 收集项目信息
+- ✅ 创建目录结构
+- ✅ 填充配置文件
+- ✅ 验证安装结果
+
+无需手动复制粘贴，全程 AI 引导完成！
+
 ## 核心概念
 
 ### 四层配置体系
@@ -82,7 +99,6 @@ flowchart TB
 
 | 文档                                           | 内容                                     | 建议顺序    |
 | ---------------------------------------------- | ---------------------------------------- | ----------- |
-| [安装指南](install.md)                         | 从零搭建 Harness 环境（AI 引导）         | **第 0 步** |
 | [00-快速开始](guide/00-quick-start.md)         | **5 分钟入门教程**                       | **第 1 步** |
 | [01-概览](guide/01-overview.md)                | 系统整体介绍、核心概念                   | 第 2 步     |
 | [02-配置体系](guide/02-config-system.md)       | AGENTS.md vs config.yaml vs schemas 详解 | 第 3 步     |
