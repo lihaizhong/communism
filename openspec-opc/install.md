@@ -6,14 +6,60 @@
 
 ## ⚠️ 前置要求（必须）
 
-**MUST: 全局安装 openspec CLI**
+**MUST: 全局安装 OpenSpec CLI**
+
+> 📖 **OpenSpec CLI 安装文档**: https://github.com/Fission-AI/OpenSpec/
+
+### 检查安装状态
+
+首先检查是否已安装 OpenSpec CLI：
 
 ```bash
-npm install -g @openspec/cli
+openspec --version
+```
+
+### 未安装？选择安装方式
+
+如果未安装，向用户询问：
+
+```
+未检测到 OpenSpec CLI，这是运行本指南的必需工具。
+
+是否自动全局安装？
+[是] npm install -g @fission-ai/openspec@latest
+[否] 稍后手动安装
+```
+
+#### 选项 A：自动全局安装
+
+如果用户选择「是」，执行：
+
+```bash
+npm install -g @fission-ai/openspec@latest
 openspec --version  # 验证安装
 ```
 
-❌ 未安装则**立即停止**并提示用户安装。
+✅ 安装成功 → 继续执行后续步骤
+
+#### 选项 B：手动安装
+
+如果用户选择「否」或自动安装失败：
+
+```
+请手动安装 OpenSpec CLI：
+
+📖 官方安装指南：https://github.com/Fission-AI/OpenSpec/
+
+安装完成后，请重新运行本指南：
+🔗 <当前文档的完整地址>
+```
+
+> **注意**：`<当前文档的完整地址>` 是用户获取本 install.md 的完整 URL，例如：
+> `https://github.com/lihaizhong/communism/blob/main/openspec-opc/install.md`
+
+---
+
+❌ **如果用户拒绝安装且未手动完成安装，则立即停止执行。**
 
 ---
 
