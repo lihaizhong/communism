@@ -34,6 +34,7 @@ AI 辅助实现代码 —— 让测试通过
 
 ```
 🔗 https://github.com/lihaizhong/communism/blob/main/openspec-opc/install.md
+For AI Agents: Read and follow the instructions in install.md. The `.template` directory is located in the same directory as install.md.
 ```
 
 AI 会按照文档指引，自动完成：
