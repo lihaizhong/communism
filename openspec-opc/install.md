@@ -726,7 +726,40 @@ openspec init
 
 > ⚠️ **CRITICAL**: Commands 和 Skills **必须**从 `.template/custom/` 复制，**禁止使用** `openspec init` 生成的默认内容！
 
-#### 步骤 5.3.2：填充技术栈变量
+#### 步骤 5.3.2：清理旧版兼容性目录（兼容性处理）
+
+> 🎯 **ACTION**: 仅在检测到旧版 OpenSpec 生成的错误目录时执行
+
+> 📖 **背景**：OpenSpec PR #760（2026年2月）修复了目录命名问题。旧版本使用错误的 `command/`（单数），新版本使用正确的 `commands/`（复数）。
+
+**检测并清理旧目录**：
+
+```bash
+# 检查是否存在旧版错误目录
+if [ -d "{{AI_CONFIG_DIR}}/command" ]; then
+  echo "⚠️  检测到旧版 OpenSpec 生成的 'command/' 目录（单数）"
+  echo "   这是旧版本 OpenSpec 的错误输出，已在新版本中修复"
+  echo "   OpenCode 和 Claude Code 官方标准均为 'commands/'（复数）"
+  
+  # 删除旧版错误目录
+  rm -rf "{{AI_CONFIG_DIR}}/command"
+  echo "✅ 已清理旧版兼容性目录"
+fi
+```
+
+> ✅ **验证**：确保只存在 `commands/`（复数）目录，不存在 `command/`（单数）目录
+
+**官方标准**：
+
+| AI 工具 | 正确目录 | 状态 |
+|---------|---------|------|
+| OpenCode | `.opencode/commands/` | ✅ 复数（官方标准） |
+| Claude Code | `.claude/commands/` | ✅ 复数（官方标准） |
+| Cursor | `.cursor/rules/` | ℹ️ 使用 `rules/` 而非 commands |
+
+> 💡 **说明**：此步骤为兼容性处理，仅当项目历史中曾使用旧版 OpenSpec（PR #760 前）时需要执行。
+
+#### 步骤 5.3.3：填充技术栈变量
 
 > 🎯 **ACTION**: 技术栈信息来源于**阶段 2（新项目）或阶段 3（老项目）**，填充到 config.yaml 和 AGENTS.md
 
@@ -897,7 +930,7 @@ grep -E '\{\{[A-Z_]+\}\}' openspec/config.yaml AGENTS.md
 □ openspec/config.yaml 存在且格式正确
 □ openspec/schemas/ 包含 spec-driven、bugfix、spike
 □ AGENTS.md 存在
-□ {{AI_CONFIG_DIR}}/commands/ 包含 6 个命令文件
+□ {{AI_CONFIG_DIR}}/commands/ 包含 6 个命令文件（注意：commands 复数，不是 command）
   - opsx-explore.md
   - opsx-propose.md
   - opsx-apply.md
@@ -911,6 +944,7 @@ grep -E '\{\{[A-Z_]+\}\}' openspec/config.yaml AGENTS.md
   - openspec-archive-change/
   - openspec-bugfix/
   - openspec-spike/
+□ 不存在旧的 command/（单数）目录
 ```
 
 **全部通过 → 提示用户：**
