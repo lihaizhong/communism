@@ -148,6 +148,7 @@ SHALL NOT:
 - Leave TODOs unresolved
 - Mix feature work with bugfix in the same change
 - Mix research/spike work with implementation in the same change
+- Bypass checks using `--no-verify`, `--force`, or similar flags (ALWAYS fix root causes instead)
 
 ## Communication
 
