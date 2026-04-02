@@ -682,8 +682,9 @@ openspec init
 
 **模板文件来源说明**：
 - 模板位于 **OpenSpec Harness 安装包根目录** 的 `.template/` 目录下
+- **`.template` 目录与本文档 `install.md` 位于同一目录**
 - 执行时需定位到安装包目录，或使用绝对路径
-- 示例：如果 OpenSpec Harness 安装在 `~/openspec-opc/`，则模板路径为 `~/openspec-opc/.template/`
+- 示例：如果 `install.md` 的完整路径为 `https://github.com/user/repo/blob/main/openspec-opc/install.md`，则模板路径为 `openspec-opc/.template/`
 
 > ⚠️ **覆盖警告**：模板文件将**完全覆盖**已有配置：
 > - `openspec/config.yaml` → 覆盖已有配置（新项目无此问题）
