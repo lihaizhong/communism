@@ -16,6 +16,12 @@
 - **OpenSpec OPC**: 查看 [`openspec-opc/README.md`](openspec-opc/README.md)
 - **OpenSpec Team**: 查看 [`openspec-team/README.md`](openspec-team/README.md)
 
+## 参考链接
+
+- [OpenAI - Harness Engineering](https://openai.com/zh-Hans-CN/index/harness-engineering/)
+- [Anthropic - Effective Harnesses for Long-Running Agents](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents)
+- [IceBearMiner - X/Twitter](https://x.com/IceBearMiner/status/2037888800341610684)
+
 ## 许可证
 
 [Apache License 2.0](LICENSE)
