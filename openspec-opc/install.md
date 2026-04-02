@@ -219,6 +219,29 @@ B) 已有项目，想引入 Harness
 [确认安装] [更换目录] [取消]
 ```
 
+### Step 3.5.4 检测已存在的 AI 文档（老项目）
+
+> 🎯 **ACTION**: 仅对老项目执行 —— 检测根目录下是否已有 AI 指导文档
+
+**检测文件列表：**
+
+| 文件名 | 说明 |
+|--------|------|
+| `AGENTS.md` | OpenCode / 通用 AI 指南 |
+| `CLAUDE.md` | Claude Code 项目文档 |
+| `IFLOW.md` | iFlow 或其他框架文档 |
+| `CURSOR_RULES.md` | Cursor 规则文件 |
+| `.cursorrules` | Cursor 规则（无扩展名） |
+| `copilot-instructions.md` | GitHub Copilot 指令 |
+| `.github/copilot-instructions.md` | Copilot 组织级指令 |
+
+**决策分支：**
+
+- **0 个文件** → 直接进入阶段 4，使用模板全新生成
+- **1+ 个文件** → 进入阶段 4.2.3「信息提取与整合」流程
+
+> 💡 **说明**：检测到已有 AI 文档时，AI 将自动提取其中的技术栈、项目结构、编码规范等信息，询问用户是否整合到 OpenSpec 配置中，而非简单覆盖。
+
 ---
 
 ## 阶段 4：执行安装
@@ -273,52 +296,138 @@ openspec/
 □ openspec-spike/
 ```
 
-#### 4.2.3 AGENTS.md 生成
+#### 4.2.3 已有 AI 文档信息提取与整合
 
-**流程：**
+> 🎯 **ACTION**: 当检测到已存在的 AI 文档（AGENTS.md、CLAUDE.md、IFLOW.md 等）时执行
+
+**Step 4.2.3.1 扫描已存在的 AI 文档**
+
+检测以下常见 AI 文档：
+
+| 文件名 | 典型来源 | 内容类型 |
+|--------|----------|----------|
+| `AGENTS.md` | OpenCode / 通用 | AI 角色、工作流、约束 |
+| `CLAUDE.md` | Claude Code | 项目上下文、编码规范 |
+| `IFLOW.md` | iFlow / 其他框架 | 交互流程、角色定义 |
+| `CURSOR_RULES.md` | Cursor | 编码规则、项目结构 |
+| `.cursorrules` | Cursor | 规则文件 |
+| `copilot-instructions.md` | GitHub Copilot | 指令、上下文 |
+
+**Step 4.2.3.2 信息提取映射**
+
+根据四层配置体系，将提取的信息映射到对应目标文件：
+
+| 提取来源 | 信息类型 | 目标文件 | 映射说明 |
+|----------|----------|----------|----------|
+| **AGENTS.md** | AI 角色定义 | `AGENTS.md` | 提取角色描述，合并到 Harness 角色体系 |
+| **AGENTS.md** | 工作流描述 | `AGENTS.md` | 提取现有工作流，询问是否替换为 OpenSpec 工作流 |
+| **CLAUDE.md** | 项目技术栈 | `openspec/config.yaml` | 提取语言、框架、工具链信息 |
+| **CLAUDE.md** | 项目结构 | `openspec/config.yaml` | 提取 src/ 目录、测试目录位置 |
+| **CLAUDE.md** | 编码规范 | `AGENTS.md` | 提取代码风格、命名规范 |
+| **IFLOW.md** | 交互模式 | `AGENTS.md` | 提取人机协作模式 |
+| **CURSOR_RULES.md** | 代码规则 | `AGENTS.md` | 提取代码约束、最佳实践 |
+| **任意文件** | 常用命令 | `openspec/config.yaml` | 提取 dev/build/test/lint 等命令 |
+
+**Step 4.2.3.3 整合决策流程**
+
+```
+检测到已有 AI 文档？
+├─ 否 → 直接使用模板生成
+└─ 是 → 逐个文档处理：
+    ├─ 提取信息（按上述映射表）
+    ├─ 向用户展示提取摘要：
+    │   "从 CLAUDE.md 提取到以下信息：
+    │    - 技术栈: TypeScript + Next.js
+    │    - 测试目录: src/__tests__/
+    │    - 编码规范: Airbnb ESLint
+    │    是否整合到 OpenSpec 配置？"
+    ├─ 用户确认整合
+    │   ├─ 是 → 合并到对应目标文件
+    │   └─ 否 → 保留原文件，单独生成新配置
+    └─ 询问是否保留原文件作为备份
+```
+
+**Step 4.2.3.4 AGENTS.md 生成（含整合逻辑）**
+
+**标准流程：**
 
 1. 读取模板 `.template/AGENTS.md`
-2. 替换变量占位符
-3. **冲突检测**：检查目标文件是否存在
+2. 如果有已提取的 AI 角色/规范信息 → 整合到对应章节
+3. 替换变量占位符
+4. **冲突检测**：检查目标文件是否存在
 
-**冲突处理决策树：**
+**冲突处理决策树（更新版）：**
 
 ```
 目标文件已存在？
 ├─ 是 → 有 OpenSpec 标识？
 │   ├─ 是 → 询问是否更新
-│   └─ 否 → 是专属 AI 文档？(IFLOW.md, CLAUDE.md 等)
-│       ├─ 是 → 询问：同时生成 / 合并 / 跳过
+│   └─ 否 → 是专属 AI 文档？(CLAUDE.md, IFLOW.md 等)
+│       ├─ 是 → 进入「信息提取与整合」流程
+│       │       (提取信息 → 展示摘要 → 用户确认 → 合并生成)
 │       └─ 否 → 备份后创建
 └─ 否 → 直接写入
 ```
 
+**整合示例：**
+
+假设从 `CLAUDE.md` 提取到：
+```markdown
+## 项目结构
+- 源代码位于 `src/`
+- 测试使用 Vitest，位于 `src/__tests__/`  
+- 使用 pnpm 作为包管理器
+
+## 编码规范
+- 使用 Airbnb TypeScript 规范
+- 所有函数必须有 JSDoc 注释
+```
+
+整合后生成：
+```yaml
+# openspec/config.yaml
+src:
+  purpose: Main source code
+  scope: Application logic
+  tests: src/__tests__/
+
+commands:
+  test: pnpm test
+  test_unit: pnpm vitest
+
+conventions:
+  - Airbnb TypeScript ESLint
+  - JSDoc required for all functions
+```
+
 ### Step 4.3 配置变量填充
+
+> 💡 **提示**：以下变量优先从 **Step 4.2.3 信息提取**中获得（如果用户已有 AI 文档）。否则通过用户交互或自动检测填充。
 
 #### AGENTS.md 变量
 
-| 占位符                | 替换为   | 示例                       |
-| --------------------- | -------- | -------------------------- |
-| `PROJECT_NAME`        | 项目名称 | `MyApp`                    |
-| `PROJECT_DESCRIPTION` | 项目描述 | `A web application for...` |
-| `TEST_DIR`            | 测试目录 | `src/tests/`               |
-| `SRC_DIR`             | 源码目录 | `src/`                     |
-| `PACKAGE_MANAGER`     | 包管理器 | `pnpm`                     |
+| 占位符                | 替换为   | 示例                       | 提取来源 |
+| --------------------- | -------- | -------------------------- | -------- |
+| `PROJECT_NAME`        | 项目名称 | `MyApp`                    | 用户输入 / package.json |
+| `PROJECT_DESCRIPTION` | 项目描述 | `A web application for...` | CLAUDE.md / 用户输入 |
+| `TEST_DIR`            | 测试目录 | `src/tests/`               | CLAUDE.md / 自动检测 |
+| `SRC_DIR`             | 源码目录 | `src/`                     | CLAUDE.md / 自动检测 |
+| `PACKAGE_MANAGER`     | 包管理器 | `pnpm`                     | lock 文件 / 用户输入 |
 
 #### config.yaml 变量
 
 **基础变量（直接替换）：**
 
-| 占位符                    | 替换为     | 示例                |
-| ------------------------- | ---------- | ------------------- |
-| `{{PROJECT_NAME}}`        | 项目名称   | `MyApp`             |
-| `{{PROJECT_DESCRIPTION}}` | 项目描述   | `A web application` |
-| `{{LANGUAGE}}`            | 编程语言   | `TypeScript`        |
-| `{{RUNTIME}}`             | 运行时     | `Node.js >=22.0.0`  |
-| `{{PACKAGE_MANAGER}}`     | 包管理器   | `pnpm`              |
-| `{{LANGUAGE_VERSION}}`    | 语言版本   | `TypeScript 5.9+`   |
-| `{{TEST_FRAMEWORK}}`      | 测试框架   | `vitest`            |
-| `{{RUNTIME_VERSION}}`     | 运行时版本 | `Node.js >=22.0.0`  |
+| 占位符                    | 替换为     | 示例                | 提取来源 |
+| ------------------------- | ---------- | ------------------- | -------- |
+| `{{PROJECT_NAME}}`        | 项目名称   | `MyApp`             | package.json / 用户输入 |
+| `{{PROJECT_DESCRIPTION}}` | 项目描述   | `A web application` | CLAUDE.md / 用户输入 |
+| `{{LANGUAGE}}`            | 编程语言   | `TypeScript`        | 文件扩展名 / CLAUDE.md |
+| `{{RUNTIME}}`             | 运行时     | `Node.js >=22.0.0`  | package.json engines / CLAUDE.md |
+| `{{PACKAGE_MANAGER}}`     | 包管理器   | `pnpm`              | lock 文件 / CLAUDE.md |
+| `{{LANGUAGE_VERSION}}`    | 语言版本   | `TypeScript 5.9+`   | package.json / CLAUDE.md |
+| `{{TEST_FRAMEWORK}}`      | 测试框架   | `vitest`            | devDependencies / CLAUDE.md |
+| `{{RUNTIME_VERSION}}`     | 运行时版本 | `Node.js >=22.0.0`  | package.json engines / CLAUDE.md |
 
 **条件变量（根据项目类型生成整行）：**
 
