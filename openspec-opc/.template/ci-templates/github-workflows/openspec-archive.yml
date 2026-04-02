@@ -1,0 +1,53 @@
+# OpenSpec Archive Workflow
+# 在 release 发布时自动归档已完成的变更
+
+name: OpenSpec Archive
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      change_id:
+        description: 'Specific change ID to archive (leave empty to archive all completed)'
+        required: false
+        type: string
+
+jobs:
+  archive:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup {{RUNTIME}}
+        uses: actions/setup-node@v4
+        with:
+          node-version: '{{NODE_VERSION}}'
+          cache: '{{PACKAGE_MANAGER}}'
+
+      - name: Install dependencies
+        run: {{PACKAGE_MANAGER}} install
+
+      - name: Run validation
+        run: |
+          {{PACKAGE_MANAGER}} lint
+          {{PACKAGE_MANAGER}} test
+
+      - name: Archive changes
+        run: |
+          if [ -n "${{ github.event.inputs.change_id }}" ]; then
+            openspec archive ${{ github.event.inputs.change_id }}
+          else
+            openspec archive --all-completed
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Commit archive
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add openspec/archive/
+          git diff --staged --quiet || git commit -m "chore: archive completed changes [skip ci]"
+          git push

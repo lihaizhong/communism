@@ -1,0 +1,55 @@
+# OpenSpec Archive Pipeline for GitLab
+# 在 tag 发布时自动归档已完成的变更
+# 根据项目实际情况修改变量和命令
+
+stages:
+  - validate
+  - archive
+
+variables:
+  GIT_DEPTH: 10
+  # 可选：指定特定变更 ID
+  # OPENSPEC_CHANGE_ID: ""
+
+# 验证阶段 - 在归档前运行测试和 lint
+openspec:validate:
+  stage: validate
+  script:
+    - {{PACKAGE_MANAGER}} install
+    - {{PACKAGE_MANAGER}} lint
+    - {{PACKAGE_MANAGER}} test
+  rules:
+    - if: $CI_COMMIT_TAG
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+    - if: $CI_PIPELINE_SOURCE == "web"
+  tags:
+    - docker
+
+# 归档阶段 - 归档已完成的变更
+openspec:archive:
+  stage: archive
+  script:
+    - {{PACKAGE_MANAGER}} install
+    # 归档变更
+    - |
+      if [ -n "$OPENSPEC_CHANGE_ID" ]; then
+        openspec archive "$OPENSPEC_CHANGE_ID"
+      else
+        openspec archive --all-completed
+      fi
+    # 提交归档结果
+    - git config user.email "gitlab-ci@example.com"
+    - git config user.name "GitLab CI"
+    - git add openspec/archive/
+    - git diff --staged --quiet || git commit -m "chore: archive completed changes [skip ci]"
+    - git push https://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_SERVER_HOST}/${CI_PROJECT_PATH}.git HEAD:${CI_COMMIT_REF_NAME}
+  rules:
+    - if: $CI_COMMIT_TAG
+    - if: $CI_PIPELINE_SOURCE == "web"
+      when: manual
+      allow_failure: true
+  needs:
+    - job: openspec:validate
+      optional: false
+  tags:
+    - docker

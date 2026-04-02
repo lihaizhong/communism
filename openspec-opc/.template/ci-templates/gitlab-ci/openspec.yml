@@ -1,0 +1,17 @@
+# OpenSpec Archive Job for GitLab (Include 模式)
+# 当项目已有 .gitlab-ci.yml 时使用
+# 
+# 使用方法：
+# 1. 将此文件保存为 .gitlab/ci/openspec.yml
+# 2. 在主 .gitlab-ci.yml 中添加：
+#    include:
+#      - local: '.gitlab/ci/openspec.yml'
+
+dotnet:openspec:archive:
+  extends: .dotnet:deploy:base
+  stage: deploy
+  script:
+    - openspec archive --all-completed
+  rules:
+    - if: $CI_COMMIT_TAG
+  when: manual
