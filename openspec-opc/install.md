@@ -132,6 +132,10 @@ B) 已有项目，想引入 Harness
 
 ### 检测清单
 
+> ⚠️ **以下检测清单仅为示例**（针对 Node.js/Web 前端项目）。实际使用时，请根据阶段 2 确定的项目类型（Web 前端/客户端/服务端/全栈），采用对应技术栈的检测逻辑。
+
+**示例：Node.js/Web 前端项目检测项**
+
 ```
 □ 检查 package.json → Node.js 项目确认
   □ 解析 dependencies: next→Next.js, react→React, vue→Vue
@@ -139,6 +143,17 @@ B) 已有项目，想引入 Harness
 □ 检查 lock 文件: pnpm-lock.yaml→pnpm, yarn.lock→yarn
 □ 检查配置文件: next.config.js→Next.js, tailwind.config.js→Tailwind
 ```
+
+**其他项目类型的检测思路：**
+
+| 项目类型 | 关键检测文件/特征 | 示例 |
+|---------|------------------|------|
+| **Go 服务端** | `go.mod` | 模块名、Go 版本、依赖 |
+| **Java 服务端** | `pom.xml` / `build.gradle` | 构建工具、Spring 版本 |
+| **Python 服务端** | `requirements.txt` / `pyproject.toml` | 依赖包、Python 版本 |
+| **Rust 客户端** | `Cargo.toml` | 包名、依赖、特性 |
+| **Flutter 客户端** | `pubspec.yaml` | SDK 版本、依赖 |
+| **Tauri 客户端** | `src-tauri/Cargo.toml` + `package.json` | 混合技术栈 |
 
 ### 检测报告模板
 
