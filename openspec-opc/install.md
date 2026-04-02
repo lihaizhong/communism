@@ -549,7 +549,7 @@ grep -E '\{\{[A-Z_]+\}\}' openspec/config.yaml AGENTS.md
 ## 附录：模板目录结构
 
 ```
-docs/openspec/.template/
+openspec-opc/.template/
 ├── README.md                    # 模板使用说明
 ├── AGENTS.md                    # AI 行为指南模板
 ├── openspec/
