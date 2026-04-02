@@ -287,7 +287,7 @@ pwd && ls -la
 
 ### ✅ 项目目录验证通过后
 
-继续执行「阶段 1：收集项目信息」。
+继续执行「阶段 2：收集项目信息」。
 
 ## 🎯 安装流程速览
 
@@ -322,7 +322,7 @@ pwd && ls -la
 
 ---
 
-## 阶段 1：收集项目信息
+## 阶段 1：确认项目状态（新项目/老项目）
 
 ### Step 1.1 新项目 or 老项目？
 
@@ -354,7 +354,7 @@ B) 已有项目，想引入 Harness
 
 ---
 
-## 阶段 2：项目类型专属问题（信息采集关键点）
+## 阶段 2：收集项目信息（信息采集关键点）
 
 > ⚠️ **IMPORTANT**: 本阶段是**配置变量的主要数据来源**，无论新项目还是老项目都必须执行。
 
@@ -847,6 +847,280 @@ fi
 
 > 💡 **说明**: 本节列出所有需要填充的变量及其数据来源，辅助 AI 完成变量替换。
 
+### 5.6 可选：CI/CD 配置生成
+
+> 🎯 **ACTION**: 询问用户是否生成 CI/CD 和 pre-commit hook 配置
+
+> ⚠️ **说明**: AGENTS.md 中提到的 `Validate` 和 `Archive` 两步默认为自动执行（通过 git hook 和 CI/CD）。如果用户选择不生成这些配置，阶段 6 将更新 AGENTS.md 将这两步标记为手动执行。
+
+**询问用户：**
+
+```
+🤖 检测到 AGENTS.md 中定义了两个自动执行的工作流步骤：
+
+| 步骤     | 触发方式        | 说明                      |
+|----------|----------------|---------------------------|
+| Validate | pre-commit hook | 提交前自动运行机器验收    |
+| Archive  | CI/CD Pipeline | 发布/部署时自动归档变更   |
+
+请选择 CI/CD 平台：
+
+【选项 1】GitHub Actions
+  - 创建 .github/workflows/openspec-archive.yml
+  - AGENTS.md 保持 "Auto" 标记
+
+【选项 2】GitLab CI
+  - 创建 .gitlab-ci.yml（或 .gitlab/ci/openspec-archive.yml）
+  - AGENTS.md 保持 "Auto" 标记
+
+【选项 3】其他平台（手动配置）
+  - 提供通用配置模板作为参考
+  - AGENTS.md 中触发方式改为 "Manual"
+
+【选项 4】跳过（完全手动）
+  - 不生成任何配置文件
+  - 阶段 6 将更新 AGENTS.md，两步均改为 "Manual"
+
+是否生成 pre-commit hook？（独立于 CI/CD 平台）
+[是] 创建 .husky/pre-commit 或 .git/hooks/pre-commit
+[否] 跳过，阶段 6 将 Validate 改为 "Manual"
+
+请选择（1/2/3/4 + Y/N）：
+```
+
+#### 平台 1：GitHub Actions
+
+**步骤 5.6.1：创建 GitHub Actions Workflow**
+
+根据项目类型生成 `.github/workflows/openspec-archive.yml`：
+
+```yaml
+# 示例：Node.js 项目
+name: OpenSpec Archive
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      change_id:
+        description: 'Specific change ID to archive (leave empty to archive all completed)'
+        required: false
+        type: string
+
+jobs:
+  archive:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup {{RUNTIME}}
+        uses: actions/setup-node@v4
+        with:
+          node-version: '{{NODE_VERSION}}'
+          cache: '{{PACKAGE_MANAGER}}'
+
+      - name: Install dependencies
+        run: {{PACKAGE_MANAGER}} install
+
+      - name: Run validation
+        run: |
+          {{PACKAGE_MANAGER}} lint
+          {{PACKAGE_MANAGER}} test
+
+      - name: Archive changes
+        run: |
+          if [ -n "${{ github.event.inputs.change_id }}" ]; then
+            openspec archive ${{ github.event.inputs.change_id }}
+          else
+            openspec archive --all-completed
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Commit archive
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add openspec/archive/
+          git diff --staged --quiet || git commit -m "chore: archive completed changes [skip ci]"
+          git push
+```
+
+#### 平台 2：GitLab CI
+
+**步骤 5.6.1：创建 GitLab CI Pipeline**
+
+根据项目类型生成 `.gitlab-ci.yml`：
+
+```yaml
+# OpenSpec Archive Pipeline for GitLab
+# 在 tag 发布时自动归档已完成的变更
+
+stages:
+  - validate
+  - archive
+
+variables:
+  GIT_DEPTH: 10
+
+# 验证阶段
+openspec:validate:
+  stage: validate
+  script:
+    - {{PACKAGE_MANAGER}} install
+    - {{PACKAGE_MANAGER}} lint
+    - {{PACKAGE_MANAGER}} test
+  rules:
+    - if: $CI_COMMIT_TAG
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+    - if: $CI_PIPELINE_SOURCE == "web"
+  tags:
+    - docker
+
+# 归档阶段
+openspec:archive:
+  stage: archive
+  script:
+    - {{PACKAGE_MANAGER}} install
+    - |
+      if [ -n "$OPENSPEC_CHANGE_ID" ]; then
+        openspec archive "$OPENSPEC_CHANGE_ID"
+      else
+        openspec archive --all-completed
+      fi
+    - git config user.email "gitlab-ci@example.com"
+    - git config user.name "GitLab CI"
+    - git add openspec/archive/
+    - git diff --staged --quiet || git commit -m "chore: archive completed changes [skip ci]"
+    - git push https://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_SERVER_HOST}/${CI_PROJECT_PATH}.git HEAD:${CI_COMMIT_REF_NAME}
+  rules:
+    - if: $CI_COMMIT_TAG
+    - if: $CI_PIPELINE_SOURCE == "web"
+      when: manual
+      allow_failure: true
+  needs:
+    - job: openspec:validate
+      optional: false
+  tags:
+    - docker
+```
+
+**替代方案：使用 Include**
+
+如果项目已有 `.gitlab-ci.yml`，可以创建独立文件：
+
+```yaml
+# .gitlab/ci/openspec.yml
+dotnet:openspec:archive:
+  extends: .dotnet:deploy:base
+  stage: deploy
+  script:
+    - openspec archive --all-completed
+  rules:
+    - if: $CI_COMMIT_TAG
+  when: manual
+```
+
+然后在主文件引入：
+```yaml
+include:
+  - local: '.gitlab/ci/openspec.yml'
+```
+
+#### 平台 3：其他 CI/CD 平台
+
+提供通用配置模板作为参考：
+
+**通用 Pipeline 结构：**
+
+```yaml
+# 通用 CI/CD 配置模板
+# 根据你的平台调整语法
+
+pipeline:
+  stages:
+    - validate
+    - archive
+
+  validate:
+    commands:
+      - {{PACKAGE_MANAGER}} install
+      - {{PACKAGE_MANAGER}} lint
+      - {{PACKAGE_MANAGER}} test
+    on:
+      - tag
+      - manual
+
+  archive:
+    commands:
+      - openspec archive --all-completed
+      - git add openspec/archive/
+      - git commit -m "chore: archive completed changes"
+      - git push
+    on:
+      - tag
+    needs:
+      - validate
+```
+
+> 📝 **说明**: 选择此选项后，AGENTS.md 将更新为 "Manual"，用户需手动配置。
+
+#### 步骤 5.6.2：创建 pre-commit hook
+
+根据项目类型选择合适的方案：
+
+**方案 1：使用 husky（推荐用于 Node.js 项目）**
+
+```bash
+# 检查是否已安装 husky
+if ! grep -q "husky" package.json; then
+  echo "husky 未安装，请先安装：{{PACKAGE_MANAGER}} add -D husky"
+  echo "然后运行：npx husky init"
+fi
+
+# 创建 hook
+echo '{{PACKAGE_MANAGER}} test' > .husky/pre-commit
+echo '{{PACKAGE_MANAGER}} lint' >> .husky/pre-commit
+```
+
+**方案 2：原生 git hook（适用于所有项目）**
+
+```bash
+# 创建 pre-commit hook
+cat > .git/hooks/pre-commit << 'EOF'
+#!/bin/sh
+# OpenSpec Validate - 提交前验证
+
+echo "🔍 运行 OpenSpec 验证..."
+
+# 运行测试
+{{PACKAGE_MANAGER}} test
+if [ $? -ne 0 ]; then
+  echo "❌ 测试未通过，提交被拒绝"
+  exit 1
+fi
+
+# 运行 lint
+{{PACKAGE_MANAGER}} lint
+if [ $? -ne 0 ]; then
+  echo "❌ Lint 检查未通过，提交被拒绝"
+  exit 1
+fi
+
+echo "✅ 验证通过"
+EOF
+
+chmod +x .git/hooks/pre-commit
+```
+
+#### 选项 4：跳过（手动执行）
+
+不生成任何配置文件，由用户手动执行验证和归档操作。
+
+> 📝 **注意**: 选择此选项后，阶段 6 将更新 AGENTS.md，将两步均改为手动触发。
+
 #### AGENTS.md 变量
 
 | 占位符                | 替换为   | 示例                       | 数据来源 |
@@ -924,6 +1198,39 @@ grep -E '\{\{[A-Z_]+\}\}' openspec/config.yaml AGENTS.md
 
 ## 阶段 6：完成验证
 
+### 6.1 可选：更新 AGENTS.md 触发方式标记
+
+> 🎯 **ACTION**: 根据阶段 5.6 的用户选择，更新 AGENTS.md 中的触发方式标记
+
+**如果用户选择选项 A（生成完整 CI/CD）：**
+- 无需修改，保持原样
+
+**如果用户选择选项 B（仅 pre-commit hook）：**
+
+更新 AGENTS.md 第 90 行，将 Archive 步骤改为手动：
+
+```markdown
+| Archive  | `/opsx-archive`        | Archive completed change | Manual                    |
+```
+
+**如果用户选择选项 C（跳过/手动执行）：**
+
+更新 AGENTS.md 第 89-90 行，将两步均改为手动：
+
+```markdown
+| Validate | `/opsx-validate`       | Machine acceptance       | Manual                    |
+| Archive  | `/opsx-archive`        | Archive completed change | Manual                    |
+```
+
+> 💡 **说明**: 修改后向用户展示：
+> ```
+> 📝 AGENTS.md 已更新：
+> - Validate 步骤：Manual（手动执行 /opsx-validate）
+> - Archive 步骤：Manual（手动执行 /opsx-archive）
+> ```
+
+### 6.2 验证清单
+
 > 🎯 **ACTION**: 安装完成后逐项验证：
 
 ```
@@ -945,12 +1252,34 @@ grep -E '\{\{[A-Z_]+\}\}' openspec/config.yaml AGENTS.md
   - openspec-bugfix/
   - openspec-spike/
 □ 不存在旧的 command/（单数）目录
+□ CI/CD 配置（如选择生成）:
+  □ .github/workflows/openspec-archive.yml（选项 A）
+  □ pre-commit hook 已配置（选项 A/B）
 ```
 
 **全部通过 → 提示用户：**
 
 ```
 🎉 OpenSpec Harness 环境搭建完成！
+
+配置摘要：
+├─ openspec/config.yaml         ✅ 已配置
+├─ openspec/schemas/            ✅ 已创建
+├─ AGENTS.md                    ✅ 已配置
+├─ {{AI_CONFIG_DIR}}/commands/  ✅ 6 个命令
+├─ {{AI_CONFIG_DIR}}/skills/    ✅ 6 个技能
+{{- if OPTION_A or OPTION_B }}
+├─ pre-commit hook              ✅ 已配置
+{{- endif }}
+{{- if OPTION_A }}
+├─ GitHub Actions               ✅ 已配置
+{{- else }}
+├─ GitHub Actions               ⏭️  手动执行 (/opsx-archive)
+{{- endif }}
+{{- if OPTION_C }}
+├─ Validate                     ⏭️  手动执行 (/opsx-validate)
+├─ Archive                      ⏭️  手动执行 (/opsx-archive)
+{{- endif }}
 
 下一步：
 1. 查看 openspec/config.yaml 确认配置
@@ -960,6 +1289,11 @@ grep -E '\{\{[A-Z_]+\}\}' openspec/config.yaml AGENTS.md
    新功能：/opsx-propose my-first-feature
    Bug 修复：/opsx-bugfix some-bug
    技术调研：/opsx-spike evaluate-options
+
+{{- if OPTION_C or not OPTION_A }}
+💡 提示：Validate 和 Archive 步骤已设为手动执行。
+   如需自动化，可重新运行安装或手动配置 CI/CD。
+{{- endif }}
 ```
 
 ---
@@ -976,10 +1310,20 @@ openspec-opc/.template/
 │       ├── spec-driven/         # 新功能开发
 │       ├── bugfix/              # Bug 修复
 │       └── spike/               # 技术调研
-└── custom/                      # AI 配置模板
-    ├── commands/                # 6 个命令文件
-    └── skills/                  # 6 个技能目录
+├── custom/                      # AI 配置模板
+│   ├── commands/                # 6 个命令文件
+│   └── skills/                  # 6 个技能目录
+└── ci-templates/                # CI/CD 配置模板（可选生成）
+    ├── github-workflows/        # GitHub Actions 模板
+    │   └── openspec-archive.yml
+    ├── gitlab-ci/               # GitLab CI 模板
+    │   ├── gitlab-ci.yml
+    │   └── openspec.yml
+    └── hooks/                   # Git hook 模板
+        └── pre-commit
 ```
+
+> 💡 **说明**: `ci-templates/` 目录包含可选的 CI/CD 配置模板。用户在阶段 5.6 可选择是否将这些配置生成到项目中。支持 GitHub Actions 和 GitLab CI 两种平台。如果选择不生成，阶段 6 将自动更新 AGENTS.md 将对应步骤标记为 "Manual"（手动执行）。
 
 ---
 
