@@ -2,6 +2,54 @@
 
 > **AI 指令**：本文档指导你完成 Harness 环境搭建。**逐阶段执行，不要跳过任何步骤。**
 
+## 📑 目录（快速导航）
+
+> **AI 阅读提示**：先理解目录结构，再根据用户当前状态跳转到对应阶段。
+
+| 阶段 | 说明 | 执行条件 |
+|------|------|----------|
+| **前置要求** | OpenSpec CLI 安装 + 项目目录检查 | **必须执行** |
+| **阶段 0** | 项目初始化 | 仅项目目录不存在时执行 |
+| **阶段 1** | 确认项目状态（新项目/老项目） | 项目目录存在时执行 |
+| **阶段 2** | 收集项目信息 | **所有项目必须执行** |
+| **阶段 3** | 技术栈检测与确认 | 新项目=确认用户输入；老项目=自动检测 |
+| **阶段 4** | AI 配置目录选择 + 原有文档检测 | **所有项目必须执行** |
+| **阶段 5** | 执行安装（核心流程） | **所有项目必须执行** |
+| **阶段 6** | 完成验证 | **所有项目必须执行** |
+
+**快速流程判断**：
+```
+开始
+  ↓
+前置要求检查
+  ├─ CLI 未安装？→ 执行 CLI 安装
+  └─ CLI 已安装？→ 继续
+  ↓
+项目目录检查
+  ├─ 目录存在？→ 跳到阶段 1
+  └─ 目录不存在？→ 执行阶段 0
+      ↓
+    阶段 0 完成？→ 进入阶段 1
+  ↓
+阶段 1：确认项目状态（新项目/老项目）
+  ↓
+阶段 2：收集项目信息
+  ↓
+阶段 3：技术栈检测
+  ├─ 新项目？→ 确认用户输入
+  └─ 老项目？→ 自动检测
+  ↓
+阶段 4：AI 配置目录选择
+  ↓
+阶段 5：执行安装（核心流程）
+  ├─ 5.1 执行 openspec init
+  ├─ 5.2 信息提取（老项目专属）
+  ├─ 5.3 模板替换 + 变量填充
+  └─ 5.4 整合非技术类信息（可选）
+  ↓
+阶段 6：完成验证
+```
+
 ---
 
 ## ⚠️ 前置要求（必须）
@@ -63,21 +111,197 @@ openspec --version  # 验证安装
 
 ---
 
+## ⚠️ 项目目录要求（重要）
+
+**MUST: 项目目录必须存在**
+
+> OpenSpec Harness 需要在项目根目录创建配置文件。在继续之前，请确保项目目录已创建。
+
+### 检查项目目录
+
+首先确认当前所在目录：
+
+```bash
+pwd
+ls -la
+```
+
+### 项目目录状态判断
+
+**情况 1：当前已在项目根目录**
+- 存在 `package.json`、`go.mod`、`Cargo.toml` 等项目文件
+- **操作**：直接继续执行后续步骤
+
+**情况 2：需要创建新项目**
+- 用户尚未创建项目目录
+- **操作**：执行「步骤 0：项目初始化」（见下方）
+
+**情况 3：项目目录在其他位置**
+- 用户的项目不在当前目录
+- **操作**：引导用户切换到项目目录
+
+---
+
+## 阶段 0：项目初始化（仅新项目需要）
+
+> 🎯 **ACTION**: 仅在用户需要创建新项目时执行
+
+### Step 0.1 确认项目初始化需求
+
+如果用户需要创建新项目，询问：
+
+```
+检测到你需要创建新项目。OpenSpec Harness 需要在项目根目录安装。
+
+请选择项目初始化方式：
+
+【选项 A】使用框架脚手架（推荐）
+  适合：想快速搭建框架基础结构
+  示例：
+  - Next.js: npx create-next-app@latest my-app
+  - Nuxt: npx nuxi@latest init my-app
+  - Vite (React/Vue): npm create vite@latest my-app
+  - Tauri: npm create tauri-app@latest
+
+【选项 B】创建空项目目录
+  适合：已有代码仓库，或手动搭建技术栈
+  命令：
+  - mkdir my-project && cd my-project
+  - git init
+
+【选项 C】已有项目目录
+  适合：项目目录已存在，只需引入 Harness
+  操作：请切换到项目根目录后告知 AI
+
+【选项 D】跳过项目初始化
+  适合：稍后手动创建项目
+  操作：终止安装流程，等待用户完成项目初始化后重新运行
+
+请选择你的情况（A/B/C/D）：
+```
+
+### Step 0.2 执行项目初始化（根据用户选择）
+
+#### 选项 A：使用框架脚手架
+
+```
+请告诉我你想使用的框架，我将提供相应的脚手架命令：
+
+1. Next.js
+2. Nuxt
+3. Vite (React/Vue)
+4. Tauri
+5. 其他（请说明）
+
+[用户选择后]
+
+推荐命令：<对应框架的脚手架命令>
+
+请执行此命令，完成后告诉我继续。AI 将等待你的确认。
+```
+
+> ⚠️ **IMPORTANT**: AI 应等待用户确认项目初始化完成，再继续后续步骤。
+
+#### 选项 B：创建空项目目录
+
+```bash
+# 引导用户执行
+mkdir <项目名称>
+cd <项目名称>
+git init
+
+# 可选：初始化基础文件
+npm init -y  # 如果需要 Node.js 项目
+```
+
+#### 选项 C：已有项目目录
+
+```
+请切换到你的项目根目录：
+
+cd <你的项目路径>
+
+确认项目根目录后，告诉我继续。
+```
+
+#### 选项 D：跳过项目初始化
+
+```
+⚠️ OpenSpec Harness 安装需要项目目录。
+
+请完成项目初始化后，重新运行本指南：
+🔗 <当前文档的完整地址>
+```
+
+### Step 0.3 验证项目目录
+
+用户完成项目初始化后，验证：
+
+```bash
+# 检查项目根目录标志
+pwd && ls -la
+```
+
+**验证标准**（至少存在一项）：
+- 项目配置文件：`package.json` / `go.mod` / `Cargo.toml` / `pyproject.toml` / `requirements.txt`
+- Git 仓库标志：`.git/` 目录存在
+- 框架脚手架标志：`next.config.js` / `nuxt.config.ts` / `vite.config.ts` 等
+
+**验证结果**:
+
+- ✅ **检测到项目根目录标志**：
+  ```
+  📁 检测到项目目录：<项目名称>
+  项目类型：<自动识别的类型>
+  
+  ✓ 可以继续安装 Harness
+  ```
+
+- ❌ **未检测到项目根目录标志**：
+  ```
+  ⚠️ 当前目录未检测到项目文件。
+  
+  请确认：
+  1. 是否已执行项目初始化命令？
+  2. 是否已切换到项目根目录？
+  
+  确认完成后告诉我继续。
+  ```
+
+### ✅ 项目目录验证通过后
+
+继续执行「阶段 1：收集项目信息」。
+
 ## 🎯 安装流程速览
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
-│  1. 检查 openspec CLI 安装                                   │
+│  前置：检查 openspec CLI 安装                                 │
 ├──────────────────────────────────────────────────────────────┤
-│  2. 收集项目信息（新项目/老项目 + 项目类型）                  │
+│  前置：检查项目目录是否存在                                    │
 ├──────────────────────────────────────────────────────────────┤
-│  3. 执行 openspec init（仅创建目录结构）                     │
+│  阶段 0：项目初始化（仅项目目录不存在时）                      │
 ├──────────────────────────────────────────────────────────────┤
-│  4. AI 从 .template 拷贝并填充配置                           │
+│  阶段 1：确认项目状态（新项目/老项目）                         │
 ├──────────────────────────────────────────────────────────────┤
-│  5. 完成验证                                                 │
+│  阶段 2：收集项目信息（所有项目必须）                          │
+├──────────────────────────────────────────────────────────────┤
+│  阶段 3：技术栈检测（自动检测 or 人工确认）                    │
+├──────────────────────────────────────────────────────────────┤
+│  阶段 4：AI 配置目录选择与原有文档检测                        │
+├──────────────────────────────────────────────────────────────┤
+│  阶段 5：执行 openspec init 并应用 Harness 模板               │
+├──────────────────────────────────────────────────────────────┤
+│  阶段 6：完成验证                                             │
 └──────────────────────────────────────────────────────────────┘
 ```
+
+> 📝 **流程说明**：
+> - **前置步骤**：在所有阶段之前执行，检查必要条件
+> - **阶段 0**：仅当项目目录不存在时执行
+> - **阶段 1**：确认项目状态（新项目/老项目），此时项目目录已存在
+> - **阶段 3**：新项目使用阶段2的用户输入；老项目执行自动检测
+> - 其他阶段对所有项目类型都必须执行
 
 ---
 
@@ -113,7 +337,9 @@ B) 已有项目，想引入 Harness
 
 ---
 
-## 阶段 2：项目类型专属问题
+## 阶段 2：项目类型专属问题（信息采集关键点）
+
+> ⚠️ **IMPORTANT**: 本阶段是**配置变量的主要数据来源**，无论新项目还是老项目都必须执行。
 
 根据项目类型询问：
 
@@ -124,13 +350,27 @@ B) 已有项目，想引入 Harness
 | **服务端**   | 语言/运行时、Web框架、数据库、ORM、认证方案、部署目标、项目名称              |
 | **全栈**     | 全栈框架(Next.js/Nuxt等)、渲染模式、数据库、ORM、认证、部署平台、项目名称    |
 
+> 🎯 **ACTION - 新项目**: 用户回答后，将信息**暂存到内存**，用于后续填充配置变量。
+
+> 🎯 **ACTION - 老项目**: 本阶段信息仅作为"用户预期"，实际以**阶段 3 检测结果为准**。
+
 ---
 
-## 阶段 3：老项目自动检测
+## 阶段 3：技术栈检测与确认
 
-> 🎯 **ACTION**: 仅对老项目执行
+> 🎯 **ACTION**: 根据项目状态执行不同的技术栈确认方式
 
-### 检测清单
+### 项目类型分支
+
+**情况 A：新项目（刚通过阶段 0 初始化）**
+- 跳过自动检测，直接使用**阶段 2 用户输入的信息**
+- AI 询问："确认你的技术栈配置：[展示收集的信息]"
+
+**情况 B：老项目（已有项目）**
+- 执行自动技术栈检测
+- 展示检测报告，询问用户确认
+
+### 3.1 检测清单（老项目专属）
 
 > ⚠️ **以下检测清单仅为示例**（针对 Node.js/Web 前端项目）。实际使用时，请根据阶段 2 确定的项目类型（Web 前端/客户端/服务端/全栈），采用对应技术栈的检测逻辑。
 
@@ -155,7 +395,7 @@ B) 已有项目，想引入 Harness
 | **Flutter 客户端** | `pubspec.yaml` | SDK 版本、依赖 |
 | **Tauri 客户端** | `src-tauri/Cargo.toml` + `package.json` | 混合技术栈 |
 
-### 检测报告模板
+### 3.2 检测报告模板
 
 ```
 🔍 技术栈检测报告
@@ -175,9 +415,9 @@ B) 已有项目，想引入 Harness
 
 ---
 
-## 阶段 3.5：AI 配置目录检测与选择
+## 阶段 4：AI 配置目录选择与原有文档检测
 
-### Step 3.5.1 扫描已存在的 AI 配置
+### 4.1 扫描已存在的 AI 配置
 
 检测以下目录：
 
@@ -189,23 +429,36 @@ B) 已有项目，想引入 Harness
 | Copilot     | `.github/copilot/` | `instructions.md` |
 | VS Code     | `.vscode/`         | `settings.json`   |
 
-**决策分支：**
+**决策分支**：
 
-- **0 个目录** → 进入 Step 3.5.2
+- **0 个目录** → 进入 Step 4.2
 - **1 个目录** → 询问："检测到 [工具] 配置，是否在此更新？"
 - **2+ 个目录** → 多选界面："选择要更新的目录"
 
-### Step 3.5.2 检测当前运行的 AI
+> ⚠️ **覆盖警告**：如果选择更新已有目录，Harness 模板将**完全覆盖**目录中的以下内容：
+> - `commands/` 目录（所有 `.md` 命令文件）
+> - `skills/` 目录（所有技能目录）
+> - 已有的自定义命令和技能将被替换
+>
+> **建议**：如果已有自定义配置，建议备份后再继续，或选择创建新的配置目录。
+
+### 4.2 检测当前运行的 AI
 
 通过以下信号检测：
 
-- `OPENCODE_SESSION_ID` → OpenCode
-- `CLAUDE_CODE_VERSION` → Claude Code
-- `CURSOR_VERSION` → Cursor
+- `OPENCODE_SESSION_ID` 环境变量 → OpenCode
+- `CLAUDE_CODE_VERSION` 环境变量 → Claude Code
+- `CURSOR_VERSION` 环境变量 → Cursor
 
-> 🎯 **ACTION**: 如果检测到新工具，询问是否创建配置目录。
+> 📝 **说明**：
+> - 以上环境变量为示例，实际可用性取决于各 AI 工具的实现
+> - Copilot 和 VS Code 目前无标准环境变量检测方法，需手动确认
 
-### Step 3.5.3 确认目标目录
+> 🎯 **ACTION**: 如果检测到当前运行的 AI 工具，建议创建对应的配置目录。
+
+### 4.3 确认目标目录（新项目流程）
+
+> ⚠️ **IMPORTANT**: 新项目默认创建 `.opencode/` 目录（OpenCode 标准）
 
 显示并确认：
 
@@ -219,7 +472,22 @@ B) 已有项目，想引入 Harness
 [确认安装] [更换目录] [取消]
 ```
 
-### Step 3.5.4 检测已存在的 AI 文档（老项目）
+**新项目决策流程**：
+```
+新项目 → 是否有现有 AI 配置？
+  ├─ 否 → 推荐创建 .opencode/ → 用户确认
+  └─ 是 → 进入步骤 4.1 的多选流程
+```
+
+**老项目决策流程**：
+```
+老项目 → 扫描现有 AI 配置（步骤 4.1）
+  ├─ 0 个 → 进入步骤 4.2
+  ├─ 1 个 → 询问："检测到 [工具] 配置，是否在此更新？"
+  └─ 2+ 个 → 多选界面："选择要更新的目录"
+```
+
+### 4.4 检测已存在的 AI 文档（老项目）
 
 > 🎯 **ACTION**: 仅对老项目执行 —— 检测根目录下是否已有 AI 指导文档
 
@@ -237,45 +505,144 @@ B) 已有项目，想引入 Harness
 
 **决策分支：**
 
-- **0 个文件** → 直接进入阶段 4，使用模板全新生成
-- **1+ 个文件** → 进入阶段 4.2.3「信息提取与整合」流程
+- **0 个文件** → 直接进入阶段 5，使用模板全新生成
+- **1+ 个文件** → 进入阶段 5.1「信息提取与整合」流程
 
 > 💡 **说明**：检测到已有 AI 文档时，AI 将自动提取其中的技术栈、项目结构、编码规范等信息，询问用户是否整合到 OpenSpec 配置中。如果用户选择不整合，则直接使用 OpenSpec 模板生成配置（覆盖现有文件）。
 
 ---
 
-## 阶段 4：执行安装
+## 阶段 5：执行安装
 
-### Step 4.1 创建目录结构
+> ⚠️ **CRITICAL**: 本阶段是信息流整合的核心，请严格按照顺序执行。
 
-> ⚠️ **CRITICAL**: 执行 `openspec init` 仅创建空目录结构
+### 信息流概览
 
 ```
-openspec/
-├── schemas/
-└── changes/
-
-{{AI_CONFIG_DIR}}/
-├── commands/
-└── skills/
+┌─────────────────────────────────────────────────────────────────┐
+│                        信息流分类                               │
+├─────────────────────────────────────────────────────────────────┤
+│  技术栈信息（框架/语言/包管理器等）                              │
+│  ├─ 来源：阶段 2（新项目）或 阶段 3（老项目检测）                │
+│  ├─ 用途：填充 config.yaml 和 AGENTS.md 中的变量占位符          │
+│  └─ 处理：直接传递到 Step 5.3，不经过整合流程                   │
+├─────────────────────────────────────────────────────────────────┤
+│  非技术类信息（编码规范/AI角色/项目约定）                        │
+│  ├─ 来源：阶段 4.4 提取自现有 AI 文档                           │
+│  ├─ 用途：合并到 AGENTS.md 的约定部分                           │
+│  └─ 处理：经过 Step 5.2 → Step 5.3 → Step 5.4 的整合流程        │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
-### Step 4.2 从模板拷贝配置
+### 5.1 执行 openspec init
 
-> 🎯 **ACTION**: 从 `openspec-opc/.template/` 复制以下文件：
+```bash
+openspec init
+```
 
-| 源文件                           | 目标文件                       |
-| -------------------------------- | ------------------------------ |
-| `.template/openspec/config.yaml` | `openspec/config.yaml`         |
-| `.template/openspec/schemas/*`   | `openspec/schemas/*`           |
-| `.template/AGENTS.md`            | `AGENTS.md`                    |
-| `.template/custom/commands/*`    | `{{AI_CONFIG_DIR}}/commands/*` |
-| `.template/custom/skills/*`      | `{{AI_CONFIG_DIR}}/skills/*`   |
+这会创建完整的默认配置：
+- `openspec/config.yaml`（默认项目配置）
+- `openspec/schemas/`（默认 schema 模板）
+- `{{AI_CONFIG_DIR}}/commands/`（默认 AI 命令）
+- `{{AI_CONFIG_DIR}}/skills/`（默认 AI 技能）
 
-> ⚠️ **CRITICAL**: Commands 和 Skills **必须**从 `.template/custom/` 复制，**禁止使用** `openspec init` 生成的默认内容！
+> ⚠️ **注意**: 生成的是**通用默认配置**，需要在后续步骤替换为 Harness 专用模板
 
-#### 4.2.1 Commands 清单（必须全部复制）
+### 5.2 信息提取（老项目专属）
 
+> 🎯 **ACTION**: 仅在阶段 4.4 检测到已有 AI 文档时执行
+
+如果阶段 4.4 检测到已有 AI 文档：
+
+**第一步：提取信息**
+
+```
+从原有文档提取到以下信息：
+- 技术栈: TypeScript + Next.js
+- 项目结构: src/ 源码目录
+- 编码规范: Airbnb ESLint
+- AI 角色定义: SpecWriter, Developer, Tester
+```
+
+**第二步：信息分类与校验**
+
+> ⚠️ **CRITICAL**: 区分两类信息的处理方式
+
+| 信息类型 | 校验规则 | 处理方式 | 最终用途 |
+|----------|----------|----------|----------|
+| **技术栈信息** (框架/语言/包管理器等) | 与阶段 3 检测结果比对 | 不一致 → **丢弃**，以检测结果为准 | **传递**到 Step 5.3（填充变量） |
+| **项目结构信息** (源码目录/测试目录等) | 与阶段 3 检测结果比对 | 不一致 → **丢弃**，以检测结果为准 | **传递**到 Step 5.3（填充变量） |
+| **常用命令** (dev/test/build 等) | 与 package.json 等比对 | 不存在 → **丢弃** | **传递**到 Step 5.3（填充变量） |
+| **编码规范** | 无需校验 | **保留** | **整合**到 AGENTS.md |
+| **AI 角色/工作流** | 无需校验 | **保留** | **整合**到 AGENTS.md |
+| **项目约定/最佳实践** | 无需校验 | **保留** | **整合**到 AGENTS.md |
+
+**第三步：用户确认**
+
+```
+检测到原有 AI 文档，提取信息如下：
+
+✅ 技术栈信息（以阶段 3 检测结果为准）：
+   - 框架: Next.js 15 ✓
+   - 语言: TypeScript ✓
+
+⚠️  以下信息文档与工程不符，已丢弃：
+   - 包管理器: npm → 实际: pnpm
+
+💡 可整合的非技术类信息：
+   - 编码规范: Airbnb ESLint
+   - AI 角色定义
+
+是否整合上述非技术类信息？
+[整合] → 暂存非技术类信息，进入 Step 5.3
+[不整合] → 丢弃所有提取信息，进入 Step 5.3
+```
+
+**暂存信息说明**：
+
+如果用户选择「整合」：
+
+| 信息类型 | 来源 | 暂存位置 | 后续处理 |
+|----------|------|----------|----------|
+| 技术栈信息（通过校验） | CLAUDE.md / 阶段3检测 | **内存变量池** | Step 5.3 直接填充到 config.yaml |
+| 编码规范、代码风格 | CLAUDE.md / AGENTS.md | **内存暂存** | Step 5.4 合并到 AGENTS.md |
+| AI 角色、工作流定义 | AGENTS.md 等 | **内存暂存** | Step 5.4 合并到 AGENTS.md |
+| 项目约定/最佳实践 | 任意文档 | **内存暂存** | Step 5.4 合并到 AGENTS.md |
+
+> 💡 **关键区分**：
+> - **"技术栈信息"** → **传递路径**：直接填充到模板变量，不修改文档内容
+> - **"非技术类信息"** → **整合路径**：合并到 AGENTS.md 的约定部分
+
+### 5.3 替换为 Harness 模板并填充变量（必须执行）
+
+> ⚠️ **CRITICAL**: 使用 Harness 专用模板**完全替换** `openspec init` 生成的默认配置，并立即填充所有技术栈相关变量
+
+#### 步骤 5.3.1：复制模板文件
+
+**模板文件来源说明**：
+- 模板位于 **OpenSpec Harness 安装包根目录** 的 `.template/` 目录下
+- 执行时需定位到安装包目录，或使用绝对路径
+- 示例：如果 OpenSpec Harness 安装在 `~/openspec-opc/`，则模板路径为 `~/openspec-opc/.template/`
+
+> ⚠️ **覆盖警告**：模板文件将**完全覆盖**已有配置：
+> - `openspec/config.yaml` → 覆盖已有配置（新项目无此问题）
+> - `AGENTS.md` → 覆盖已有文件（如果存在）
+> - `commands/` 和 `skills/` → 在阶段 4 选择的目录中覆盖
+>
+> **安全建议**：
+> - 如果项目已有 `AGENTS.md` 或其他 AI 文档，AI 应在阶段 4.4 检测并询问是否整合
+> - 如果用户选择"不整合"，模板将直接覆盖，原有内容会丢失
+> - 建议在覆盖前备份原有文件
+
+| 源文件 | 目标文件 | 说明 |
+|--------|----------|------|
+| `${OPENSPEC_HARNESS_ROOT}/.template/openspec/config.yaml` | `openspec/config.yaml` | 覆盖默认项目配置 |
+| `${OPENSPEC_HARNESS_ROOT}/.template/openspec/schemas/*` | `openspec/schemas/*` | 覆盖默认 schema |
+| `${OPENSPEC_HARNESS_ROOT}/.template/AGENTS.md` | `AGENTS.md` | 覆盖（如存在原文件则覆盖） |
+| `${OPENSPEC_HARNESS_ROOT}/.template/custom/commands/*` | `{{AI_CONFIG_DIR}}/commands/*` | 覆盖默认命令 |
+| `${OPENSPEC_HARNESS_ROOT}/.template/custom/skills/*` | `{{AI_CONFIG_DIR}}/skills/*` | 覆盖默认技能 |
+
+**必须全部复制的 Commands：**
 ```
 □ opsx-explore.md
 □ opsx-propose.md
@@ -285,8 +652,7 @@ openspec/
 □ opsx-spike.md
 ```
 
-#### 4.2.2 Skills 清单（必须全部复制）
-
+**必须全部复制的 Skills：**
 ```
 □ openspec-explore/
 □ openspec-propose/
@@ -296,141 +662,120 @@ openspec/
 □ openspec-spike/
 ```
 
-#### 4.2.3 已有 AI 文档信息提取与整合
+> ⚠️ **CRITICAL**: Commands 和 Skills **必须**从 `.template/custom/` 复制，**禁止使用** `openspec init` 生成的默认内容！
 
-> 🎯 **ACTION**: 当检测到已存在的 AI 文档（AGENTS.md、CLAUDE.md、IFLOW.md 等）时执行
+#### 步骤 5.3.2：填充技术栈变量
 
-**Step 4.2.3.1 扫描已存在的 AI 文档**
+> 🎯 **ACTION**: 技术栈信息来源于**阶段 2（新项目）或阶段 3（老项目）**，填充到 config.yaml 和 AGENTS.md
 
-检测以下常见 AI 文档：
+**填充流程**：
 
-| 文件名 | 典型来源 | 内容类型 |
-|--------|----------|----------|
-| `AGENTS.md` | OpenCode / 通用 | AI 角色、工作流、约束 |
-| `CLAUDE.md` | Claude Code | 项目上下文、编码规范 |
-| `IFLOW.md` | iFlow / 其他框架 | 交互流程、角色定义 |
-| `CURSOR_RULES.md` | Cursor | 编码规则、项目结构 |
-| `.cursorrules` | Cursor | 规则文件 |
-| `copilot-instructions.md` | GitHub Copilot | 指令、上下文 |
+1. **收集变量值**：
+   - 新项目：使用阶段 2 用户输入的信息
+   - 老项目：使用阶段 3 检测结果（或阶段 5.2 通过校验的信息）
 
-**Step 4.2.3.2 信息提取映射**
+2. **执行变量替换**：
+   - AI 遍历所有占位符，逐一替换
+   - 无法自动填充的变量 → 列表询问用户
 
-根据四层配置体系，将提取的信息映射到对应目标文件：
+3. **用户确认**：
+   ```
+   📝 变量填充预览：
 
-| 提取来源 | 信息类型 | 目标文件 | 映射说明 |
-|----------|----------|----------|----------|
-| **AGENTS.md** | AI 角色定义 | `AGENTS.md` | 提取角色描述，合并到 Harness 角色体系 |
-| **AGENTS.md** | 工作流描述 | `AGENTS.md` | 提取现有工作流，询问是否替换为 OpenSpec 工作流 |
-| **CLAUDE.md** | 项目技术栈 | `openspec/config.yaml` | 提取语言、框架、工具链信息 |
-| **CLAUDE.md** | 项目结构 | `openspec/config.yaml` | 提取 src/ 目录、测试目录位置 |
-| **CLAUDE.md** | 编码规范 | `AGENTS.md` | 提取代码风格、命名规范 |
-| **IFLOW.md** | 交互模式 | `AGENTS.md` | 提取人机协作模式 |
-| **CURSOR_RULES.md** | 代码规则 | `AGENTS.md` | 提取代码约束、最佳实践 |
-| **任意文件** | 常用命令 | `openspec/config.yaml` | 提取 dev/build/test/lint 等命令 |
+   config.yaml:
+   - PROJECT_NAME: MyApp
+   - PACKAGE_MANAGER: pnpm
+   - WEB_FRAMEWORK: Next.js 15
 
-**Step 4.2.3.3 整合决策流程**
+   AGENTS.md:
+   - PROJECT_NAME: MyApp
+   - SRC_DIR: src/
+   - TEST_DIR: src/tests/
 
-```
-检测到已有 AI 文档？
-├─ 否 → 直接使用模板生成
-└─ 是 → 逐个文档处理：
-    ├─ 提取信息（按上述映射表）
-    ├─ 向用户展示提取摘要：
-    │   "从 CLAUDE.md 提取到以下信息：
-    │    - 技术栈: TypeScript + Next.js
-    │    - 测试目录: src/__tests__/
-    │    - 编码规范: Airbnb ESLint
-    │   
-    │   是否整合到 OpenSpec 配置？"
-    ├─ 用户选择：
-    │   ├─ [整合] → 合并提取的信息到对应目标文件
-    │   └─ [不整合] → 直接使用模板生成（覆盖现有文件）
-    └─ 如果选择整合 → 询问是否备份原文件
-```
+   以下变量需要确认：
+   - TEST_FRAMEWORK: [未检测] 请输入测试框架名称
+   - BUILD_TOOL: [未检测] 请输入构建工具名称（留空跳过）
 
-> ⚠️ **注意**：用户选择「不整合」时，**直接使用 OpenSpec 模板生成新配置，覆盖现有文件**（原文件如有需要请提前手动备份）。
+   [确认并填充] [修改配置]
+   ```
 
-**Step 4.2.3.4 AGENTS.md 生成（含整合逻辑）**
+4. **验证填充结果**：
 
-**标准流程：**
+   ```bash
+   # 替换完成后检查是否还有未替换的占位符
+   grep -E '\{\{[A-Z_]+\}\}' openspec/config.yaml AGENTS.md
+   # 应该无输出
+   ```
 
-1. 读取模板 `.template/AGENTS.md`
-2. 如果有已提取的 AI 角色/规范信息 → 整合到对应章节
-3. 替换变量占位符
-4. **冲突检测**：检查目标文件是否存在
+> ⚠️ **CRITICAL**: 所有占位符**必须**替换，不能原样复制到目标文件！
 
-**冲突处理决策树（更新版）：**
+### 5.4 整合非技术类信息（仅选择「整合」时执行）
 
-```
-目标文件已存在？
-├─ 是 → 有 OpenSpec 标识？
-│   ├─ 是 → 询问是否更新
-│   └─ 否 → 是专属 AI 文档？(CLAUDE.md, IFLOW.md 等)
-│       ├─ 是 → 进入「信息提取与整合」流程
-│       │       (提取信息 → 展示摘要 → 用户确认 → 合并生成)
-│       └─ 否 → 备份后创建
-└─ 否 → 直接写入
-```
+> 💡 **说明**: 本步骤仅整合**非技术类信息**（编码规范、AI角色、项目约定等）。技术栈信息已在 Step 5.3 填充完成。
+
+如果 Step 5.2 用户选择「整合」：
+- 将暂存的编码规范、AI 角色等信息 → 合并到 `AGENTS.md`
+- 将暂存的项目约定/最佳实践 → 合并到 `AGENTS.md`
+
+如果用户选择「不整合」：
+- 跳过此步骤，保持 Harness 模板原样（丢弃原有 AI 文档内容）
 
 **整合示例：**
 
-假设从 `CLAUDE.md` 提取到：
+假设从 `CLAUDE.md` 提取到（已通过校验）：
 ```markdown
-## 项目结构
-- 源代码位于 `src/`
-- 测试使用 Vitest，位于 `src/__tests__/`  
-- 使用 pnpm 作为包管理器
-
 ## 编码规范
 - 使用 Airbnb TypeScript 规范
 - 所有函数必须有 JSDoc 注释
+- 组件文件使用 PascalCase 命名
+
+## AI 角色定义
+- SpecWriter: 负责编写规格文档
+- Developer: 负责实现代码
+- Tester: 负责验证测试
 ```
 
-整合后生成：
-```yaml
-# openspec/config.yaml
-src:
-  purpose: Main source code
-  scope: Application logic
-  tests: src/__tests__/
+整合后 `AGENTS.md` 追加：
+```markdown
+## 编码规范
+- Airbnb TypeScript ESLint
+- JSDoc required for all functions
+- 组件文件使用 PascalCase 命名
 
-commands:
-  test: pnpm test
-  test_unit: pnpm vitest
-
-conventions:
-  - Airbnb TypeScript ESLint
-  - JSDoc required for all functions
+## AI 角色
+- SpecWriter: 负责编写规格文档
+- Developer: 负责实现代码
+- Tester: 负责验证测试
 ```
 
-### Step 4.3 配置变量填充
+### 5.5 变量参考表
 
-> 💡 **提示**：以下变量优先从 **Step 4.2.3 信息提取**中获得（如果用户已有 AI 文档）。否则通过用户交互或自动检测填充。
+> 💡 **说明**: 本节列出所有需要填充的变量及其数据来源，辅助 AI 完成变量替换。
 
 #### AGENTS.md 变量
 
-| 占位符                | 替换为   | 示例                       | 提取来源 |
+| 占位符                | 替换为   | 示例                       | 数据来源 |
 | --------------------- | -------- | -------------------------- | -------- |
-| `PROJECT_NAME`        | 项目名称 | `MyApp`                    | 用户输入 / package.json |
-| `PROJECT_DESCRIPTION` | 项目描述 | `A web application for...` | CLAUDE.md / 用户输入 |
-| `TEST_DIR`            | 测试目录 | `src/tests/`               | CLAUDE.md / 自动检测 |
-| `SRC_DIR`             | 源码目录 | `src/`                     | CLAUDE.md / 自动检测 |
-| `PACKAGE_MANAGER`     | 包管理器 | `pnpm`                     | lock 文件 / 用户输入 |
+| `PROJECT_NAME`        | 项目名称 | `MyApp`                    | 阶段 2 用户输入 / package.json |
+| `PROJECT_DESCRIPTION` | 项目描述 | `A web application for...` | 阶段 2 用户输入 / CLAUDE.md |
+| `TEST_DIR`            | 测试目录 | `src/tests/`               | 阶段 3 检测 / 用户输入 |
+| `SRC_DIR`             | 源码目录 | `src/`                     | 阶段 3 检测 / 用户输入 |
+| `PACKAGE_MANAGER`     | 包管理器 | `pnpm`                     | 阶段 3 检测 / 阶段 2 用户输入 |
 
 #### config.yaml 变量
 
 **基础变量（直接替换）：**
 
-| 占位符                    | 替换为     | 示例                | 提取来源 |
+| 占位符                    | 替换为     | 示例                | 数据来源 |
 | ------------------------- | ---------- | ------------------- | -------- |
-| `{{PROJECT_NAME}}`        | 项目名称   | `MyApp`             | package.json / 用户输入 |
-| `{{PROJECT_DESCRIPTION}}` | 项目描述   | `A web application` | CLAUDE.md / 用户输入 |
-| `{{LANGUAGE}}`            | 编程语言   | `TypeScript`        | 文件扩展名 / CLAUDE.md |
-| `{{RUNTIME}}`             | 运行时     | `Node.js >=22.0.0`  | package.json engines / CLAUDE.md |
-| `{{PACKAGE_MANAGER}}`     | 包管理器   | `pnpm`              | lock 文件 / CLAUDE.md |
-| `{{LANGUAGE_VERSION}}`    | 语言版本   | `TypeScript 5.9+`   | package.json / CLAUDE.md |
-| `{{TEST_FRAMEWORK}}`      | 测试框架   | `vitest`            | devDependencies / CLAUDE.md |
-| `{{RUNTIME_VERSION}}`     | 运行时版本 | `Node.js >=22.0.0`  | package.json engines / CLAUDE.md |
+| `{{PROJECT_NAME}}`        | 项目名称   | `MyApp`             | 阶段 2 用户输入 / package.json |
+| `{{PROJECT_DESCRIPTION}}` | 项目描述   | `A web application` | 阶段 2 用户输入 / CLAUDE.md |
+| `{{LANGUAGE}}`            | 编程语言   | `TypeScript`        | 阶段 3 检测 / 阶段 2 用户输入 |
+| `{{RUNTIME}}`             | 运行时     | `Node.js >=22.0.0`  | 阶段 3 检测 / package.json engines |
+| `{{PACKAGE_MANAGER}}`     | 包管理器   | `pnpm`              | 阶段 3 检测 / 阶段 2 用户输入 |
+| `{{LANGUAGE_VERSION}}`    | 语言版本   | `TypeScript 5.9+`   | 阶段 3 检测 / package.json |
+| `{{TEST_FRAMEWORK}}`      | 测试框架   | `vitest`            | 阶段 3 检测 / devDependencies |
+| `{{RUNTIME_VERSION}}`     | 运行时版本 | `Node.js >=22.0.0`  | 阶段 3 检测 / package.json engines |
 
 **条件变量（根据项目类型生成整行）：**
 
@@ -482,41 +827,6 @@ grep -E '\{\{[A-Z_]+\}\}' openspec/config.yaml AGENTS.md
 
 ---
 
-## 阶段 5：合并规则
-
-> 🎯 **ACTION**: 如果目标文件已存在，按以下规则处理：
-
-### 决策流程
-
-```
-文件是否存在？
-├─ 否 → 使用模板版本
-└─ 是 → 与 openspec 相关？
-    ├─ 否 → 保留现有版本（用户自定义）
-    └─ 是 → 使用模板版本（覆盖）
-```
-
-### "与 openspec 相关" 的文件清单
-
-**必须覆盖（标准组件）：**
-
-```
-✓ openspec/ 目录下所有文件
-✓ AGENTS.md
-✓ {{AI_CONFIG_DIR}}/commands/opsx-{explore,propose,apply,archive}.md
-✓ {{AI_CONFIG_DIR}}/skills/openspec-{explore,propose,apply-change,archive-change}/
-```
-
-**保留用户自定义：**
-
-```
-✗ {{AI_CONFIG_DIR}}/commands/opsx-{bugfix,spike}.md
-✗ {{AI_CONFIG_DIR}}/skills/openspec-{bugfix,spike}/
-✗ 用户自己的其他配置文件
-```
-
----
-
 ## 阶段 6：完成验证
 
 > 🎯 **ACTION**: 安装完成后逐项验证：
@@ -526,7 +836,19 @@ grep -E '\{\{[A-Z_]+\}\}' openspec/config.yaml AGENTS.md
 □ openspec/schemas/ 包含 spec-driven、bugfix、spike
 □ AGENTS.md 存在
 □ {{AI_CONFIG_DIR}}/commands/ 包含 6 个命令文件
+  - opsx-explore.md
+  - opsx-propose.md
+  - opsx-apply.md
+  - opsx-archive.md
+  - opsx-bugfix.md
+  - opsx-spike.md
 □ {{AI_CONFIG_DIR}}/skills/ 包含 6 个技能目录
+  - openspec-explore/
+  - openspec-propose/
+  - openspec-apply-change/
+  - openspec-archive-change/
+  - openspec-bugfix/
+  - openspec-spike/
 ```
 
 **全部通过 → 提示用户：**
