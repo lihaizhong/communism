@@ -4,7 +4,7 @@
 
 ## 使用方式
 
-这些模板在安装阶段 5.6 由用户选择是否生成到项目中。
+这些模板在安装阶段 5 由用户选择是否生成到项目中。
 
 支持的平台：
 - **GitHub Actions** (github-workflows/)
@@ -32,7 +32,7 @@
 - **输出位置**: `.gitlab/ci/openspec.yml`
 - **配置方法**: 在主文件中添加 `include: - local: '.gitlab/ci/openspec.yml'`
 
-### Git Hooks
+### Git Hooks（可选安装）
 
 **hooks/pre-commit**
 - **触发时机**: 每次 `git commit` 前

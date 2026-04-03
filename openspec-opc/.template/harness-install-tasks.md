@@ -35,7 +35,7 @@
 | `CONFIG_CONFLICT` | | 阶段 4 是否检测到目标目录冲突 (yes/no) |
 | `CONFIG_CONFLICT_STRATEGY` | | 阶段 5 用户选择 (backup_overwrite/merge/coexist) |
 | `CI_TYPE` | | 阶段 5 用户选择 (github/gitlab/other) |
-| `GENERATE_PRE_COMMIT` | | 阶段 5 用户选择 (yes/no) |
+| `GENERATE_PRE_COMMIT` | | 阶段 5 用户选择是否安装 `.template/ci-templates/hooks/pre-commit` (yes/no) |
 | `INTEGRATE_AI_DOCS` | | 阶段 4 用户选择 (yes/no) |
 | `EXISTING_AI_DOCS` | | 阶段 4 检测到的已有 AI 文档列表 |
 | `GIT_INITIALIZED` | | 前置检查 (yes/no) |
@@ -93,3 +93,5 @@
 
 - [-] **T8**: 生成 pre-commit hook
   - 触发：`GENERATE_PRE_COMMIT == yes`
+  - 模板来源：`.template/ci-templates/hooks/pre-commit`
+  - 安装位置：`.git/hooks/pre-commit` 或 `.husky/pre-commit`
