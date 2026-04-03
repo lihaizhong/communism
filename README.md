@@ -21,6 +21,8 @@
 - [OpenAI - Harness Engineering](https://openai.com/zh-Hans-CN/index/harness-engineering/)
 - [Anthropic - Effective Harnesses for Long-Running Agents](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents)
 - [IceBearMiner - X/Twitter](https://x.com/IceBearMiner/status/2037888800341610684)
+- [Specification-Driven Development (SDD) - 高見龍](https://kaochenlong.com/sdd-spec-driven-development)
+- [EARS: Easy Approach to Requirements Syntax - Alistair Mavin](https://alistairmavin.com/ears/)
 
 ## 许可证
 
