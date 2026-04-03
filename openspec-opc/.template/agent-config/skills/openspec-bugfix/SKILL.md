@@ -90,13 +90,11 @@ Implement bug fixes using the bugfix schema workflow.
 
 7. **Run validation gates**
 
-   Execute project validation commands:
-
-   ```bash
-   pnpm test:unit
-   pnpm lint
-   pnpm type-check
-   ```
+   Execute the project's configured validation commands from `openspec/config.yaml`.
+   Typical categories are:
+   - unit or regression tests
+   - lint
+   - type-check, compiler check, or static analysis
 
    Ensure all pass before considering the fix complete.
 
@@ -119,7 +117,7 @@ Implement bug fixes using the bugfix schema workflow.
 - **Always add regression test**: Every bugfix must include a test
 - **Document root cause**: Helps prevent similar bugs and improve processes
 - **Follow severity guidelines**: P0 bugs can use hotfix path, others use full workflow
-- **Don't suppress type errors**: Fix them properly, never use `as any` or `@ts-ignore`
+- **Don't suppress language checks**: Fix compiler, type, or static analysis errors properly
 
 **Output Example**
 
@@ -130,7 +128,7 @@ Implement bug fixes using the bugfix schema workflow.
 
 **Files Changed**:
 - src/components/LoginButton.tsx
-- src/tests/regression/login-button-error.test.ts
+- <regression-test-file>
 
 **Testing**:
 - Regression test added: ✓

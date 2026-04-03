@@ -1,182 +1,87 @@
 ---
 target: AI Assistant
-purpose: Operational guidelines for PROJECT_NAME project
+purpose: Minimal operating rules for PROJECT_NAME
 version: 1.0
 ---
 
-# AI Agent Guidelines - PROJECT_NAME Project
+# AI Agent Guidelines - PROJECT_NAME
 
 ## Context
 
 PROJECT_NAME - PROJECT_DESCRIPTION
 
-See [openspec/config.yaml](./openspec/config.yaml) for detailed project configuration.
+Read [openspec/config.yaml](./openspec/config.yaml) for project facts, commands, modules, and workflow settings.
 
-## Roles
+## Core Rules
 
-### SpecWriter
+1. Work from the current OpenSpec artifacts.
+   - For feature work, use `openspec/changes/<name>/`
+   - For bugfix work, use `openspec/bugs/<id>/`
+2. Treat `openspec/config.yaml` as the source of truth for project commands and technical facts.
+3. Keep changes aligned with approved specs, design, and tasks.
+4. Prefer small, reversible changes over broad rewrites.
+5. Preserve existing repository conventions unless the current change explicitly updates them.
 
-Create OpenSpec artifacts for new features.
+## Required Behavior
 
-Artifacts to create:
+The AI SHALL:
 
-- `openspec/changes/<name>/proposal.md` — why we're doing this, what's changing
-- `openspec/changes/<name>/design.md` — technical approach
-- `openspec/changes/<name>/specs/*.md` — requirements and scenarios
-- `openspec/changes/<name>/tasks.md` — implementation checklist
+- clarify requirements before implementing when the task is ambiguous
+- read relevant artifacts before making changes
+- run the project's configured validation commands before considering work complete
+- update specs or tasks when implementation reveals meaningful drift
+- state blockers and assumptions explicitly
 
-Requirements:
+The AI SHALL NOT:
 
-- Use EARS syntax (Easy Approach to Requirements Syntax)
-  - Ubiquitous: `The <system> shall <requirement>`
-  - Event-Driven: `WHEN <trigger> THEN the <system> shall <response>`
-  - State-Driven: `WHILE <state> the <system> shall <behavior>`
-  - Optional: `WHERE <context> the <system> may <optional feature>`
-  - Unwanted: `IF <error condition> THEN the <system> shall <error handling>`
-- Keyword hierarchy: SHALL (mandatory) > SHOULD (recommended) > WILL (commitment) > MAY (optional)
-- Acceptance criteria in GIVEN-WHEN-THEN format
+- make destructive or irreversible changes without user approval
+- silently overwrite user-authored docs, prompts, or configuration
+- mix unrelated work into the same change
+- bypass validation, hooks, or checks just to make progress
+- invent new conventions when the repository already has established ones
 
-### Tester
+## Stop And Ask
 
-Implement tests before code exists.
+Stop and ask the user before continuing if:
 
-Workflow:
+- requirements are unclear in a way that affects implementation
+- artifacts and codebase materially disagree
+- the next step would overwrite existing user-authored rules or configuration
+- validation fails for reasons unrelated to the current task
+- the work requires widening scope beyond the approved change
 
-1. Read specs from `openspec/changes/<name>/specs/*.md`
-2. Create tests in `TEST_DIR/`
-3. Run `PACKAGE_MANAGER test:unit` to confirm tests fail (Red)
-4. Commit tests
+## Workflow
 
-Test coverage:
+Use the workflow that matches the task:
 
-- Normal cases
-- Edge cases
-- Error handling
+- `spec-driven` for new features and enhancements
+- `bugfix` for defects and regressions
+- `spike` for technical research and feasibility work
 
-### Developer
+Do not mix research, bugfix, and feature implementation in the same change unless the user explicitly approves it.
 
-Implement code to pass tests.
+## Validation
 
-Workflow:
+Before completion, run the relevant project checks from `openspec/config.yaml`, such as:
 
-1. Read spec.md and existing tests
-2. Implement in `SRC_DIR/`
-3. Run tests until pass (Green)
-4. Refactor (Refactor)
+- tests
+- lint
+- type-check, compiler checks, or static analysis
+- format checks when configured
 
-Standards:
-
-- Pass `PACKAGE_MANAGER lint`
-- Pass `PACKAGE_MANAGER type-check`
-- Maintain coverage
-
-### Reviewer
-
-Validate code quality and spec compliance.
-
-**Spec Synchronization:**
-
-- [ ] Specs and implementation fully synchronized (no orphan code)
-- [ ] All spec scenarios covered by tests
-- [ ] Acceptance criteria verifiable
-
-**Code Quality:**
-
-- [ ] TypeScript strict mode
-- [ ] All tests pass
-- [ ] No ESLint warnings
-- [ ] Formatted code
-- [ ] Updated docs
-
-## Workflow Commands
-
-| Phase    | Command                | Purpose                  | Trigger                  |
-| -------- | ---------------------- | ------------------------ | ------------------------ |
-| Explore  | `/opsx-explore`        | Clarify requirements     | Manual                   |
-| Propose  | `/opsx-propose <name>` | Create specification     | Manual                   |
-| Spike    | `/opsx-spike <name>`   | Technical research       | Manual                   |
-| Bugfix   | `/opsx-bugfix <id>`    | Fix bugs                 | Manual                   |
-| Apply    | `/opsx-apply`          | TDD implementation       | Manual                   |
-| Validate | pre-commit hook        | Machine acceptance       | Auto (git hook)          |
-| Archive  | GitHub Actions         | Archive completed change | Auto (on release/deploy) |
-
-Full workflow config: [openspec/config.yaml](./openspec/config.yaml)
-
-## TDD Cycle
-
-```
-Write Test → Red (Fail) → Implement → Green (Pass) → Refactor → Repeat
-```
-
-Phases:
-
-- **Red**: Write tests that fail
-- **Green**: Write minimal code to pass
-- **Refactor**: Improve without changing behavior
-
-## OpenSpec + TDD Integration
-
-### Workflow
-
-```
-OpenSpec Phase          TDD Cycle
-────────────────        ─────────
-specs/*.md              → Red: from scenarios write tests
-  └─ WHEN/THEN          → Green: implement code
-tasks.md                → Refactor: refactor code
-  └─ [Red] Write tests       ← each scenario maps to one test
-  └─ [Green] Implement       ← make tests pass
-  └─ [Refactor] Refactor    ← refactor
-```
-
-### Schema-Specific Workflows
-
-| Schema      | Input Artifacts                              | Output Artifacts                    | No Code Production |
-| ----------- | -------------------------------------------- | ----------------------------------- | ------------------ |
-| spec-driven | proposal, design, specs, tasks               | Implementation + tests              | No                 |
-| bugfix      | bug-report, fix                              | Fix + regression tests              | No                 |
-| spike       | research-question, exploration-log, decision | Research findings + decision record | Yes (throwaway)    |
-
-## Constraints
-
-SHALL:
-
-- Use TDD (Red→Green→Refactor)
-- Write tests before implementation
-- Follow directory conventions
-- Use English identifiers
-- Run all gates before commit
-- Use `spec-driven` schema for new features and enhancements
-- Use `bugfix` schema for bug fixes and hotfixes
-- Use `spike` schema for technical research and feasibility studies
-
-SHALL NOT:
-
-- Skip tests
-- Commit failing checks
-- Push to main directly
-- Ignore type errors
-- Leave TODOs unresolved
-- Mix feature work with bugfix in the same change
-- Mix research/spike work with implementation in the same change
-- Bypass checks using `--no-verify`, `--force`, or similar flags (ALWAYS fix root causes instead)
+If a configured command is missing, use the nearest repository-native command already established in the codebase.
 
 ## Communication
 
-With users:
+When working with the user:
 
-- Clarify requirements first
-- Report progress regularly
-- Propose options for problems
-- Document decisions
+- report progress clearly
+- explain the next meaningful step
+- surface tradeoffs when they affect implementation
+- pause with a specific question when blocked
 
-In commits:
+## Evolution
 
-- One logical change per commit
-- Clear commit messages
-- Reference issues when applicable
+This file is intentionally minimal.
 
-## Resources
-
-- [OpenSpec Config](./openspec/config.yaml)
-- [README](./README.md)
+Project-specific constraints, banned behaviors, and additional guardrails may be added over time as the team learns what the AI should and should not do in this repository.

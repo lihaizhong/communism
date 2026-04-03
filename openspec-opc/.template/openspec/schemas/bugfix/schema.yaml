@@ -63,9 +63,9 @@ extensions:
   validation:
     gates:
       pre_commit:
-        - test:all
-        - lint
-        - type-check
+        - project:test:all
+        - project:lint
+        - project:type-or-static-check
         - regression-test
 
   artifacts_config:
@@ -103,7 +103,7 @@ extensions:
       link_required: true
       auto_close: true
     tests:
-      pattern: "src/tests/regression/<bug-id>.test.ts"
+      pattern: "<tests>/regression/<bug-id>-regression-test"
       naming: "should not regress: <symptom>"
 
   hotfix_override:

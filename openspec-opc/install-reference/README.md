@@ -1,30 +1,32 @@
-# 安装参考文档
+# Install Reference
 
-> 本目录包含 `install.md` 的详细参考文档，供 AI 执行安装时查阅。
+本目录包含 OpenSpec Harness 安装流程的阶段定义、任务账本模板和校验工具。
 
-## 文档列表
+## 文件说明
 
-| 文档 | 说明 | 使用时机 |
-|------|------|----------|
-| [install-flow.yaml](./install-flow.yaml) | 机器可读流程定义（YAML） | AI 程序化解析流程 |
-| [variables.md](./variables.md) | 所有需要填充的变量及其数据来源 | 阶段 5.3 变量替换时 |
-| [tech-detection.md](./tech-detection.md) | 各语言/框架的技术栈检测逻辑 | 阶段 3 技术栈检测 |
-| [ci-templates.md](./ci-templates.md) | CI/CD 配置模板（GitHub Actions、GitLab CI等） | 阶段 5.6 CI/CD 配置 |
-| [checklist.md](./checklist.md) | 强制停止点检查清单 | 每个停止点确认 |
-| [error-recovery.md](./error-recovery.md) | 错误恢复和回退指南 | 安装失败时 |
-| [troubleshooting.md](./troubleshooting.md) | 故障排查 FAQ | 遇到问题时 |
+- `stages/*.yaml`
+  - 安装阶段定义
+  - 保持 YAML 作为主编辑格式，便于编写多行提示和 AI 指令
+- `stage.schema.json`
+  - 阶段 YAML 的结构约定
+  - 约束公共元字段和各阶段专有字段
+- `validate_stages.py`
+  - 零额外依赖的校验脚本
+  - 读取 `stage.schema.json` 和 `stages/*.yaml`
+  - 校验阶段文件是否满足当前约定
 
-## AI 阅读提示
+## 使用方式
 
-1. 主文档 `install.md` 包含完整的执行流程
-2. `install-flow.yaml` 提供机器可读的流程定义，便于程序化解析
-3. 在需要详细参考时，AI 应主动查阅本文档目录中的相关文件
-4. 所有参考文档与主文档保持同步更新
+在仓库根目录运行：
 
-## 版本兼容性
+```bash
+python3 openspec-opc/install-reference/validate_stages.py
+```
 
-| 组件 | 最低版本 | 推荐版本 |
-|------|----------|----------|
-| OpenSpec CLI | 0.1.0 | latest |
-| Node.js | 18.0.0 | 22.x LTS |
-| Git | 2.0.0 | latest |
+成功时会输出：
+
+```text
+Validated 8 stage files against stage.schema.json.
+```
+
+失败时会输出逐条错误，包含文件路径和字段位置。

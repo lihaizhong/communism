@@ -1,0 +1,192 @@
+version: "1.0"
+schema_version: "2.0"
+stage: "stage2"
+name: "收集项目信息"
+description: "收集项目基础信息，并写入任务账本作为后续检测和安装的输入。"
+task_file: "harness-install-tasks.md"
+inputs:
+  - PROJECT_TYPE
+  - TECH_CATEGORY
+outputs:
+  - PROJECT_NAME
+  - PROJECT_DESCRIPTION
+  - LANGUAGE
+  - PACKAGE_MANAGER
+  - RUNTIME
+  - PRIMARY_FRAMEWORK
+  - DEPLOY_PLATFORM
+  - BUILD_TOOL
+  - SRC_DIR
+  - TEST_DIR
+  - INSTALL_COMMAND
+  - DEV_COMMAND
+  - BUILD_COMMAND
+  - TEST_COMMAND
+  - TEST_UNIT_COMMAND
+  - LINT_COMMAND
+  - TYPE_CHECK_COMMAND
+  - FORMAT_COMMAND
+fallback:
+  on_missing_required_output: "继续追问，直到关键变量可写入任务账本"
+variable_conventions:
+  case: "UPPER_SNAKE_CASE for task variables"
+  mapping_rule: "question ids may be lower_snake_case, but persisted task variables must be UPPER_SNAKE_CASE"
+
+questions:
+  web_frontend:
+    - id: language
+      label: "主要语言"
+      type: "select"
+      options: ["TypeScript", "JavaScript", "其他"]
+    - id: framework
+      label: "前端框架"
+      type: "select"
+      options: ["React", "Vue", "Angular", "Svelte", "Solid", "其他"]
+    - id: build_tool
+      label: "构建工具"
+      type: "text"
+    - id: package_manager
+      label: "包管理器"
+      type: "select"
+      options: ["pnpm", "yarn", "npm", "bun"]
+    - id: typescript
+      label: "是否使用 TypeScript"
+      type: "bool"
+    - id: deploy_platform
+      label: "部署平台"
+      type: "text"
+
+  client:
+    - id: language
+      label: "主要语言"
+      type: "text"
+    - id: platform
+      label: "目标平台"
+      type: "select"
+      options: ["桌面", "移动端", "跨平台"]
+    - id: framework
+      label: "框架"
+      type: "select"
+      options: ["Electron", "Tauri", "React Native", "Flutter", "其他"]
+    - id: package_manager
+      label: "包管理器"
+      type: "select"
+      options: ["pnpm", "yarn", "npm", "bun"]
+    - id: deploy_method
+      label: "部署方式"
+      type: "text"
+
+  server:
+    - id: language
+      label: "编程语言"
+      type: "text"
+    - id: package_manager
+      label: "包管理器或构建工具"
+      type: "text"
+    - id: web_framework
+      label: "Web 框架"
+      type: "text"
+    - id: database
+      label: "数据库"
+      type: "text"
+    - id: orm
+      label: "ORM"
+      type: "text"
+    - id: auth
+      label: "认证方案"
+      type: "text"
+    - id: deploy_target
+      label: "部署目标"
+      type: "text"
+
+  fullstack:
+    - id: language
+      label: "主要语言"
+      type: "select"
+      options: ["TypeScript", "JavaScript", "其他"]
+    - id: framework
+      label: "全栈框架"
+      type: "select"
+      options: ["Next.js", "Nuxt", "Remix", "SvelteKit", "其他"]
+    - id: package_manager
+      label: "包管理器"
+      type: "select"
+      options: ["pnpm", "yarn", "npm", "bun"]
+    - id: render_mode
+      label: "渲染模式"
+      type: "select"
+      options: ["SSR", "SSG", "ISR", "混合"]
+    - id: database
+      label: "数据库"
+      type: "text"
+    - id: orm
+      label: "ORM"
+      type: "text"
+    - id: auth
+      label: "认证方案"
+      type: "text"
+    - id: deploy_platform
+      label: "部署平台"
+      type: "text"
+
+common_questions:
+  - id: project_name
+    label: "项目名称"
+    type: "text"
+    required: true
+  - id: project_description
+    label: "项目描述"
+    type: "text"
+    required: false
+  - id: runtime
+    label: "运行时版本或目标环境"
+    type: "text"
+    required: false
+  - id: src_dir
+    label: "源码目录"
+    type: "text"
+    required: false
+  - id: test_dir
+    label: "测试目录"
+    type: "text"
+    required: false
+  - id: install_command
+    label: "安装依赖命令"
+    type: "text"
+    required: false
+  - id: dev_command
+    label: "开发命令"
+    type: "text"
+    required: false
+  - id: build_command
+    label: "构建命令"
+    type: "text"
+    required: false
+  - id: test_command
+    label: "测试命令"
+    type: "text"
+    required: false
+  - id: test_unit_command
+    label: "单元测试命令"
+    type: "text"
+    required: false
+  - id: lint_command
+    label: "Lint 命令"
+    type: "text"
+    required: false
+  - id: type_check_command
+    label: "类型或静态检查命令"
+    type: "text"
+    required: false
+  - id: format_command
+    label: "格式检查命令"
+    type: "text"
+    required: false
+
+on_complete:
+  new_project:
+    action: "将所有信息映射并写入 harness-install-tasks.md 配置变量表；将 framework 或 web_framework 统一映射为 PRIMARY_FRAMEWORK；若 LANGUAGE、PACKAGE_MANAGER、PROJECT_NAME 缺失则继续追问，不进入下一阶段"
+    next: "stage3"
+  existing_project:
+    action: "将信息作为用户预期映射并写入 harness-install-tasks.md；将 framework 或 web_framework 统一映射为 PRIMARY_FRAMEWORK"
+    next: "stage3"

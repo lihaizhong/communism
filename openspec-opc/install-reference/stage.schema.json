@@ -1,0 +1,809 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/openspec-opc/install-reference/stage.schema.json",
+  "title": "OpenSpec Harness Stage Schema",
+  "description": "Schema for validating stage YAML files under openspec-opc/install-reference/stages/.",
+  "type": "object",
+  "required": [
+    "version",
+    "schema_version",
+    "stage",
+    "name",
+    "description",
+    "task_file",
+    "inputs",
+    "outputs",
+    "fallback",
+    "variable_conventions"
+  ],
+  "properties": {
+    "version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+$"
+    },
+    "schema_version": {
+      "type": "string",
+      "const": "2.0"
+    },
+    "stage": {
+      "type": "string",
+      "enum": [
+        "prerequisite",
+        "stage0",
+        "stage1",
+        "stage2",
+        "stage3",
+        "stage4",
+        "stage5",
+        "stage6"
+      ]
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1
+    },
+    "task_file": {
+      "type": "string",
+      "const": "harness-install-tasks.md"
+    },
+    "inputs": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/taskVariableName"
+      },
+      "uniqueItems": true
+    },
+    "outputs": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/taskVariableName"
+      },
+      "uniqueItems": true
+    },
+    "fallback": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "variable_conventions": {
+      "type": "object",
+      "required": ["case"],
+      "properties": {
+        "case": {
+          "type": "string",
+          "const": "UPPER_SNAKE_CASE for task variables"
+        },
+        "write_scope": {
+          "type": "string"
+        },
+        "mapping_rule": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "condition": {
+      "type": "string",
+      "minLength": 1
+    },
+    "steps": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/step"
+      }
+    },
+    "questions": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "array",
+        "minItems": 1,
+        "items": {
+          "$ref": "#/$defs/question"
+        }
+      }
+    },
+    "common_questions": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/question"
+      }
+    },
+    "branches": {
+      "type": "object",
+      "required": ["new_project", "existing_project"],
+      "properties": {
+        "new_project": {
+          "$ref": "#/$defs/branchConfig"
+        },
+        "existing_project": {
+          "$ref": "#/$defs/branchConfig"
+        }
+      },
+      "additionalProperties": false
+    },
+    "test_framework_missing": {
+      "$ref": "#/$defs/testFrameworkMissing"
+    },
+    "test_framework_recommendations": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "object",
+        "required": ["framework", "command"],
+        "properties": {
+          "framework": {
+            "type": "string",
+            "minLength": 1
+          },
+          "command": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "pre_check": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/preCheckItem"
+      }
+    },
+    "core_tasks": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/taskItem"
+      }
+    },
+    "conditional_tasks": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/taskItem"
+      }
+    },
+    "ci_config": {
+      "$ref": "#/$defs/ciConfig"
+    },
+    "on_complete": {
+      "$ref": "#/$defs/onComplete"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "stage": {
+            "const": "prerequisite"
+          }
+        }
+      },
+      "then": {
+        "required": ["steps"],
+        "properties": {
+          "steps": {
+            "minItems": 3
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "stage": {
+            "const": "stage0"
+          }
+        }
+      },
+      "then": {
+        "required": ["condition", "steps"],
+        "properties": {
+          "condition": {
+            "const": "USER_REQUESTED_PROJECT_INIT == yes"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "stage": {
+            "const": "stage1"
+          }
+        }
+      },
+      "then": {
+        "required": ["steps"]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "stage": {
+            "const": "stage2"
+          }
+        }
+      },
+      "then": {
+        "required": ["questions", "common_questions", "on_complete"]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "stage": {
+            "const": "stage3"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "branches",
+          "test_framework_missing",
+          "test_framework_recommendations",
+          "on_complete"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "stage": {
+            "const": "stage4"
+          }
+        }
+      },
+      "then": {
+        "required": ["steps", "on_complete"]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "stage": {
+            "const": "stage5"
+          }
+        }
+      },
+      "then": {
+        "required": ["pre_check", "core_tasks", "ci_config", "on_complete"]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "stage": {
+            "const": "stage6"
+          }
+        }
+      },
+      "then": {
+        "required": ["steps", "on_complete"]
+      }
+    }
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "taskVariableName": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9_]*$"
+    },
+    "freeformString": {
+      "type": "string",
+      "minLength": 1
+    },
+    "option": {
+      "type": "object",
+      "required": ["id", "label"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9_\\-]+$"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "action": {
+          "$ref": "#/$defs/freeformString"
+        },
+        "command": {
+          "$ref": "#/$defs/freeformString"
+        },
+        "verify": {
+          "$ref": "#/$defs/freeformString"
+        },
+        "next": {
+          "$ref": "#/$defs/freeformString"
+        },
+        "ai_tool": {
+          "type": "string"
+        },
+        "ai_config_dir": {
+          "type": "string"
+        },
+        "output": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "step": {
+      "type": "object",
+      "required": ["id", "name"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9_\\-]+$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "type": {
+          "type": "string"
+        },
+        "condition": {
+          "type": "string"
+        },
+        "command": {
+          "type": "string"
+        },
+        "prompt": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "retry": {
+          "type": "boolean"
+        },
+        "checks_any": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/checkTarget"
+          }
+        },
+        "detect": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/detectDir"
+          }
+        },
+        "detect_files": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "options": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/option"
+          }
+        },
+        "on_pass": {
+          "$ref": "#/$defs/actionBlock"
+        },
+        "on_fail": {
+          "$ref": "#/$defs/actionBlock"
+        },
+        "on_select": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/actionBlock"
+            },
+            {
+              "type": "object",
+              "minProperties": 1,
+              "additionalProperties": {
+                "$ref": "#/$defs/actionBlock"
+              }
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "actionBlock": {
+      "type": "object",
+      "properties": {
+        "action": {
+          "type": "string"
+        },
+        "next": {
+          "type": "string"
+        },
+        "prompt": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "retry": {
+          "type": "boolean"
+        },
+        "options": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/option"
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "checkTarget": {
+      "type": "object",
+      "properties": {
+        "file": {
+          "type": "string"
+        },
+        "dir": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "anyOf": [
+        {
+          "required": ["file"]
+        },
+        {
+          "required": ["dir"]
+        }
+      ]
+    },
+    "detectDir": {
+      "type": "object",
+      "required": ["dir", "marker", "label"],
+      "properties": {
+        "dir": {
+          "type": "string"
+        },
+        "marker": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "question": {
+      "type": "object",
+      "required": ["id", "label", "type"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "type": {
+          "type": "string",
+          "enum": ["select", "text", "bool"]
+        },
+        "options": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "required": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "select"
+              }
+            }
+          },
+          "then": {
+            "required": ["options"]
+          }
+        }
+      ]
+    },
+    "branchConfig": {
+      "type": "object",
+      "required": ["action"],
+      "properties": {
+        "action": {
+          "type": "string"
+        },
+        "prompt": {
+          "type": "string"
+        },
+        "options": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/option"
+          }
+        },
+        "detect_steps": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "method"],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z0-9_\\-]+$"
+              },
+              "method": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "report_template": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "testFrameworkMissing": {
+      "type": "object",
+      "required": ["condition", "mandatory", "note", "prompt", "options", "on_cancel"],
+      "properties": {
+        "condition": {
+          "type": "string"
+        },
+        "mandatory": {
+          "type": "boolean"
+        },
+        "note": {
+          "type": "string"
+        },
+        "prompt": {
+          "type": "string"
+        },
+        "options": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/option"
+          }
+        },
+        "on_cancel": {
+          "$ref": "#/$defs/actionBlock"
+        }
+      },
+      "additionalProperties": false
+    },
+    "preCheckItem": {
+      "type": "object",
+      "required": ["name"],
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "action": {
+          "type": "string"
+        },
+        "required_vars": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/taskVariableName"
+          }
+        },
+        "on_missing": {
+          "$ref": "#/$defs/actionBlock"
+        },
+        "rules": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["if", "action"],
+            "properties": {
+              "if": {
+                "type": "string"
+              },
+              "action": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "taskItem": {
+      "type": "object",
+      "required": ["id", "name"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^T[0-9]+$"
+        },
+        "name": {
+          "type": "string"
+        },
+        "condition": {
+          "type": "string"
+        },
+        "command": {
+          "type": "string"
+        },
+        "action": {
+          "type": "string"
+        },
+        "stop_point": {
+          "type": "boolean"
+        },
+        "stop_prompt": {
+          "type": "string"
+        },
+        "options": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/option"
+          }
+        },
+        "files": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["src", "dest"],
+            "properties": {
+              "src": {
+                "type": "string"
+              },
+              "dest": {
+                "type": "string"
+              },
+              "rename": {
+                "type": "boolean"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "builtin_frameworks": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "target_files": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "verify": {
+          "type": "object",
+          "required": ["command", "expected"],
+          "properties": {
+            "command": {
+              "type": "string"
+            },
+            "expected": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        },
+        "checks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "minProperties": 1,
+            "properties": {
+              "file_exists": {
+                "type": "string"
+              },
+              "dir_has_content": {
+                "type": "string"
+              },
+              "files_count": {
+                "type": "string"
+              },
+              "dirs_count": {
+                "type": "string"
+              },
+              "not_exists": {
+                "type": "string"
+              },
+              "if": {
+                "type": "string"
+              },
+              "action": {
+                "type": "string"
+              },
+              "desc": {
+                "type": "string"
+              },
+              "file_executable": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "on_complete": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "ciConfig": {
+      "type": "object",
+      "required": ["name", "prompt", "options", "on_select", "on_complete"],
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "prompt": {
+          "type": "string"
+        },
+        "options": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/option"
+          }
+        },
+        "on_select": {
+          "$ref": "#/$defs/actionBlock"
+        },
+        "on_complete": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "onComplete": {
+      "oneOf": [
+        {
+          "type": "object",
+          "minProperties": 1,
+          "properties": {
+            "action": {
+              "type": "string"
+            },
+            "next": {
+              "type": "string"
+            },
+            "verify": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": true
+        },
+        {
+          "type": "object",
+          "required": ["new_project", "existing_project"],
+          "properties": {
+            "new_project": {
+              "$ref": "#/$defs/actionBlock"
+            },
+            "existing_project": {
+              "$ref": "#/$defs/actionBlock"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    }
+  }
+}

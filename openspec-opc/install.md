@@ -1,31 +1,64 @@
 # OpenSpec Harness 安装指南
 
-> **AI 指令**：本文档指导你完成 Harness 环境搭建。**逐阶段执行，不要跳过任何步骤。**
+> 本文档是 OpenSpec Harness 的 AI 执行入口。
+> AI 助手必须从本文档开始，按阶段执行安装流程。
+> 除非文档明确要求，否则不要跨阶段推断、不要跳步、不要提前修改业务文件。
 
-## 📂 模板文件位置
+## 执行规则
 
-> **AI 指令**：模板文件始终位于本文档（install.md）所在目录的 `.template/` 子目录下。
+1. 阶段 `prerequisite` 到 `stage4` 允许读取、检测、提问、记录，但默认不修改业务文件。
+2. 从阶段 `stage1` 结束开始，必须在目标项目根目录创建或更新 `harness-install-tasks.md`；后续所有阶段都以此文件为唯一任务账本。
+3. 阶段 `stage5` 才允许执行安装写入，包括复制模板、替换变量、安装依赖、生成 CI/CD 配置。
+4. 凡是涉及用户已有资产的操作，必须先获得用户明确确认；不得假设“默认覆盖”。
+5. 如果发现信息缺失、变量不完整、检测结果冲突，不要猜测；应回到对应阶段补全并更新 `harness-install-tasks.md`。
+6. 默认采用保守安装策略：优先备份、合并、并存安装；只有在用户明确同意时才允许覆盖。
+7. 每个阶段只加载对应的 YAML 定义；不要一次性读取所有阶段文件。
 
+## 路径与远程推导规则
+
+如果本文档来自远程仓库，所有关联文件都必须基于“当前文档所在提交或分支的相对路径”推导，不要假设默认分支为 `main`。
+
+| 来源形式 | 推导规则 |
+|----------|----------|
+| GitHub `blob/<ref>/path` | 转换为 `raw.githubusercontent.com/<owner>/<repo>/<ref>/path` |
+| GitHub `tree/<ref>/path` | 保持同一 `<ref>`，按相对路径查找原始文件 |
+| 本地文件 | 直接按相对路径访问 |
+
+**示例**
+- 本文档 URL：`https://github.com/user/repo/blob/feature-x/openspec-opc/install.md`
+- stages YAML：`https://raw.githubusercontent.com/user/repo/feature-x/openspec-opc/install-reference/stages/prerequisite.yaml`
+- 模板文件：`https://raw.githubusercontent.com/user/repo/feature-x/openspec-opc/.template/AGENTS.md`
+
+## 文件结构
+
+```text
+openspec-opc/
+├── install.md                  ← AI 执行入口
+├── README.md                   ← 产品介绍
+├── install-reference/
+│   └── stages/                 ← 各阶段 YAML 定义（按需加载）
+│       ├── prerequisite.yaml
+│       ├── stage0-init.yaml
+│       ├── stage1-status.yaml
+│       ├── stage2-collect.yaml
+│       ├── stage3-detect.yaml
+│       ├── stage4-config.yaml
+│       ├── stage5-execute.yaml
+│       └── stage6-verify.yaml
+└── .template/                  ← 安装模板源
+    ├── AGENTS.md               → 目标项目: AGENTS.md
+    ├── harness-install-tasks.md → 目标项目: harness-install-tasks.md（先创建工作副本，再持续更新）
+    ├── openspec/               → 目标项目: openspec/
+    │   ├── config.yaml
+    │   └── schemas/
+    ├── agent-config/           → 目标项目: {{AI_CONFIG_DIR}}/（动态重命名）
+    │   ├── commands/
+    │   └── skills/
+    ├── ci-templates/           → 目标项目: 根据 CI_TYPE 生成对应配置
+    └── README.md               ← 模板说明（安装时不复制）
 ```
-install.md 所在目录/
-├── install.md              ← 本文档
-└── .template/              ← 模板文件（必须）
-    ├── README.md            ← 模板详细结构说明
-    ├── AGENTS.md
-    ├── openspec/
-    ├── custom/
-    └── ci-templates/
-```
 
-> **AI 指令**：完整模板结构请参考 `.template/README.md`，安装时需要复制所有内容。
-
-**推导规则**：
-- 若本文档 URL 为 `https://github.com/xxx/yyy/blob/main/openspec-opc/install.md`
-- 则模板目录为 `https://github.com/xxx/yyy/tree/main/openspec-opc/.template`
-
----
-
-## 📦 版本兼容性
+## 版本兼容性
 
 | 组件 | 最低版本 | 推荐版本 |
 |------|----------|----------|
@@ -33,651 +66,177 @@ install.md 所在目录/
 | **Node.js** | 18.0.0 | 22.x LTS |
 | **Git** | 2.0.0 | latest |
 
-**支持的 AI 工具**：OpenCode、Claude Code、Cursor、GitHub Copilot、VS Code
+## 判定规则
 
-**支持的项目类型**：
-- Web 前端：React、Vue、Angular、Svelte、Next.js、Nuxt、Remix、SvelteKit
-- 客户端：Electron、Tauri、React Native、Flutter
-- 服务端：Node.js、Go、Python、Rust、Java、.NET
-- 全栈：Next.js、Nuxt、Remix、SvelteKit
+### 当前目录是否可作为安装目标
 
----
+满足以下任一条件即可视为“可安装的目标项目根目录”：
 
-## ⚡ 快速启动（经验用户）
+1. 已存在常见项目文件，如 `package.json`、`pyproject.toml`、`go.mod`、`Cargo.toml` 等。
+2. 已是 Git 仓库根目录，且用户明确表示要在该仓库安装 Harness。
+3. 用户明确指定当前目录就是目标项目根目录。
+4. 当前目录为空，但用户明确要求从这里初始化项目。
 
-> 已熟悉安装流程？使用快速路径跳过解释性内容。
+**注意**：当前目录缺少应用项目标志文件，不等于必须进入项目初始化。
 
-**已有项目（推荐路径）**：
+### 何时进入阶段 0
 
-```bash
-# 1. 前置检查
-openspec --version              # 未安装则：npm install -g @fission-ai/openspec@latest
-ls package.json go.mod Cargo.toml pyproject.toml .git  # 确认项目根目录
+仅当以下任一条件成立时进入 `stage0-init.yaml`：
 
-# 2. 执行安装
-openspec init
+1. 用户明确表示要新建项目。
+2. 当前目录为空，且用户确认要在此初始化新项目。
+3. 当前不在目标项目目录，且用户要求 AI 协助初始化目录。
 
-# 3. 复制 Harness 模板（.template/ 目录与本文件同目录）
-cp -r .template/openspec ./openspec/
-cp .template/AGENTS.md ./AGENTS.md
-cp -r .template/custom/commands/* .opencode/commands/
-cp -r .template/custom/skills/* .opencode/skills/
+**禁止** 仅凭“未检测到 `package.json` / `go.mod` / `pyproject.toml`”就自动进入阶段 0。
 
-# 4. 填充变量（参考 variables.md）
-# 搜索 {{变量名}} 并替换为实际值
+### 新项目与已有项目的判定
 
-# 5. 验证
-grep -E '\{\{[A-Z_]+\}\}' openspec/config.yaml AGENTS.md  # 应无输出
-ls .opencode/commands/*.md | wc -l                        # 应输出 6
+1. 优先使用用户明确选择。
+2. 若用户未说明，再结合目录状态辅助判断。
+3. 判断冲突时，必须向用户确认，不能自行推断。
+
+## 单一任务账本
+
+`harness-install-tasks.md` 是安装过程的单一事实来源。
+
+规则如下：
+
+1. 阶段 1 完成后立即在目标项目根目录创建工作副本；如文件已存在，则更新而不是重建。
+2. 阶段 2 到阶段 4 的所有采集、检测、决策结果都必须写入该文件。
+3. 阶段 5 必须只根据该文件执行，不得依赖隐式上下文。
+4. 如果存在暂不能完成的项目，允许标记为 `pending` 或保留未完成原因，但必须写明阻塞原因和下一步。
+
+## 安装阶段
+
+| 阶段 | 输入 | 动作 | 输出 | 失败或信息不足时 |
+|------|------|------|------|------------------|
+| **前置检查** | 当前目录、CLI 环境 | 检查 CLI、检查当前目录是否可作为安装目标 | 继续 / 切换目录 / 进入初始化 | 提示用户处理，不自动推断项目类型 |
+| **阶段 0** | 用户明确要求初始化新项目时 | 引导创建项目目录或切换到已有目录 | 可安装的项目根目录 | 留在本阶段重试 |
+| **阶段 1** | 项目根目录 | 确认“新项目”或“已有项目” | 项目状态确认 | 必要时重新确认 |
+| **阶段 2** | 项目状态 | 收集基础信息，并写入任务账本 | 配置变量初稿 | 对缺失字段继续追问 |
+| **阶段 3** | 项目文件、阶段 2 信息 | 自动检测并补全技术栈信息 | 配置变量完整化 | 回到阶段 2 补信息 |
+| **阶段 4** | AI 配置目录、已有 AI 文档 | 选择目标目录，确定整合策略 | AI 安装决策写入任务账本 | 用户未确认则停止 |
+| **阶段 5** | 完整的任务账本 | 备份、合并、安装、生成配置 | 文件写入完成 | 标记失败项并停止 |
+| **阶段 6** | 已安装文件、任务账本 | 校验结果并输出摘要 | 安装完成报告 | 回写未完成项 |
+
+## 关键原则
+
+1. “当前目录不是应用项目” 不等于 “必须初始化新项目”。
+2. “新项目 / 已有项目” 必须通过用户选择或明确证据确认。
+3. `harness-install-tasks.md` 是安装过程唯一可信的任务来源。
+4. 安装过程允许存在 `pending` 项，但必须明确记录原因和下一步。
+5. 已有 AI 配置、命令、技能、文档默认视为用户资产，禁止无确认覆盖。
+6. 检测结果优先于猜测；用户明确选择优先于自动检测。
+
+## 安全策略
+
+默认顺序如下：
+
+1. 检测现有文件和目录。
+2. 生成安装计划。
+3. 展示将创建、修改、覆盖、删除的项目。
+4. 如有冲突，优先提供以下策略：
+   - 备份后覆盖
+   - 合并到现有文件
+   - 并存安装到新目录
+5. 仅在用户明确确认后执行写入。
+
+如果用户没有明确要求强覆盖，禁止直接替换以下内容：
+
+- `AGENTS.md`
+- 已有 AI 工具目录
+- 已有 `commands/` 或 `skills/` 目录
+- 旧版规则文档
+
+## 强制停止点
+
+| 停止点 | 触发时机 | 必须确认的内容 |
+|--------|----------|----------------|
+| **1** | 选择目标 AI 配置目录前 | 使用哪个 AI 工具目录 |
+| **2** | 检测到已有 AI 文档后 | 整合 / 保留并并存 / 忽略 |
+| **3** | 执行任何覆盖、删除、迁移、重命名前 | 具体受影响的文件和目录 |
+| **4** | 发现高风险冲突时 | 是否继续以及采用何种策略 |
+
+高风险冲突包括但不限于：
+
+- 已有 `AGENTS.md` 或同类规则文件
+- 已有目标 AI 目录且包含自定义 `commands/` 或 `skills/`
+- 需要删除旧兼容目录
+- 模板变量与现有配置不一致
+
+## 特殊规则
+
+### 关于测试框架
+
+1. 测试框架默认应被检测或补全。
+2. 若未检测到测试框架，优先引导用户选择推荐方案或自定义方案。
+3. 若用户暂时不安装，可继续流程，但必须在 `harness-install-tasks.md` 中明确记录：
+   - `TEST_FRAMEWORK`
+   - `TEST_INSTALL_CMD`
+   - 当前状态（如 `pending`）
+   - 未完成原因
+4. 阶段 6 必须将此类未完成项展示在最终摘要中。
+
+### 关于已有 AI 文档整合
+
+整合已有 AI 文档时，默认仅整合非技术类内容，例如：
+
+- 编码规范
+- 协作约定
+- AI 角色定义
+- 交付偏好
+
+不要将陈旧的技术栈信息直接覆盖到新配置；技术事实应以阶段 2 和阶段 3 的结果为准。
+
+## 执行顺序
+
+```text
+1. 加载 prerequisite.yaml → 前置检查
+2. 仅在满足阶段 0 条件时加载 stage0-init.yaml
+3. 加载 stage1-status.yaml → 确认项目状态
+4. 创建或更新 harness-install-tasks.md 工作副本
+5. 加载 stage2-collect.yaml → 收集信息 → 写入任务账本
+6. 加载 stage3-detect.yaml → 自动检测与补全 → 写入任务账本
+7. 加载 stage4-config.yaml → AI 目录与整合策略选择 → 写入任务账本
+8. 加载 stage5-execute.yaml → 基于任务账本执行安装
+9. 加载 stage6-verify.yaml → 最终验证 → 输出完成摘要
 ```
 
-**新项目（从零开始）**：
+## 流程图
 
-```bash
-# 1. 创建项目
-npx create-next-app@latest my-app && cd my-app
+```mermaid
+flowchart TD
+    A[读取 install.md] --> B[前置检查]
+    B --> C{CLI 可用?}
+    C -- 否 --> C1[安装或引导手动安装]
+    C1 --> B
+    C -- 是 --> D{当前目录可作为目标项目根目录?}
 
-# 2. 安装 Harness
-openspec init
+    D -- 否 --> D1[引导切换目录或初始化目录]
+    D1 --> D
+    D -- 是 --> E[确认项目状态: 新项目 / 已有项目]
 
-# 3. 后续步骤同上
+    E --> F[创建或更新 harness-install-tasks.md]
+    F --> G[阶段2 收集基础信息]
+    G --> H[阶段3 自动检测并补全变量]
+
+    H --> I{变量完整?}
+    I -- 否 --> G
+    I -- 是 --> J[阶段4 扫描 AI 目录和 AI 文档]
+
+    J --> K[用户选择目标 AI 目录]
+    K --> L[用户选择整合策略]
+    L --> M[生成安装计划]
+
+    M --> N{存在覆盖/删除/迁移风险?}
+    N -- 是 --> O[展示 diff 与备份/合并/覆盖选项]
+    O --> P[用户确认]
+    N -- 否 --> Q[直接执行安装]
+
+    P --> Q
+    Q --> R[阶段5 写入文件并生成 CI]
+    R --> S[阶段6 验证]
+    S --> T{通过?}
+    T -- 否 --> U[标记失败项与 pending 项]
+    T -- 是 --> V[输出完成摘要与下一步]
 ```
-
-**遇到问题？** 查看 [故障排查 FAQ](./install-reference/troubleshooting.md)
-
----
-
-## 📑 目录（快速导航）
-
-> **AI 阅读提示**：先理解目录结构，再根据用户当前状态跳转到对应阶段。
-
-| 阶段 | 说明 | 执行条件 |
-|------|------|----------|
-| **前置要求** | OpenSpec CLI 安装 + 项目目录检查 | **必须执行** |
-| **阶段 0** | 项目初始化 | 仅项目目录不存在时执行 |
-| **阶段 1** | 确认项目状态（新项目/老项目） | 项目目录存在时执行 |
-| **阶段 2** | 收集项目信息 | **所有项目必须执行** |
-| **阶段 3** | 技术栈检测与确认 | 新项目=确认用户输入；老项目=自动检测 |
-| **阶段 4** | AI 配置目录选择 + 原有文档检测 | **所有项目必须执行** |
-| **阶段 5** | 执行安装（核心流程） | **所有项目必须执行** |
-| **阶段 6** | 完成验证 | **所有项目必须执行** |
-
-**详细参考文档**：`install-reference/` 目录包含详细的变量表、检测逻辑、CI/CD 模板等。
-
----
-
-## 🛑 强制停止点（MANDATORY STOP POINTS）
-
-> **AI 指令**：以下位置**必须停止执行并等待用户确认**，禁止自动继续。
-
-| 停止点 | 位置 | 必须执行的动作 | 详细清单 |
-|--------|------|----------------|----------|
-| **停止点 1** | 阶段 4.1 扫描配置目录后 | 展示检测结果，询问用户选择目标目录 | [checklist.md](./install-reference/checklist.md#停止点-1ai-配置目录选择) |
-| **停止点 2** | 阶段 4.4 检测 AI 文档后 | 展示检测到的文件，询问是否整合 | [checklist.md](./install-reference/checklist.md#停止点-2已有-ai-文档整合) |
-| **停止点 3** | 阶段 5.3 覆盖文件前 | 展示即将覆盖的内容，要求用户明确确认 | [checklist.md](./install-reference/checklist.md#停止点-3文件覆盖确认) |
-
-**验证规则**：
-- 每个停止点必须收到用户的明确选择（点击按钮、输入确认等）
-- 如果用户未选择，必须保持在当前位置等待
-- 禁止假设用户意图或跳过确认
-
----
-
-## ⚠️ 前置要求（必须）
-
-### 检查 OpenSpec CLI 安装
-
-```bash
-openspec --version
-```
-
-**未安装？选择安装方式**：
-
-```
-未检测到 OpenSpec CLI，这是运行本指南的必需工具。
-
-是否自动全局安装？
-[是] npm install -g @fission-ai/openspec@latest
-[否] 稍后手动安装
-```
-
-- **选项 A（自动安装）**：执行 `npm install -g @fission-ai/openspec@latest && openspec --version`
-- **选项 B（手动安装）**：引导用户访问官方文档，完成后重新运行本指南
-
-❌ **如果用户拒绝安装且未手动完成安装，则立即停止执行。**
-
-### 检查项目目录
-
-```bash
-pwd
-ls -la
-```
-
-**判断标准**（至少存在一项）：
-- 项目配置文件：`package.json` / `go.mod` / `Cargo.toml` / `pyproject.toml`
-- Git 仓库标志：`.git/` 目录存在
-- 框架脚手架标志：`next.config.js` / `nuxt.config.ts` / `vite.config.ts` 等
-
-**状态判断**：
-- ✅ 已在项目根目录 → 继续执行阶段 1
-- ⬜ 需要创建新项目 → 执行阶段 0
-- ⬜ 项目在其他位置 → 引导用户切换目录
-
----
-
-## 阶段 0：项目初始化（仅新项目需要）
-
-> 🎯 **ACTION**: 仅在用户需要创建新项目时执行
-
-向用户展示：
-
-```
-检测到你需要创建新项目。OpenSpec Harness 需要在项目根目录安装。
-
-请选择项目初始化方式：
-
-【选项 A】使用框架脚手架（推荐）
-  适合：想快速搭建框架基础结构
-  示例：
-  - Next.js: npx create-next-app@latest my-app
-  - Nuxt: npx nuxi@latest init my-app
-  - Vite (React/Vue): npm create vite@latest my-app
-
-【选项 B】创建空项目目录
-  适合：已有代码仓库，或手动搭建技术栈
-  命令：mkdir my-project && cd my-project && git init
-
-【选项 C】已有项目目录
-  适合：项目目录已存在，只需引入 Harness
-  操作：请切换到项目根目录后告知 AI
-
-【选项 D】跳过项目初始化
-  适合：稍后手动创建项目
-  操作：终止安装流程，等待用户完成项目初始化后重新运行
-
-请选择（A/B/C/D）：
-```
-
-**验证完成**：
-```bash
-pwd && ls -la
-# 确认项目根目录标志存在
-```
-
-✅ 项目目录验证通过后，继续执行阶段 1。
-
----
-
-## 阶段 1：确认项目状态（新项目/老项目）
-
-### Step 1.1 新项目 or 老项目？
-
-```
-你好！我来帮你搭建 OpenSpec Harness 环境。
-
-请告诉我你的情况：
-A) 从零创建新项目
-B) 已有项目，想引入 Harness
-```
-
-### Step 1.2 项目类型
-
-**如果选 A（新项目）**：
-
-```
-请选择项目类型：
-1) Web 前端项目（React/Vue/Angular 等）
-2) 客户端项目（Electron/Tauri/React Native 等）
-3) 服务端项目（Node.js/Go/Java 等）
-4) 全栈项目（Next.js/Nuxt 等）
-```
-
-**如果选 B（老项目）**：
-
-> 🎯 **ACTION**: 自动检测技术栈 → 展示报告 → 用户确认
-
----
-
-## 阶段 2：收集项目信息（信息采集关键点）
-
-> ⚠️ **IMPORTANT**: 本阶段是**配置变量的主要数据来源**，无论新项目还是老项目都必须执行。
-
-根据项目类型询问：
-
-| 项目类型 | 必问问题 |
-|---------|---------|
-| **Web 前端** | 框架(React/Vue/Angular)、构建工具、包管理器、测试框架、TypeScript?、项目名称 |
-| **客户端** | 平台(桌面/移动/跨平台)、框架(Electron/Tauri/Flutter)、包管理器、项目名称 |
-| **服务端** | 语言/运行时、Web框架、数据库、ORM、认证方案、部署目标、项目名称 |
-| **全栈** | 全栈框架(Next.js/Nuxt等)、渲染模式、数据库、ORM、认证、部署平台、项目名称 |
-
-### 项目状态分支处理
-
-**新项目**：
-- 用户回答后，将信息**暂存到内存**
-- 暂存信息将**直接用于填充配置变量**（阶段 5.3）
-
-**老项目**：
-- 用户回答后，将信息标记为**"用户预期描述"**
-- 这些信息**不直接用于配置变量**
-- 在阶段 3 检测完成后，AI 需对比：「用户预期」 vs 「检测结果」
-  - 一致 → 直接使用检测结果填充变量
-  - 不一致 → 向用户确认以哪个为准
-
-> 🎯 **ACTION - 老项目**: 清晰告知用户"我会在阶段 3 自动检测技术栈，您刚才提供的信息会作为我理解项目预期的参考，最终配置以检测结果为准"。
-
----
-
-## 阶段 3：技术栈检测与确认
-
-> 🎯 **ACTION**: 根据项目状态执行不同的技术栈确认方式
-
-### 项目类型分支
-
-**情况 A：新项目**
-- 跳过自动检测，直接使用**阶段 2 用户输入的信息**
-- AI 询问："确认你的技术栈配置：[展示收集的信息]"
-
-**情况 B：老项目**
-- 执行自动技术栈检测
-- 展示检测报告，询问用户确认
-
-### 检测逻辑
-
-> ⚠️ **参考**：详细的各语言/框架检测逻辑见 [install-reference/tech-detection.md](./install-reference/tech-detection.md)
-
-**快速检测示例（Node.js 项目）**：
-
-```bash
-# 框架检测
-grep '"next"' package.json && echo "框架：Next.js"
-grep '"react"' package.json && echo "UI：React"
-
-# 包管理器
-[ -f pnpm-lock.yaml ] && echo "包管理器：pnpm"
-[ -f yarn.lock ] && echo "包管理器：yarn"
-
-# 测试框架
-grep '"vitest"' package.json && echo "测试：Vitest"
-
-# TypeScript
-[ -f tsconfig.json ] && echo "TypeScript：是"
-```
-
-**检测报告模板**：
-
-```
-🔍 技术栈检测报告
-
-📋 检测结果：
-├─ 项目类型: Web 前端（Next.js 全栈）
-├─ 框架: Next.js 15
-├─ 语言: TypeScript
-├─ 包管理器: pnpm
-├─ 测试框架: Vitest
-└─ 运行时: Node.js >=18.0.0
-
-⚠️ 需要确认：渲染模式、数据库
-[确认无误] [修改配置]
-```
-
----
-
-## 阶段 4：AI 配置目录选择与原有文档检测
-
-### 4.1 扫描已存在的 AI 配置
-
-> ⚠️ **MUST STOP HERE** - 必须暂停并等待用户选择，禁止直接继续到下一步
-
-**检测以下目录**：
-
-| AI 工具 | 配置目录 | 检测标志 |
-|---------|----------|----------|
-| OpenCode | `.opencode/` | `opencode.json` |
-| Claude Code | `.claude/` | `settings.json` |
-| Cursor | `.cursor/` | `rules/` |
-| Copilot | `.github/copilot/` | `instructions.md` |
-
-**向用户展示**：
-
-```
-📁 检测到 AI 配置目录：
-
-已有配置：
-├─ .opencode/    (OpenCode)
-├─ .claude/      (Claude Code)
-└─ ...
-
-请选择目标目录：
-[ ] 使用 .opencode/ （推荐）
-[ ] 使用 .claude/
-[ ] 创建新目录：___
-
-⚠️ 覆盖警告：
-如果选择更新已有目录，以下内容将被完全替换：
-• commands/ 目录（所有 .md 命令文件）
-• skills/ 目录（所有技能目录）
-• 已有自定义配置将丢失
-
-建议：如有自定义配置，请先备份或选择创建新目录。
-```
-
-### 4.2 检测当前运行的 AI
-
-通过环境变量检测：
-- `OPENCODE_SESSION_ID` → OpenCode
-- `CLAUDE_CODE_VERSION` → Claude Code
-
-### 4.3 确认目标目录
-
-```
-📁 目标 AI 配置目录：[路径]
-
-将创建：
-├── commands/ (6 个命令文件)
-└── skills/ (6 个技能目录)
-
-[确认安装] [更换目录] [取消]
-```
-
-### 4.4 检测已存在的 AI 文档（老项目）
-
-> ⚠️ **MUST STOP HERE** - 检测到文件后必须暂停并询问用户
-
-**检测文件列表**：
-
-| 文件名 | 说明 |
-|--------|------|
-| `AGENTS.md` | OpenCode / 通用 AI 指南 |
-| `CLAUDE.md` | Claude Code 项目文档 |
-| `CURSOR_RULES.md` | Cursor 规则文件 |
-| `.cursorrules` | Cursor 规则（无扩展名） |
-
-**向用户展示**：
-
-```
-📄 检测到已有 AI 文档：
-
-检测到的文件：
-└─ AGENTS.md
-└─ CLAUDE.md
-
-从上述文件中可提取：
-├─ 技术栈信息 → 用于填充配置变量
-├─ 编码规范 → 可整合到 AGENTS.md
-└─ AI 角色定义 → 可整合到 AGENTS.md
-
-请选择：
-[ ] 整合非技术类信息到新配置
-[ ] 不整合，使用 OpenSpec 默认模板
-[ ] 取消安装
-```
-
----
-
-## 阶段 5：执行安装
-
-> ⚠️ **CRITICAL**: 本阶段是信息流整合的核心，请严格按照顺序执行。
-
-### 5.1 执行 openspec init
-
-```bash
-openspec init
-```
-
-这会创建默认配置：
-- `openspec/config.yaml`
-- `openspec/schemas/`
-- `{{AI_CONFIG_DIR}}/commands/`
-- `{{AI_CONFIG_DIR}}/skills/`
-
-### 5.2 信息提取（老项目专属）
-
-> 🎯 **ACTION**: 仅在阶段 4.4 检测到已有 AI 文档时执行
-
-从原有文档提取信息，并校验：
-
-| 信息类型 | 校验规则 | 处理方式 |
-|----------|----------|----------|
-| **技术栈信息** | 与阶段 3 检测结果比对 | 不一致 → 丢弃，以检测结果为准 |
-| **编码规范** | 无需校验 | 保留，整合到 AGENTS.md |
-| **AI 角色/工作流** | 无需校验 | 保留，整合到 AGENTS.md |
-
-### 5.3 替换为 Harness 模板并填充变量
-
-> ⚠️ **MUST STOP HERE - 覆盖前二次确认**
-
-**向用户展示**：
-
-```
-⚠️ 文件覆盖确认
-
-目标目录：[用户在步骤 4 选择的目录]
-
-即将执行以下覆盖操作：
-├─ openspec/config.yaml        （覆盖）
-├─ openspec/schemas/           （覆盖）
-├─ AGENTS.md                   （覆盖，如存在）
-├─ commands/ 目录              （覆盖）
-└─ skills/ 目录                （覆盖）
-
-⚠️ 已有配置将被完全替换，无法恢复。
-
-[确认继续] [取消] [备份后继续]
-```
-
-#### 步骤 5.3.1：复制模板文件
-
-**模板文件来源**：
-- 模板位于 **OpenSpec Harness 安装包根目录** 的 `.template/` 目录下
-- **`.template` 目录与本文档 `install.md` 位于同一目录**
-
-执行复制：
-
-| 源文件 | 目标文件 |
-|--------|----------|
-| `${OPENSPEC_HARNESS_ROOT}/.template/openspec/config.yaml` | `openspec/config.yaml` |
-| `${OPENSPEC_HARNESS_ROOT}/.template/openspec/schemas/*` | `openspec/schemas/*` |
-| `${OPENSPEC_HARNESS_ROOT}/.template/AGENTS.md` | `AGENTS.md` |
-| `${OPENSPEC_HARNESS_ROOT}/.template/custom/commands/*` | `{{AI_CONFIG_DIR}}/commands/*` |
-| `${OPENSPEC_HARNESS_ROOT}/.template/custom/skills/*` | `{{AI_CONFIG_DIR}}/skills/*` |
-
-**必须复制的 Commands**：
-- `opsx-explore.md`
-- `opsx-propose.md`
-- `opsx-apply.md`
-- `opsx-archive.md`
-- `opsx-bugfix.md`
-- `opsx-spike.md`
-
-**必须复制的 Skills**：
-- `openspec-explore/`
-- `openspec-propose/`
-- `openspec-apply-change/`
-- `openspec-archive-change/`
-- `openspec-bugfix/`
-- `openspec-spike/`
-
-#### 步骤 5.3.2：清理旧版兼容性目录
-
-```bash
-# 检查并清理旧版错误目录
-if [ -d "{{AI_CONFIG_DIR}}/command" ]; then
-  echo "⚠️  检测到旧版 OpenSpec 生成的 'command/' 目录（单数）"
-  rm -rf "{{AI_CONFIG_DIR}}/command"
-  echo "✅ 已清理旧版兼容性目录"
-fi
-```
-
-#### 步骤 5.3.3：填充技术栈变量
-
-> 📖 **详细参考**：[install-reference/variables.md](./install-reference/variables.md)
-
-**核心变量**：
-
-| 占位符 | 数据来源 |
-|--------|----------|
-| `{{PROJECT_NAME}}` | 阶段 2 用户输入 / package.json |
-| `{{PACKAGE_MANAGER}}` | 阶段 3 检测 / 阶段 2 用户输入 |
-| `{{LANGUAGE}}` | 阶段 3 检测 / 阶段 2 用户输入 |
-| `{{RUNTIME}}` | 阶段 3 检测 / package.json engines |
-
-**填充流程**：
-
-```
-📝 变量填充预览：
-
-config.yaml:
-- PROJECT_NAME: MyApp ✓
-- PACKAGE_MANAGER: pnpm ✓
-- WEB_FRAMEWORK: Next.js 15 ✓
-
-以下变量需要确认：
-- TEST_FRAMEWORK: [未检测] 请输入测试框架名称
-- BUILD_TOOL: [未检测] 请输入构建工具名称（留空跳过）
-
-[确认并填充] [修改配置]
-```
-
-**验证填充结果**：
-
-```bash
-grep -E '\{\{[A-Z_]+\}\}' openspec/config.yaml AGENTS.md
-# 应该无输出
-```
-
-### 5.4 整合非技术类信息（仅选择「整合」时执行）
-
-如果用户在停止点 2 选择「整合」：
-- 将暂存的编码规范、AI 角色等信息 → 合并到 `AGENTS.md`
-- 将暂存的项目约定/最佳实践 → 合并到 `AGENTS.md`
-
-如果选择「不整合」：
-- 跳过此步骤，保持 Harness 模板原样
-
-### 5.5 CI/CD 配置生成（可选）
-
-> 📖 **详细参考**：[install-reference/ci-templates.md](./install-reference/ci-templates.md)
-
-**询问用户**：
-
-```
-🤖 是否生成 CI/CD 和 pre-commit hook 配置？
-
-【选项 1】GitHub Actions
-   创建 .github/workflows/openspec-archive.yml
-
-【选项 2】GitLab CI
-   创建 .gitlab-ci.yml（或追加到现有配置）
-
-【选项 3】其他平台
-   提供通用配置模板作为参考
-
-【选项 4】跳过
-   不生成配置，阶段 6 改为 Manual 模式
-
-是否生成 pre-commit hook？
-[是] [否]
-
-请选择（1/2/3/4 + Y/N）：
-```
-
-执行用户选择的配置生成（参考 [ci-templates.md](./install-reference/ci-templates.md)）。
-
----
-
-## 阶段 6：完成验证
-
-### 6.1 更新 AGENTS.md 触发方式标记（如需要）
-
-根据阶段 5.5 的用户选择，更新 AGENTS.md：
-
-- **选项 1/2（完整 CI/CD）**：保持原样
-- **选项 4（跳过）**：将 Validate 和 Archive 改为 Manual
-
-### 6.2 验证清单
-
-```
-□ openspec/config.yaml 存在且格式正确
-□ openspec/schemas/ 包含 spec-driven、bugfix、spike
-□ AGENTS.md 存在
-□ {{AI_CONFIG_DIR}}/commands/ 包含 6 个命令文件（commands 复数）
-□ {{AI_CONFIG_DIR}}/skills/ 包含 6 个技能目录
-□ 不存在旧的 command/（单数）目录
-□ CI/CD 配置（如选择生成）存在且格式正确
-□ pre-commit hook（如选择生成）存在且可执行
-```
-
-**全部通过 → 提示用户**：
-
-```
-🎉 OpenSpec Harness 环境搭建完成！
-
-配置摘要：
-├─ openspec/config.yaml         ✅ 已配置
-├─ openspec/schemas/            ✅ 已创建
-├─ AGENTS.md                    ✅ 已配置
-├─ {{AI_CONFIG_DIR}}/commands/  ✅ 6 个命令
-├─ {{AI_CONFIG_DIR}}/skills/    ✅ 6 个技能
-{{- if 生成 CI/CD }}
-├─ CI/CD 配置                   ✅ 已配置
-{{- endif }}
-{{- if 生成 pre-commit }}
-├─ pre-commit hook              ✅ 已配置
-{{- endif }}
-
-下一步：
-1. 查看 openspec/config.yaml 确认配置
-2. 阅读 AGENTS.md 了解 AI 助手的工作方式
-3. 创建第一个变更：
-
-   新功能：/opsx-propose my-first-feature
-   Bug 修复：/opsx-bugfix some-bug
-   技术调研：/opsx-spike evaluate-options
-
-{{- if Manual 模式 }}
-💡 提示：Validate 和 Archive 步骤已设为手动执行。
-   如需自动化，可重新运行安装或手动配置 CI/CD。
-{{- endif }}
-```
-
----
-
-## 附录：模板目录结构
-
-```
-openspec-opc/.template/
-├── README.md                    # 模板使用说明
-├── AGENTS.md                    # AI 行为指南模板
-├── openspec/
-│   ├── config.yaml              # 配置模板
-│   └── schemas/
-│       ├── spec-driven/         # 新功能开发
-│       ├── bugfix/              # Bug 修复
-│       └── spike/               # 技术调研
-├── custom/                      # AI 配置模板
-│   ├── commands/                # 6 个命令文件
-│   └── skills/                  # 6 个技能目录
-└── ci-templates/                # CI/CD 配置模板（可选生成）
-    ├── github-workflows/
-    ├── gitlab-ci/
-    └── hooks/
-```
-
----
-
-## 参考文档
-
-安装过程中需要详细参考以下文档：
-
-| 文档 | 说明 | 使用时机 |
-|------|------|----------|
-| [variables.md](./install-reference/variables.md) | 所有需要填充的变量 | 阶段 5.3 变量替换 |
-| [tech-detection.md](./install-reference/tech-detection.md) | 各语言/框架的检测逻辑 | 阶段 3 技术栈检测 |
-| [ci-templates.md](./install-reference/ci-templates.md) | CI/CD 配置模板 | 阶段 5.5 CI/CD 配置 |
-| [checklist.md](./install-reference/checklist.md) | 强制停止点检查清单 | 每个停止点确认 |
-| [error-recovery.md](./install-reference/error-recovery.md) | 错误恢复和回退指南 | 安装失败时 |
-
----
-
-> **安装遇到问题？** 查看 [错误恢复指南](./install-reference/error-recovery.md)

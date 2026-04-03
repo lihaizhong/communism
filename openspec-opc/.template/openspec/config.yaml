@@ -1,14 +1,11 @@
 # OpenSpec Configuration
-# Schema resolution order: project > user > package
 
-# Default schema for new changes
 schema: spec-driven
 
-# Available schemas in this project
 schemas:
   spec-driven:
     path: openspec/schemas/spec-driven
-    description: Standard spec-driven development with TDD
+    description: Standard spec-driven development
   bugfix:
     path: openspec/schemas/bugfix
     description: Streamlined bug fix workflow
@@ -20,39 +17,46 @@ context:
   project:
     name: "{{PROJECT_NAME}}"
     description: "{{PROJECT_DESCRIPTION}}"
+    type: "{{PROJECT_TYPE}}"
     language: "{{LANGUAGE}}"
     runtime: "{{RUNTIME}}"
-    package_manager: "{{PACKAGE_MANAGER}}"
 
-  tech_stack:
-    language: "{{LANGUAGE_VERSION}}"
+  stack:
+    framework: "{{PRIMARY_FRAMEWORK}}"
     test_framework: "{{TEST_FRAMEWORK}}"
-{{WEB_FRAMEWORK_LINE}}
-{{UI_FRAMEWORK_LINE}}
-{{BUILD_TOOL_LINE}}
-    runtime: "{{RUNTIME_VERSION}}"
+    build_tool: "{{BUILD_TOOL}}"
 
-  modules:
-{{MODULES_SECTION}}
-    openspec:
-      purpose: Change management
-      scope: Workflow config, active changes, archived changes
-    .opencode:
-      purpose: AI assistant configuration
-      scope: Commands, skills, plugins
-
-  conventions:
-{{TYPESCRIPT_CONVENTION}}
-    - ES Module syntax
-    - Async/await
-    - Identifiers in English
-    - Comments can be Chinese
+  paths:
+    source: "{{SRC_DIR}}"
+    tests: "{{TEST_DIR}}"
+    ai_config: "{{AI_CONFIG_DIR}}"
 
   commands:
-    install: "{{PACKAGE_MANAGER}} install"
-{{DEV_COMMAND_LINE}}
-{{BUILD_COMMAND_LINE}}
-{{TEST_COMMAND_LINE}}
-{{TEST_UNIT_COMMAND_LINE}}
-{{LINT_COMMAND_LINE}}
-{{TYPE_CHECK_COMMAND_LINE}}
+    install: "{{INSTALL_COMMAND}}"
+    dev: "{{DEV_COMMAND}}"
+    build: "{{BUILD_COMMAND}}"
+    test: "{{TEST_COMMAND}}"
+    test_unit: "{{TEST_UNIT_COMMAND}}"
+    lint: "{{LINT_COMMAND}}"
+    type_check: "{{TYPE_CHECK_COMMAND}}"
+    format: "{{FORMAT_COMMAND}}"
+
+  conventions:
+    - Keep changes aligned with approved OpenSpec artifacts
+    - Prefer small, reversible changes
+    - Use English identifiers
+    - Follow repository-local conventions before introducing new ones
+
+  modules:
+    app:
+      purpose: Primary application or service code
+      path: "{{SRC_DIR}}"
+    tests:
+      purpose: Automated validation and regression coverage
+      path: "{{TEST_DIR}}"
+    openspec:
+      purpose: Change management artifacts and workflow definitions
+      path: "openspec/"
+    ai_config:
+      purpose: AI assistant commands, skills, and prompts
+      path: "{{AI_CONFIG_DIR}}"

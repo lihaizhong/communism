@@ -1,0 +1,86 @@
+version: "1.0"
+schema_version: "2.0"
+stage: "prerequisite"
+name: "前置要求"
+description: "验证 CLI 与当前目录状态，并决定进入项目初始化、继续安装或停止。"
+task_file: "harness-install-tasks.md"
+inputs:
+  - CURRENT_WORKING_DIRECTORY
+  - OPENSPEC_CLI
+outputs:
+  - GIT_INITIALIZED
+  - INSTALL_TARGET_CONFIRMED
+  - USER_REQUESTED_PROJECT_INIT
+fallback:
+  on_blocked: "停止并请求用户选择下一步"
+  on_missing_input: "不得猜测项目类型或目录意图"
+variable_conventions:
+  case: "UPPER_SNAKE_CASE for task variables"
+  write_scope: "Only write task variables, do not modify business files"
+
+steps:
+  - id: check_cli
+    name: "检查 OpenSpec CLI"
+    command: "openspec --version"
+    on_fail:
+      prompt: "未检测到 OpenSpec CLI，这是运行本指南的必需工具。是否自动全局安装？"
+      options:
+        - id: auto
+          label: "自动安装"
+          command: "npm install -g @fission-ai/openspec@latest"
+          verify: "openspec --version"
+        - id: manual
+          label: "手动安装"
+          action: "引导用户访问官方文档，完成后重新运行"
+        - id: refuse
+          label: "不安装"
+          action: "终止流程"
+
+  - id: check_project_dir
+    name: "检查当前目录是否可作为安装目标"
+    command: "pwd && ls -la"
+    checks_any:
+      - file: "package.json"
+      - file: "go.mod"
+      - file: "Cargo.toml"
+      - file: "pyproject.toml"
+      - file: "next.config.js"
+      - file: "nuxt.config.ts"
+      - file: "vite.config.ts"
+      - dir: ".git"
+    on_pass:
+      next: "check_git"
+    on_fail:
+      prompt: |
+        当前目录未检测到常见项目标志。
+        这不一定表示必须新建项目，也可能是：
+        - 你当前位于 monorepo 根目录
+        - 这是文档/工具/配置仓库
+        - 你需要先切换到目标项目目录
+
+        请选择下一步：
+      options:
+        - id: confirm_current
+          label: "当前目录就是目标项目根目录"
+          action: "记录 INSTALL_TARGET_CONFIRMED = yes 到 harness-install-tasks.md"
+          next: "check_git"
+        - id: switch_dir
+          label: "切换到其他目录后重试"
+          action: "引导用户切换到目标项目根目录后重新执行本阶段"
+        - id: init_project
+          label: "在这里初始化新项目"
+          action: "记录 USER_REQUESTED_PROJECT_INIT = yes 到 harness-install-tasks.md"
+          next: "stage0"
+        - id: cancel
+          label: "取消安装"
+          action: "终止流程"
+
+  - id: check_git
+    name: "检查 Git 初始化"
+    command: "git rev-parse --git-dir 2>/dev/null"
+    on_pass:
+      action: "记录 GIT_INITIALIZED = yes 到 harness-install-tasks.md"
+      next: "stage1"
+    on_fail:
+      action: "记录 GIT_INITIALIZED = no 到 harness-install-tasks.md"
+      next: "stage1"

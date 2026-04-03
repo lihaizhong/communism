@@ -70,7 +70,7 @@ I'll help you fix bugs efficiently with minimal overhead and proper regression t
    Then implement:
    - Make minimal changes to fix the bug
    - Add a regression test
-   - Run: `pnpm test:unit`, `pnpm lint`, `pnpm type-check`
+   - Run the project's validation commands from `openspec/config.yaml` (for example: unit tests, lint, type-check or static analysis)
 
 7. **Mark complete and summarize**
 
@@ -89,7 +89,7 @@ I'll help you fix bugs efficiently with minimal overhead and proper regression t
 
 **Files Changed**:
 - src/components/LoginButton.tsx
-- src/tests/regression/login-button-error.test.ts
+- <regression-test-file>
 
 **Testing**: All validations pass ✓
 ```

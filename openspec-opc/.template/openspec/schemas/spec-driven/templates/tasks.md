@@ -32,10 +32,10 @@
 
 ## Verification Checklist
 
-- [ ] All tests pass (`pnpm test:unit`)
-- [ ] Lint passes (`pnpm lint`)
-- [ ] Type check passes (`pnpm type-check`)
-- [ ] Format check passes (`pnpm format-check`)
+- [ ] All configured tests pass
+- [ ] Configured lint or equivalent quality checks pass
+- [ ] Configured type-check, compiler, or static analysis passes
+- [ ] Configured format check passes if applicable
 
 ---
 

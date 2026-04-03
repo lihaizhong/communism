@@ -136,7 +136,7 @@ flowchart TB
 | 文档                                        | 内容                 | 适用场景                    |
 | ------------------------------------------- | -------------------- | --------------------------- |
 | [工作流详解](guide/03-workflows.md)         | Schema 选择和决策树  | 不确定用哪个工作流          |
-| [Spike vs Explore](spike-vs-explore.md)     | 技术调研 vs 自由探索 | 不确定用 spike 还是 explore |
+| [工作流详解](guide/03-workflows.md)         | Spike 与 Explore 的使用边界 | 不确定用 spike 还是 explore |
 
 ## 快速体验
 
@@ -222,7 +222,7 @@ ls openspec/changes/add-dark-mode/
 - **Spike** = "我要选一个方案，时间有限，必须下结论"
 - **Explore** = "我不确定怎么做，先聊聊看"
 
-详细对比和选择指南 → [Spike vs Explore 完整指南](spike-vs-explore.md)
+详细对比和选择指南 → [工作流详解](guide/03-workflows.md)
 
 ---
 

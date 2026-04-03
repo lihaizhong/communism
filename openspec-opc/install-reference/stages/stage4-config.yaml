@@ -1,0 +1,131 @@
+version: "1.0"
+schema_version: "2.0"
+stage: "stage4"
+name: "AI 配置目录选择"
+description: "识别已有 AI 配置和文档，明确目标目录与冲突处理策略。"
+task_file: "harness-install-tasks.md"
+inputs:
+  - AI_TOOL_NAME
+  - AI_CONFIG_DIR
+  - EXISTING_AI_DOCS
+outputs:
+  - AI_TOOL_NAME
+  - AI_CONFIG_DIR
+  - CONFIG_CONFLICT
+  - INTEGRATE_AI_DOCS
+  - EXISTING_AI_DOCS
+fallback:
+  on_conflict: "停止并要求用户选择策略"
+  on_missing_confirmation: "保持在当前停止点"
+variable_conventions:
+  case: "UPPER_SNAKE_CASE for task variables"
+  write_scope: "Only task file and staging metadata before stage5"
+
+steps:
+  - id: scan_config_dirs
+    name: "扫描已存在的 AI 配置目录"
+    detect:
+      - dir: ".opencode"
+        marker: "opencode.json"
+        label: "OpenCode"
+      - dir: ".claude"
+        marker: "settings.json"
+        label: "Claude Code"
+      - dir: ".cursor"
+        marker: "rules/"
+        label: "Cursor"
+      - dir: ".github/copilot"
+        marker: "instructions.md"
+        label: "GitHub Copilot"
+
+  - id: stop_point_1
+    name: "停止点 1：选择目标配置目录"
+    type: mandatory_stop
+    prompt: |
+      📁 检测到 AI 配置目录：
+
+      已有配置：
+      {{列出检测到的目录}}
+
+      请选择目标目录：
+      [ ] 使用 .opencode/（推荐）
+      [ ] 使用 .claude/
+      [ ] 创建新目录：___
+
+      ⚠️ 覆盖警告：
+      如果选择已有目录，默认不直接覆盖。
+      必须先展示冲突内容，并由用户选择：
+      • 备份后覆盖
+      • 合并到已有目录
+      • 并存安装到新目录
+    options:
+      - id: use_opencode
+        label: "使用 .opencode/（推荐）"
+        ai_tool: "opencode"
+        ai_config_dir: ".opencode"
+      - id: use_claude
+        label: "使用 .claude/"
+        ai_tool: "claude"
+        ai_config_dir: ".claude"
+      - id: use_cursor
+        label: "使用 .cursor/"
+        ai_tool: "cursor"
+        ai_config_dir: ".cursor"
+      - id: use_copilot
+        label: "使用 .github/copilot/"
+        ai_tool: "copilot"
+        ai_config_dir: ".github/copilot"
+      - id: create_new
+        label: "创建新目录"
+      - id: cancel
+        label: "取消安装"
+    on_select:
+      cancel:
+        action: "终止流程"
+      default:
+        action: "记录 AI_TOOL_NAME 和 AI_CONFIG_DIR 到 harness-install-tasks.md；如目标目录已存在则标记 CONFIG_CONFLICT = yes"
+
+  - id: detect_ai_docs
+    name: "检测已存在的 AI 文档"
+    detect_files:
+      - "AGENTS.md"
+      - "CLAUDE.md"
+      - "CURSOR_RULES.md"
+      - ".cursorrules"
+      - ".github/copilot-instructions.md"
+
+  - id: stop_point_2
+    name: "停止点 2：是否整合已有 AI 文档"
+    type: mandatory_stop
+    condition: "检测到任何 AI 文档"
+    prompt: |
+      📄 检测到已有 AI 文档：
+
+      {{列出检测到的文件}}
+
+      从上述文件中可提取：
+      ├─ 技术栈信息 → 用于填充配置变量
+      ├─ 编码规范 → 可整合到 AGENTS.md
+      └─ AI 角色定义 → 可整合到 AGENTS.md
+
+      请选择：
+    options:
+      - id: integrate
+        label: "整合非技术类信息到新配置"
+        action: "设置 INTEGRATE_AI_DOCS = yes，暂存非技术类信息"
+      - id: coexist
+        label: "保留现有文档并并存"
+        action: "设置 INTEGRATE_AI_DOCS = coexist，不覆盖现有文档，生成新的 OpenSpec 配置"
+      - id: no_integrate
+        label: "不整合，使用 OpenSpec 默认模板"
+        action: "设置 INTEGRATE_AI_DOCS = no"
+      - id: cancel
+        label: "取消安装"
+        action: "终止流程"
+    on_select:
+      default:
+        action: "记录 INTEGRATE_AI_DOCS 和 EXISTING_AI_DOCS 到 harness-install-tasks.md"
+
+on_complete:
+  action: "确认 harness-install-tasks.md 中 AI_TOOL_NAME、AI_CONFIG_DIR、INTEGRATE_AI_DOCS 已填写；若存在 CONFIG_CONFLICT，阶段 5 前必须再次确认处理策略"
+  next: "stage5"

@@ -40,8 +40,8 @@ extensions:
   tdd:
     enabled: true
     mapping:
-      spec_to_test: "<module>/tests/<feature>.test.ts"
-      test_to_impl: "<module>/<feature>.ts"
+      spec_to_test: "<tests>/<feature-test-file>"
+      test_to_impl: "<source>/<feature-source-file>"
     spec_format:
       required_sections: [Purpose, Requirements, Scenarios]
       keywords: [SHALL, MUST]
@@ -64,9 +64,9 @@ extensions:
     gates:
       pre_commit:
         - openspec validate
-        - test:unit
-        - lint
-        - type-check
+        - project:test:unit
+        - project:lint
+        - project:type-or-static-check
       post_merge:
         - openspec archive
 
