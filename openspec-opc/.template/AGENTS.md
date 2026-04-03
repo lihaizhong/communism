@@ -72,9 +72,15 @@ Standards:
 
 ### Reviewer
 
-Validate code quality.
+Validate code quality and spec compliance.
 
-Checklist:
+**Spec Synchronization:**
+
+- [ ] Specs and implementation fully synchronized (no orphan code)
+- [ ] All spec scenarios covered by tests
+- [ ] Acceptance criteria verifiable
+
+**Code Quality:**
 
 - [ ] TypeScript strict mode
 - [ ] All tests pass
