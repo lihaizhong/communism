@@ -12,7 +12,7 @@
 
 ## 快速开始
 
-请根据您的需求进入对应目录查看详细的安装说明：n
+请根据您的需求进入对应目录查看详细的安装说明：
 - **OpenSpec OPC**: 查看 [`openspec-opc/README.md`](openspec-opc/README.md)
 - **OpenSpec Team**: 查看 [`openspec-team/README.md`](openspec-team/README.md)
 
