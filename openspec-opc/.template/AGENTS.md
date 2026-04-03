@@ -27,9 +27,14 @@ Artifacts to create:
 
 Requirements:
 
-- Use SHALL/MUST keywords in specs
-- Include WHEN/THEN scenarios
-- Define acceptance criteria
+- Use EARS syntax (Easy Approach to Requirements Syntax)
+  - Ubiquitous: `The <system> shall <requirement>`
+  - Event-Driven: `WHEN <trigger> THEN the <system> shall <response>`
+  - State-Driven: `WHILE <state> the <system> shall <behavior>`
+  - Optional: `WHERE <context> the <system> may <optional feature>`
+  - Unwanted: `IF <error condition> THEN the <system> shall <error handling>`
+- Keyword hierarchy: SHALL (mandatory) > SHOULD (recommended) > WILL (commitment) > MAY (optional)
+- Acceptance criteria in GIVEN-WHEN-THEN format
 
 ### Tester
 
