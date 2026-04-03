@@ -7,6 +7,7 @@ task_file: "harness-install-tasks.md"
 inputs:
   - AI_CONFIG_DIR
   - CI_TYPE
+  - GENERATE_PRE_COMMIT
   - TEST_STATUS
   - TEST_BLOCKER_REASON
 outputs:
@@ -39,8 +40,10 @@ steps:
         action: "在完成摘要中展示测试框架待处理"
         desc: "测试框架暂未安装，但已记录后续动作"
       - if: "GENERATE_PRE_COMMIT == yes"
-        file_executable: ".git/hooks/pre-commit"
-        desc: "pre-commit hook 可执行"
+        one_of:
+          - file_executable: ".git/hooks/pre-commit"
+          - file_executable: ".husky/pre-commit"
+        desc: "pre-commit hook 已安装且可执行（支持 .git/hooks 或 .husky）"
 
   - id: show_summary
     name: "显示完成摘要"
