@@ -18,36 +18,26 @@ if [ -d "openspec/changes" ]; then
   fi
 fi
 
-# 运行 lint
-if command -v {{PACKAGE_MANAGER}} >/dev/null 2>&1; then
-  echo "🧹 Running linter..."
-  {{PACKAGE_MANAGER}} lint
+run_optional_check() {
+  LABEL="$1"
+  CMD="$2"
+
+  if [ -z "$CMD" ]; then
+    return 0
+  fi
+
+  echo "🔧 Running ${LABEL}..."
+  sh -c "$CMD"
   if [ $? -ne 0 ]; then
-    echo "${RED}❌ Lint check failed. Please fix the issues before committing.${NC}"
+    echo "${RED}❌ ${LABEL} failed. Please fix the issues before committing.${NC}"
     exit 1
   fi
-  echo "${GREEN}✅ Lint check passed${NC}"
-fi
+  echo "${GREEN}✅ ${LABEL} passed${NC}"
+}
 
-# 运行测试
-echo "🧪 Running tests..."
-{{PACKAGE_MANAGER}} test
-if [ $? -ne 0 ]; then
-  echo "${RED}❌ Tests failed. Please fix the failing tests before committing.${NC}"
-  exit 1
-fi
-echo "${GREEN}✅ Tests passed${NC}"
-
-# 运行类型检查（如果有 type-check 命令）
-if {{PACKAGE_MANAGER}} run type-check >/dev/null 2>&1; then
-  echo "🔎 Running type check..."
-  {{PACKAGE_MANAGER}} type-check
-  if [ $? -ne 0 ]; then
-    echo "${RED}❌ Type check failed. Please fix the type errors before committing.${NC}"
-    exit 1
-  fi
-  echo "${GREEN}✅ Type check passed${NC}"
-fi
+run_optional_check "lint" "{{LINT_COMMAND}}"
+run_optional_check "tests" "{{TEST_COMMAND}}"
+run_optional_check "type/static check" "{{TYPE_CHECK_COMMAND}}"
 
 echo "${GREEN}✨ All validation checks passed!${NC}"
 exit 0

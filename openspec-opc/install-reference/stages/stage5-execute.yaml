@@ -1,0 +1,194 @@
+version: "1.0"
+schema_version: "2.0"
+stage: "stage5"
+name: "执行安装任务"
+description: "根据任务账本执行实际写入、依赖安装、文件生成和验证。"
+task_file: "harness-install-tasks.md"
+inputs:
+  - PROJECT_NAME
+  - LANGUAGE
+  - AI_TOOL_NAME
+  - AI_CONFIG_DIR
+  - CONFIG_CONFLICT
+  - CONFIG_CONFLICT_STRATEGY
+  - TEST_STATUS
+  - TEST_INSTALL_CMD
+outputs:
+  - CI_TYPE
+  - GENERATE_PRE_COMMIT
+  - INSTALL_RESULT
+fallback:
+  on_missing_required_vars: "回到对应阶段补充，不得继续执行"
+  on_conflict_without_strategy: "停止并请求用户确认策略"
+  on_failed_task: "标记任务失败并停止后续高风险写入"
+variable_conventions:
+  case: "UPPER_SNAKE_CASE for task variables"
+  write_scope: "May modify project files and install dependencies"
+
+pre_check:
+  - name: "读取 harness-install-tasks.md"
+    action: "解析配置变量表和任务列表"
+  - name: "验证变量完整性"
+    required_vars:
+      - PROJECT_NAME
+      - PROJECT_DESCRIPTION
+      - PROJECT_TYPE
+      - LANGUAGE
+      - PRIMARY_FRAMEWORK
+      - SRC_DIR
+      - TEST_DIR
+      - AI_TOOL_NAME
+      - AI_CONFIG_DIR
+    on_missing:
+      action: "回到对应阶段补充信息"
+  - name: "验证冲突处理策略"
+    rules:
+      - if: "CONFIG_CONFLICT == yes 且 CONFIG_CONFLICT_STRATEGY 为空"
+        action: "停止执行并要求用户选择 backup_overwrite / merge / coexist"
+  - name: "激活条件任务"
+    rules:
+      - if: "INTEGRATE_AI_DOCS == yes"
+        action: "将 T7 从 [-] 改为 [ ]"
+      - if: "GENERATE_PRE_COMMIT == yes"
+        action: "将 T8 从 [-] 改为 [ ]"
+
+core_tasks:
+  - id: T0
+    name: "初始化 Git 仓库"
+    condition: "GIT_INITIALIZED == no"
+    command: "git init"
+    on_complete: "标记 T0 [x]"
+
+  - id: T1
+    name: "执行 openspec init"
+    command: "openspec init"
+    on_complete: "标记 T1 [x]"
+
+  - id: T2
+    name: "复制 Harness 模板文件"
+    stop_point: true
+    stop_prompt: |
+      ⚠️ 文件变更确认
+
+      即将执行以下写入操作：
+      ├─ openspec/config.yaml
+      ├─ openspec/schemas/
+      ├─ AGENTS.md
+      ├─ {{AI_CONFIG_DIR}}/
+
+      若目标已存在，必须先展示冲突处理策略：
+      ├─ backup_overwrite 备份后覆盖
+      ├─ merge            尝试合并
+      └─ coexist          并存安装到新目录
+    options:
+      - id: confirm
+        label: "确认继续"
+      - id: backup
+        label: "备份后继续"
+        action: "创建 .backup/ 备份，并设置 CONFIG_CONFLICT_STRATEGY = backup_overwrite"
+      - id: merge
+        label: "合并后继续"
+        action: "设置 CONFIG_CONFLICT_STRATEGY = merge"
+      - id: coexist
+        label: "并存安装"
+        action: "设置 CONFIG_CONFLICT_STRATEGY = coexist"
+      - id: cancel
+        label: "取消"
+        action: "终止流程"
+    files:
+      - src: ".template/openspec/config.yaml"
+        dest: "openspec/config.yaml"
+      - src: ".template/openspec/schemas/*"
+        dest: "openspec/schemas/"
+      - src: ".template/AGENTS.md"
+        dest: "AGENTS.md"
+      - src: ".template/agent-config/"
+        dest: "{{AI_CONFIG_DIR}}/"
+        rename: true
+    on_complete: "标记 T2 [x]"
+
+  - id: T3
+    name: "安装测试框架"
+    condition: "TEST_INSTALL_CMD 不为空且不是内置框架且 TEST_INSTALL_CMD != 'pending'"
+    builtin_frameworks: ["go test", "cargo test", "内置"]
+    command: "{{TEST_INSTALL_CMD}}"
+    on_complete: "标记 T3 [x]"
+
+  - id: T4
+    name: "清理旧版兼容性目录"
+    command: |
+      if [ -d "{{AI_CONFIG_DIR}}/../command" ]; then
+        rm -rf "{{AI_CONFIG_DIR}}/../command"
+      fi
+    on_complete: "标记 T4 [x]"
+
+  - id: T5
+    name: "填充技术栈变量"
+    action: "读取 harness-install-tasks.md 配置变量表，替换所有 {{变量名}}"
+    target_files:
+      - "openspec/config.yaml"
+      - "AGENTS.md"
+    verify:
+      command: "grep -E '\\{\\{[A-Z_]+\\}\\}' openspec/config.yaml AGENTS.md"
+      expected: "无输出"
+    on_complete: "标记 T5 [x]"
+
+  - id: T6
+    name: "验证安装清单"
+    checks:
+      - file_exists: "openspec/config.yaml"
+      - dir_has_content: "openspec/schemas/"
+      - file_exists: "AGENTS.md"
+      - files_count: "{{AI_CONFIG_DIR}}/commands/*.md == 6"
+      - dirs_count: "{{AI_CONFIG_DIR}}/skills/ == 6"
+      - not_exists: "{{AI_CONFIG_DIR}}/../command/"
+      - if: "TEST_STATUS == pending"
+        action: "记录测试框架尚未完成，不阻塞安装完成"
+    on_complete: "标记 T6 [x]"
+
+conditional_tasks:
+  - id: T7
+    name: "整合非技术类信息到 AGENTS.md"
+    condition: "INTEGRATE_AI_DOCS == yes"
+    action: "合并暂存的编码规范、AI 角色等到 AGENTS.md"
+    on_complete: "标记 T7 [x]"
+
+  - id: T8
+    name: "生成 pre-commit hook"
+    condition: "GENERATE_PRE_COMMIT == yes"
+    action: "生成 .git/hooks/pre-commit"
+    on_complete: "标记 T8 [x]"
+
+ci_config:
+  name: "生成 CI/CD 配置（必须执行，不可跳过）"
+  prompt: |
+    🤖 请选择 CI/CD 平台：
+
+    【选项 1】GitHub Actions
+       创建 .github/workflows/openspec-archive.yml
+
+    【选项 2】GitLab CI
+       创建 .gitlab-ci.yml
+
+    【选项 3】其他平台
+       提供通用配置模板作为参考
+
+    请选择（1/2/3）：
+  options:
+    - id: github
+      label: "1 - GitHub Actions"
+      output: ".github/workflows/openspec-archive.yml"
+    - id: gitlab
+      label: "2 - GitLab CI"
+      output: ".gitlab-ci.yml"
+    - id: other
+      label: "3 - 其他平台"
+      output: "HARNESS_CI.md"
+  on_select:
+    action: "根据选择生成 CI/CD 配置"
+  on_complete: "记录 CI_TYPE 到 harness-install-tasks.md"
+
+on_complete:
+  verify: "harness-install-tasks.md 中核心任务全部 [x] 或带有明确 pending 原因"
+  action: "记录 INSTALL_RESULT = success 或 success_with_pending 到 harness-install-tasks.md"
+  next: "stage6"

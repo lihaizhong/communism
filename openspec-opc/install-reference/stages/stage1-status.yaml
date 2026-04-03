@@ -1,0 +1,58 @@
+version: "1.0"
+schema_version: "2.0"
+stage: "stage1"
+name: "确认项目状态"
+description: "确认这是新项目还是已有项目，并建立后续阶段使用的任务账本。"
+task_file: "harness-install-tasks.md"
+inputs:
+  - INSTALL_TARGET_CONFIRMED
+  - GIT_INITIALIZED
+outputs:
+  - PROJECT_TYPE
+  - TECH_CATEGORY
+fallback:
+  on_ambiguous_state: "必须请求用户确认，不能自行推断"
+variable_conventions:
+  case: "UPPER_SNAKE_CASE for task variables"
+  write_scope: "Create or update task file only"
+
+steps:
+  - id: ask_project_type
+    name: "新项目 or 老项目？"
+    prompt: |
+      你好！我来帮你搭建 OpenSpec Harness 环境。
+
+      请告诉我你的情况：
+      A) 从零创建新项目
+      B) 已有项目，想引入 Harness
+    options:
+      - id: new
+        label: "A - 新项目"
+        action: "记录 PROJECT_TYPE = new 到 harness-install-tasks.md"
+        next: "ask_tech_type"
+      - id: existing
+        label: "B - 老项目"
+        action: "记录 PROJECT_TYPE = existing 到 harness-install-tasks.md，并创建或更新 harness-install-tasks.md 工作副本"
+        next: "stage2"
+
+  - id: ask_tech_type
+    name: "选择项目类型（仅新项目）"
+    condition: "PROJECT_TYPE == new"
+    prompt: |
+      请选择项目类型：
+      1) Web 前端项目（React/Vue/Angular 等）
+      2) 客户端项目（Electron/Tauri/React Native 等）
+      3) 服务端项目（Node.js/Go/Java 等）
+      4) 全栈项目（Next.js/Nuxt 等）
+    options:
+      - id: web_frontend
+        label: "1 - Web 前端"
+      - id: client
+        label: "2 - 客户端"
+      - id: server
+        label: "3 - 服务端"
+      - id: fullstack
+        label: "4 - 全栈"
+    on_select:
+      action: "记录 TECH_CATEGORY 到 harness-install-tasks.md，并创建或更新 harness-install-tasks.md 工作副本"
+      next: "stage2"

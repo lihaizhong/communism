@@ -1,0 +1,74 @@
+version: "1.0"
+schema_version: "2.0"
+stage: "stage0"
+name: "项目初始化"
+description: "仅在用户明确要求初始化项目时执行，帮助创建或切换到可安装的项目根目录。"
+task_file: "harness-install-tasks.md"
+inputs:
+  - USER_REQUESTED_PROJECT_INIT
+  - CURRENT_WORKING_DIRECTORY
+outputs:
+  - INSTALL_TARGET_CONFIRMED
+  - GIT_INITIALIZED
+condition: "USER_REQUESTED_PROJECT_INIT == yes"
+fallback:
+  on_verification_fail: "留在本阶段，提示用户修正目录后重试"
+  on_cancel: "终止流程"
+variable_conventions:
+  case: "UPPER_SNAKE_CASE for task variables"
+  write_scope: "May create project directory, but should not modify business files beyond initialization"
+
+steps:
+  - id: ask_init_method
+    name: "选择初始化方式"
+    prompt: |
+      检测到你需要创建新项目。OpenSpec Harness 需要在项目根目录安装。
+
+      请选择项目初始化方式：
+
+      【选项 A】使用框架脚手架（推荐）
+        示例：
+        - Next.js: npx create-next-app@latest my-app
+        - Nuxt: npx nuxi@latest init my-app
+        - Vite (React/Vue): npm create vite@latest my-app
+
+      【选项 B】创建空项目目录
+        命令：mkdir my-project && cd my-project && git init
+
+      【选项 C】已有项目目录
+        操作：请切换到项目根目录后告知 AI
+
+      【选项 D】跳过项目初始化
+        操作：终止安装流程
+
+      请选择（A/B/C/D）：
+    options:
+      - id: scaffold
+        label: "A - 框架脚手架"
+      - id: empty_dir
+        label: "B - 空目录"
+      - id: existing
+        label: "C - 已有目录"
+      - id: skip
+        label: "D - 跳过"
+    on_select:
+      skip:
+        action: "终止流程"
+      existing:
+        action: "引导用户切换到项目根目录"
+
+  - id: verify_project
+    name: "验证项目目录"
+    command: "pwd && ls -la"
+    checks_any:
+      - file: "package.json"
+      - file: "go.mod"
+      - file: "Cargo.toml"
+      - file: "pyproject.toml"
+      - dir: ".git"
+    on_pass:
+      action: "记录 INSTALL_TARGET_CONFIRMED = yes 到 harness-install-tasks.md"
+      next: "stage1"
+    on_fail:
+      retry: true
+      message: "未检测到项目标志，请确认已在项目根目录"

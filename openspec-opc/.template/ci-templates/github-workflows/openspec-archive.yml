@@ -20,19 +20,28 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup {{RUNTIME}}
-        uses: actions/setup-node@v4
-        with:
-          node-version: '{{NODE_VERSION}}'
-          cache: '{{PACKAGE_MANAGER}}'
+      - name: Setup project runtime
+        run: |
+          echo "Configure the runtime for your project here if needed."
+          echo "Examples: Node, Python, Go, Java, Rust."
 
-      - name: Install dependencies
-        run: {{PACKAGE_MANAGER}} install
+      - name: Install project dependencies
+        run: |
+          if [ -n "{{INSTALL_COMMAND}}" ]; then
+            sh -c "{{INSTALL_COMMAND}}"
+          fi
+
+      - name: Setup OpenSpec CLI
+        run: npm install -g @fission-ai/openspec@latest
+
+      - name: Verify OpenSpec installation
+        run: openspec --version
 
       - name: Run validation
         run: |
-          {{PACKAGE_MANAGER}} lint
-          {{PACKAGE_MANAGER}} test
+          if [ -n "{{LINT_COMMAND}}" ]; then sh -c "{{LINT_COMMAND}}"; fi
+          if [ -n "{{TEST_COMMAND}}" ]; then sh -c "{{TEST_COMMAND}}"; fi
+          if [ -n "{{TYPE_CHECK_COMMAND}}" ]; then sh -c "{{TYPE_CHECK_COMMAND}}"; fi
 
       - name: Archive changes
         run: |
@@ -48,6 +57,6 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add openspec/archive/
+          git add openspec/changes/archive/ openspec/bugs/archive/
           git diff --staged --quiet || git commit -m "chore: archive completed changes [skip ci]"
           git push

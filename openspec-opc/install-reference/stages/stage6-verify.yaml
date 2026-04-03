@@ -1,0 +1,74 @@
+version: "1.0"
+schema_version: "2.0"
+stage: "stage6"
+name: "完成验证"
+description: "校验最终安装结果，并向用户展示完成摘要与未完成项。"
+task_file: "harness-install-tasks.md"
+inputs:
+  - AI_CONFIG_DIR
+  - CI_TYPE
+  - TEST_STATUS
+  - TEST_BLOCKER_REASON
+outputs:
+  - INSTALL_RESULT
+fallback:
+  on_verification_failure: "回写失败项并提示用户修复后重试"
+variable_conventions:
+  case: "UPPER_SNAKE_CASE for task variables"
+  write_scope: "Verification and summary only"
+
+steps:
+  - id: final_check
+    name: "最终验证清单"
+    checks:
+      - file_exists: "openspec/config.yaml"
+        desc: "配置文件存在且格式正确"
+      - dir_has_content: "openspec/schemas/"
+        desc: "包含 spec-driven、bugfix、spike"
+      - file_exists: "AGENTS.md"
+        desc: "AI 行为指南存在"
+      - files_count: "{{AI_CONFIG_DIR}}/commands/*.md == 6"
+        desc: "6 个命令文件"
+      - dirs_count: "{{AI_CONFIG_DIR}}/skills/"
+        desc: "6 个技能目录"
+      - not_exists: "{{AI_CONFIG_DIR}}/../command/"
+        desc: "不存在旧的单数目录"
+      - file_exists: "{{CI 配置文件路径}}"
+        desc: "CI/CD 配置存在（不可跳过）"
+      - if: "TEST_STATUS == pending"
+        action: "在完成摘要中展示测试框架待处理"
+        desc: "测试框架暂未安装，但已记录后续动作"
+      - if: "GENERATE_PRE_COMMIT == yes"
+        file_executable: ".git/hooks/pre-commit"
+        desc: "pre-commit hook 可执行"
+
+  - id: show_summary
+    name: "显示完成摘要"
+    template: |
+      🎉 OpenSpec Harness 环境搭建完成！
+
+      配置摘要：
+      ├─ openspec/config.yaml         ✅ 已配置
+      ├─ openspec/schemas/            ✅ 已创建
+      ├─ AGENTS.md                    ✅ 已配置
+      ├─ {{AI_CONFIG_DIR}}/commands/  ✅ 6 个命令
+      ├─ {{AI_CONFIG_DIR}}/skills/    ✅ 6 个技能
+      ├─ CI/CD 配置                   ✅ 已配置 ({{CI_TYPE}})
+      {{- if TEST_STATUS == pending }}
+      ├─ 测试框架                     ⏳ 待处理 ({{TEST_BLOCKER_REASON}})
+      {{- endif }}
+      {{- if GENERATE_PRE_COMMIT == yes }}
+      ├─ pre-commit hook              ✅ 已配置
+      {{- endif }}
+
+      下一步：
+      1. 查看 openspec/config.yaml 确认配置
+      2. 阅读 AGENTS.md 了解 AI 助手的工作方式
+      3. 创建第一个变更：
+
+         新功能：/opsx-propose my-first-feature
+         Bug 修复：/opsx-bugfix some-bug
+         技术调研：/opsx-spike evaluate-options
+
+on_complete:
+  action: "标记 harness-install-tasks.md 所有任务完成，并保留 pending 项说明"
