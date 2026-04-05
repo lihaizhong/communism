@@ -1,5 +1,16 @@
 # Project Configuration
 
+## Repository Purpose
+
+This repository exists to build development scaffolding for other projects.
+
+Required stance:
+- MUST treat this repository as scaffold infrastructure, not the product.
+- MUST think for downstream consumer projects, not for the current directory.
+- MUST NOT infer product structure, architecture, or constraints from this
+  repository's current files, folders, or naming unless explicitly instructed.
+- MUST prefer reusable, template-safe, project-agnostic decisions by default.
+
 ## gstack
 
 Use /browse from gstack for all web browsing. Never use mcp__claude-in-chrome__* tools.

@@ -13,14 +13,14 @@ inputs:
 outputs:
   - INSTALL_RESULT
 fallback:
-  on_verification_failure: "回写失败项并提示用户修复后重试"
+  on_verification_failure: "回写失败项、占位残留与空壳文件信息，并提示用户修复后重试"
 variable_conventions:
   case: "UPPER_SNAKE_CASE for task variables"
   write_scope: "Verification and summary only"
 
 steps:
   - id: final_check
-    name: "最终验证清单"
+    name: "最终验证清单与防伪完成检查"
     checks:
       - file_exists: "openspec/config.yaml"
         desc: "配置文件存在且格式正确"
@@ -44,6 +44,20 @@ steps:
           - file_executable: ".git/hooks/pre-commit"
           - file_executable: ".husky/pre-commit"
         desc: "pre-commit hook 已安装且可执行（支持 .git/hooks 或 .husky）"
+    verify:
+      command: |
+        ! rg -n -i 'TODO|TBD|placeholder|stub|mock|待补充|未实现' \
+          openspec/config.yaml \
+          AGENTS.md \
+          {{AI_CONFIG_DIR}}/commands \
+          {{AI_CONFIG_DIR}}/skills && \
+        test -s openspec/config.yaml && \
+        test -s AGENTS.md && \
+        [ "$(find {{AI_CONFIG_DIR}}/commands -type f -name '*.md' | wc -l | tr -d ' ')" = "6" ] && \
+        [ "$(find {{AI_CONFIG_DIR}}/commands -type f -name '*.md' -size +0c | wc -l | tr -d ' ')" = "6" ] && \
+        [ "$(find {{AI_CONFIG_DIR}}/skills -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')" = "6" ] && \
+        [ "$(find {{AI_CONFIG_DIR}}/skills -mindepth 1 -maxdepth 1 -type d -exec test -s '{}/SKILL.md' ';' -print | wc -l | tr -d ' ')" = "6" ]
+      expected: "退出码为 0，且不存在 TODO/占位/空文件/缺失 SKILL.md 的伪完成情况"
 
   - id: show_summary
     name: "显示完成摘要"
@@ -74,4 +88,4 @@ steps:
          技术调研：/opsx-spike evaluate-options
 
 on_complete:
-  action: "标记 harness-install-tasks.md 所有任务完成，并保留 pending 项说明"
+  action: "仅在最终验证通过时标记 harness-install-tasks.md 任务完成并保留 pending 项说明；若发现伪完成痕迹，则将 INSTALL_RESULT 记录为 failed，并回写具体失败文件与原因"

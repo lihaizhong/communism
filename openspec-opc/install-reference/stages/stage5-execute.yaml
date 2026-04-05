@@ -154,7 +154,7 @@ core_tasks:
     on_complete: "标记 T5 [x]"
 
   - id: T6
-    name: "验证安装清单"
+    name: "验证安装清单与伪完成痕迹"
     checks:
       - file_exists: "openspec/config.yaml"
       - dir_has_content: "openspec/schemas/"
@@ -164,6 +164,20 @@ core_tasks:
       - not_exists: "{{AI_CONFIG_DIR}}/../command/"
       - if: "TEST_STATUS == pending"
         action: "记录测试框架尚未完成，不阻塞安装完成"
+    verify:
+      command: |
+        ! rg -n -i 'TODO|TBD|placeholder|stub|mock|待补充|未实现' \
+          openspec/config.yaml \
+          AGENTS.md \
+          {{AI_CONFIG_DIR}}/commands \
+          {{AI_CONFIG_DIR}}/skills && \
+        test -s openspec/config.yaml && \
+        test -s AGENTS.md && \
+        [ "$(find {{AI_CONFIG_DIR}}/commands -type f -name '*.md' | wc -l | tr -d ' ')" = "6" ] && \
+        [ "$(find {{AI_CONFIG_DIR}}/commands -type f -name '*.md' -size +0c | wc -l | tr -d ' ')" = "6" ] && \
+        [ "$(find {{AI_CONFIG_DIR}}/skills -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')" = "6" ] && \
+        [ "$(find {{AI_CONFIG_DIR}}/skills -mindepth 1 -maxdepth 1 -type d -exec test -s '{}/SKILL.md' ';' -print | wc -l | tr -d ' ')" = "6" ]
+      expected: "退出码为 0，且不存在 TODO/占位/空壳命令或缺失 SKILL.md 的技能目录"
     on_complete: "标记 T6 [x]"
 
 conditional_tasks:
@@ -210,5 +224,5 @@ ci_config:
 
 on_complete:
   verify: "harness-install-tasks.md 中核心任务全部 [x] 或带有明确 pending 原因"
-  action: "记录 INSTALL_RESULT = success 或 success_with_pending 到 harness-install-tasks.md"
+  action: "仅当 T6 验证通过时记录 INSTALL_RESULT = success 或 success_with_pending；若发现占位内容、空文件或缺失关键文件，则记录 INSTALL_RESULT = failed，并将对应任务标记为 [!]"
   next: "stage6"
