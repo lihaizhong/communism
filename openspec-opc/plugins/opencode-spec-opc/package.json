@@ -18,7 +18,7 @@
     "@openspec-opc/guard-core": "0.1.0"
   },
   "scripts": {
-    "build": "node ../../node_modules/typescript/bin/tsc -p tsconfig.json",
+    "build": "tsc -p tsconfig.json",
     "test": "npm run build && node --test dist/*.test.js"
   },
   "exports": {
