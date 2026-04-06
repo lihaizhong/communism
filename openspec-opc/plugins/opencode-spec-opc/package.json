@@ -1,21 +1,42 @@
 {
-  "name": "opencode-spec-opc",
+  "name": "@openspec-opc/opencode-plugin",
   "version": "0.1.0",
   "description": "OpenCode runtime guard plugin for OpenSpec OPC workflows",
   "type": "module",
-  "main": "./index.js",
-  "bin": {
-    "opencode-spec-opc-render-loader": "./scripts/render-loader.js"
+  "homepage": "https://github.com/lihaizhong/communism/tree/main/openspec-opc",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lihaizhong/communism.git",
+    "directory": "openspec-opc/plugins/opencode-spec-opc"
+  },
+  "bugs": {
+    "url": "https://github.com/lihaizhong/communism/issues"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "dependencies": {
+    "@openspec-opc/guard-core": "0.1.0"
+  },
+  "scripts": {
+    "build": "node ../../node_modules/typescript/bin/tsc -p tsconfig.json",
+    "test": "npm run build && node --test dist/*.test.js"
   },
   "exports": {
-    ".": "./index.js"
+    ".": "./dist/index.js"
+  },
+  "files": [
+    "dist/"
+  ],
+  "publishConfig": {
+    "access": "public"
   },
   "keywords": [
     "opencode",
     "openspec",
     "plugin",
     "guardrails",
-    "workflow"
+    "workflow",
+    "runtime-enforcement"
   ],
   "license": "MIT"
 }

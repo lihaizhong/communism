@@ -12,7 +12,7 @@ I'll help you fix bugs efficiently with minimal overhead and proper regression t
 
 1. **If no input provided, ask about the bug**
 
-   Use the **AskUserQuestion tool** to ask:
+   Ask the user directly:
 
    > "What bug are you trying to fix? Describe the symptom or error."
 
@@ -51,7 +51,7 @@ I'll help you fix bugs efficiently with minimal overhead and proper regression t
    - **Actual_Behavior**: What actually happens?
    - **Environment**: OS, browser, versions
 
-   Use **AskUserQuestion** for any missing critical information.
+   Ask follow-up questions for any missing critical information.
 
 5. **Reproduce the bug**
 
@@ -59,12 +59,12 @@ I'll help you fix bugs efficiently with minimal overhead and proper regression t
    - If successful, document any additional details
    - If cannot reproduce, ask user for more information
 
-6. **Split work across three different subagents**
+6. **Split work across three different execution sessions**
 
-   Use three distinct subagents or worker sessions:
-   - `red` subagent: only write the regression test
-   - `green` subagent: only write the fix
-   - `verify` subagent: only run validation and summarize
+   Use three distinct execution sessions:
+   - `red` session: only write the regression test
+   - `green` session: only write the fix
+   - `verify` session: only run validation and summarize
 
    These three phases must not reuse the same runtime session id.
 
@@ -82,9 +82,9 @@ I'll help you fix bugs efficiently with minimal overhead and proper regression t
    - `updatedAt`: current ISO timestamp
 
    Rules:
-   - In `red` phase, set `redSessionId` to the current subagent session
-   - In `green` phase, set `greenSessionId` to a different subagent session
-   - In `verify` phase, set `verifySessionId` to a third subagent session
+   - In `red` phase, set `redSessionId` to the current execution session
+   - In `green` phase, set `greenSessionId` to a different execution session
+   - In `verify` phase, set `verifySessionId` to a third execution session
    - `red`, `green`, `verify` must all be different session ids
 
 8. **Create fix.md and implement**
@@ -126,7 +126,7 @@ I'll help you fix bugs efficiently with minimal overhead and proper regression t
 
 - Only fix the bug, don't refactor unrelated code
 - Every bugfix must include a regression test
-- Always use three different subagent sessions for `red`, `green`, and `verify`
+- Always use three different execution sessions for `red`, `green`, and `verify`
 - Always refresh `openspec/.opencode-spec-opc-state.json` before each phase
 - Document the root cause for future prevention
 - For P0 critical bugs, use hotfix override

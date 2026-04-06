@@ -1,6 +1,6 @@
 # Install Reference
 
-本目录包含 OpenSpec Harness 安装流程的阶段定义、任务账本模板和校验工具。
+本目录包含 OpenSpec OPC 安装流程的阶段定义、任务账本模板和校验工具。
 
 ## 文件说明
 
@@ -10,8 +10,8 @@
 - `stage.schema.json`
   - 阶段 YAML 的结构约定
   - 约束公共元字段和各阶段专有字段
-- `validate_stages.py`
-  - 零额外依赖的校验脚本
+- `validate-stages.mjs`
+  - Node 校验脚本
   - 读取 `stage.schema.json` 和 `stages/*.yaml`
   - 校验阶段文件是否满足当前约定
 
@@ -20,7 +20,7 @@
 在仓库根目录运行：
 
 ```bash
-python3 openspec-opc/install-reference/validate_stages.py
+npm --prefix openspec-opc run validate:stages
 ```
 
 成功时会输出：

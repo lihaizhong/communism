@@ -1,0 +1,38 @@
+{
+  "name": "codex-spec-opc",
+  "version": "0.1.0",
+  "description": "Codex runtime guard plugin for OpenSpec OPC workflows.",
+  "author": {
+    "name": "lihaizhong",
+    "url": "https://github.com/lihaizhong"
+  },
+  "homepage": "https://github.com/lihaizhong/communism/tree/main/openspec-opc/plugins/codex-spec-opc",
+  "repository": "https://github.com/lihaizhong/communism",
+  "license": "MIT",
+  "keywords": [
+    "codex",
+    "openspec",
+    "guardrails",
+    "workflow",
+    "tdd"
+  ],
+  "hooks": "./hooks.json",
+  "interface": {
+    "displayName": "OpenSpec OPC for Codex",
+    "shortDescription": "Runtime guardrails for OpenSpec-driven Codex workflows.",
+    "longDescription": "Prevents Codex from writing business code until OpenSpec planning, task quality, and test gates are satisfied.",
+    "developerName": "lihaizhong",
+    "category": "Productivity",
+    "capabilities": [
+      "Interactive",
+      "Write"
+    ],
+    "websiteURL": "https://github.com/lihaizhong/communism/tree/main/openspec-opc",
+    "defaultPrompt": [
+      "Start an OpenSpec change and stop code edits until apply-ready.",
+      "Enforce red, green, verify phases for my current work item.",
+      "Summarize the current OpenSpec guard state after session compaction."
+    ],
+    "brandColor": "#1F6FEB"
+  }
+}

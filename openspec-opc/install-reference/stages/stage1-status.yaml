@@ -20,7 +20,7 @@ steps:
   - id: ask_project_type
     name: "新项目 or 老项目？"
     prompt: |
-      你好！我来帮你搭建 OpenSpec Harness 环境。
+      你好！我来帮你搭建 OpenSpec OPC 环境。
 
       请告诉我你的情况：
       A) 从零创建新项目

@@ -35,6 +35,7 @@
 | `CONFIG_CONFLICT` | | 阶段 4 是否检测到目标目录冲突 (yes/no) |
 | `CONFIG_CONFLICT_STRATEGY` | | 阶段 5 用户选择 (backup_overwrite/merge/coexist) |
 | `CI_TYPE` | | 阶段 5 用户选择 (github/gitlab/other) |
+| `CI_CONFIG_PATH` | | 阶段 5 生成并记录的 CI 配置文件路径 |
 | `GENERATE_PRE_COMMIT` | | 阶段 5 用户选择是否安装 `.template/ci-templates/hooks/pre-commit` (yes/no) |
 | `INTEGRATE_AI_DOCS` | | 阶段 4 用户选择 (yes/no) |
 | `EXISTING_AI_DOCS` | | 阶段 4 检测到的已有 AI 文档列表 |

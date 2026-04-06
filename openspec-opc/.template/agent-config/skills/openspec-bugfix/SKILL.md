@@ -80,12 +80,12 @@ Implement bug fixes using the bugfix schema workflow.
    - **Risks** (optional): Any risks introduced
    - **Follow_Up** (optional): Related improvements needed
 
-6. **Split work across three different subagents**
+6. **Split work across three different execution sessions**
 
-   Use three distinct subagents or worker sessions:
-   - `red` subagent: only write the regression test
-   - `green` subagent: only write the fix
-   - `verify` subagent: only run validation and summarize
+   Use three distinct execution sessions:
+   - `red` session: only write the regression test
+   - `green` session: only write the fix
+   - `verify` session: only run validation and summarize
 
    These three phases must not reuse the same runtime session id.
 
@@ -103,9 +103,9 @@ Implement bug fixes using the bugfix schema workflow.
    - `updatedAt`: current ISO timestamp
 
    Rules:
-   - In `red` phase, set `redSessionId` to the current subagent session
-   - In `green` phase, set `greenSessionId` to a different subagent session
-   - In `verify` phase, set `verifySessionId` to a third subagent session
+   - In `red` phase, set `redSessionId` to the current execution session
+   - In `green` phase, set `greenSessionId` to a different execution session
+   - In `verify` phase, set `verifySessionId` to a third execution session
    - `red`, `green`, `verify` must all be different session ids
 
 8. **Implement the fix**
@@ -143,7 +143,7 @@ Implement bug fixes using the bugfix schema workflow.
 
 - **Minimal changes**: Only fix the bug, don't refactor surrounding code
 - **Always add regression test**: Every bugfix must include a test
-- **Always use three distinct sessions**: `red`, `green`, and `verify` must be different subagent sessions
+- **Always use three distinct sessions**: `red`, `green`, and `verify` must be different execution sessions
 - **Always refresh apply state**: Refresh `openspec/.opencode-spec-opc-state.json` before each phase
 - **Document root cause**: Helps prevent similar bugs and improve processes
 - **Follow severity guidelines**: P0 bugs can use hotfix path, others use full workflow

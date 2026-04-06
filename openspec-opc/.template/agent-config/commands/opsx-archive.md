@@ -10,7 +10,7 @@ Archive a completed change in the experimental workflow.
 
 1. **If no change name provided, prompt for selection**
 
-   Run `openspec list --json` to get available changes. Use the **AskUserQuestion tool** to let the user select.
+   Run `openspec list --json` to get available changes and ask the user to select.
 
    Show only active changes (not already archived).
    Include the schema used for each change if available.
@@ -19,7 +19,12 @@ Archive a completed change in the experimental workflow.
 
 2. **Check artifact completion status**
 
-   Run `openspec status --change "<name>" --json` to check artifact completion.
+   Determine whether the work item lives under `openspec/changes/` or `openspec/bugs/`.
+
+   Then run the matching status command:
+
+   - `openspec status --change "<name>" --json`
+   - or `openspec status --bugfix "<name>" --json`
 
    Parse the JSON to understand:
    - `schemaName`: The workflow being used
@@ -45,7 +50,7 @@ Archive a completed change in the experimental workflow.
 
 4. **Assess delta spec sync state**
 
-   Check for delta specs at `openspec/changes/<name>/specs/`. If none exist, proceed without sync prompt.
+   Check for delta specs in the work item spec directory. For spec-driven changes use `openspec/changes/<name>/specs/`. For bugfixes, skip this step unless your workflow explicitly creates delta specs.
 
    **If delta specs exist:**
    - Compare each delta spec with its corresponding main spec at `openspec/specs/<capability>/spec.md`
@@ -56,14 +61,19 @@ Archive a completed change in the experimental workflow.
    - If changes needed: "Sync now (recommended)", "Archive without syncing"
    - If already synced: "Archive now", "Sync anyway", "Cancel"
 
-   If user chooses sync, use Task tool (subagent_type: "general-purpose", prompt: "Use Skill tool to invoke openspec-sync-specs for change '<name>'. Delta spec analysis: <include the analyzed delta spec summary>"). Proceed to archive regardless of choice.
+   If user chooses sync, invoke the repository's available spec-sync workflow if one exists. Proceed to archive regardless of whether sync was run or skipped.
 
 5. **Perform the archive**
+
+   Determine source directory based on workflow:
+   - spec-driven: `openspec/changes/<name>`
+   - bugfix: `openspec/bugs/<name>`
 
    Create the archive directory if it doesn't exist:
 
    ```bash
    mkdir -p openspec/changes/archive
+   mkdir -p openspec/bugs/archive
    ```
 
    Generate target name using current date: `YYYY-MM-DD-<change-name>`
@@ -73,7 +83,11 @@ Archive a completed change in the experimental workflow.
    - If no: Move the change directory to archive
 
    ```bash
+   # For spec-driven
    mv openspec/changes/<name> openspec/changes/archive/YYYY-MM-DD-<name>
+
+   # For bugfix
+   mv openspec/bugs/<name> openspec/bugs/archive/YYYY-MM-DD-<name>
    ```
 
 6. **Display summary**
@@ -152,5 +166,5 @@ Target archive directory already exists.
 - Don't block archive on warnings - just inform and confirm
 - Preserve .openspec.yaml when moving to archive (it moves with the directory)
 - Show clear summary of what happened
-- If sync is requested, use the Skill tool to invoke `openspec-sync-specs` (agent-driven)
+- If sync is requested, use the repository's available spec-sync workflow instead of assuming a specific tool name
 - If delta specs exist, always run the sync assessment and show the combined summary before prompting

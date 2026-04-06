@@ -1,0 +1,46 @@
+{
+  "name": "@openspec-opc/codex-plugin",
+  "version": "0.1.0",
+  "description": "Codex runtime guard plugin for OpenSpec OPC workflows.",
+  "type": "module",
+  "homepage": "https://github.com/lihaizhong/communism/tree/main/openspec-opc",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lihaizhong/communism.git",
+    "directory": "openspec-opc/plugins/codex-spec-opc"
+  },
+  "bugs": {
+    "url": "https://github.com/lihaizhong/communism/issues"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "dependencies": {
+    "@openspec-opc/guard-core": "0.1.0"
+  },
+  "exports": {
+    ".": "./dist/index.js",
+    "./hooks": "./hooks/index.mjs",
+    "./plugin-manifest": "./.codex-plugin/plugin.json"
+  },
+  "files": [
+    "dist/",
+    "hooks/",
+    ".codex-plugin/",
+    "hooks.json"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "node ../../node_modules/typescript/bin/tsc -p tsconfig.json",
+    "test": "npm run build && node --test dist/*.test.js"
+  },
+  "keywords": [
+    "codex",
+    "openspec",
+    "plugin",
+    "guardrails",
+    "runtime-enforcement"
+  ],
+  "license": "MIT"
+}

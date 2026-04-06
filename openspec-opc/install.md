@@ -1,6 +1,6 @@
-# OpenSpec Harness 安装指南
+# OpenSpec OPC 安装指南
 
-> 本文档是 OpenSpec Harness 的 AI 执行入口。
+> 本文档是 OpenSpec OPC 的 AI 执行入口。
 > AI 助手必须从本文档开始，按阶段执行安装流程。
 > 除非文档明确要求，否则不要跨阶段推断、不要跳步、不要提前修改业务文件。
 
@@ -54,10 +54,21 @@ openspec-opc/
     ├── agent-config/           → 目标项目: {{AI_CONFIG_DIR}}/（动态重命名）
     │   ├── commands/
     │   └── skills/
-    ├── opencode-runtime/       → 目标项目: .opencode/plugins/ + .opencode/vendor/（仅 OpenCode）
     ├── ci-templates/           → 目标项目: 根据 CI_TYPE 生成对应配置，并可选安装 pre-commit hook
     └── README.md               ← 模板说明（安装时不复制）
 ```
+
+## 插件安装边界
+
+当前安装流程会处理的是 OpenSpec OPC 模板和 OpenCode 运行时插件接线：
+
+- 复制 `AGENTS.md`、`openspec/`、`commands/`、`skills/`
+- 如果 `AI_TOOL_NAME == opencode`，创建或合并 `.opencode/opencode.json`
+- 确保其 `plugin` 数组包含 `@openspec-opc/opencode-plugin`
+
+当前安装流程**不会**复制旧版 `.opencode/plugins/` 或 `.opencode/vendor/` runtime 文件。
+
+Codex 侧当前仍处于本地插件 scaffold 阶段；仓库里有 `plugins/codex-spec-opc/`，但截至当前版本，它还不是 `install.md` 默认执行的正式安装目标。
 
 ## 版本兼容性
 
@@ -74,7 +85,7 @@ openspec-opc/
 满足以下任一条件即可视为“可安装的目标项目根目录”：
 
 1. 已存在常见项目文件，如 `package.json`、`pyproject.toml`、`go.mod`、`Cargo.toml` 等。
-2. 已是 Git 仓库根目录，且用户明确表示要在该仓库安装 Harness。
+2. 已是 Git 仓库根目录，且用户明确表示要在该仓库安装 OpenSpec OPC。
 3. 用户明确指定当前目录就是目标项目根目录。
 4. 当前目录为空，但用户明确要求从这里初始化项目。
 

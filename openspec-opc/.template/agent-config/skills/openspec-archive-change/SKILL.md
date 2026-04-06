@@ -17,7 +17,7 @@ Archive a completed change in the experimental workflow.
 
 1. **If no change name provided, prompt for selection**
 
-   Run `openspec list --json` to get available changes. Use the **AskUserQuestion tool** to let the user select.
+   Run `openspec list --json` to get available changes and ask the user to select.
 
    Show only active changes (not already archived).
    Include the schema used for each change if available.
@@ -26,7 +26,11 @@ Archive a completed change in the experimental workflow.
 
 2. **Check artifact completion status**
 
-   Run `openspec status --change "<name>" --json` to check artifact completion.
+   Determine whether the work item lives under `openspec/changes/` or `openspec/bugs/`.
+
+   Then run the matching status command:
+   - `openspec status --change "<name>" --json`
+   - or `openspec status --bugfix "<name>" --json`
 
    Parse the JSON to understand:
    - `schemaName`: The workflow being used
@@ -34,7 +38,7 @@ Archive a completed change in the experimental workflow.
 
    **If any artifacts are not `done`:**
    - Display warning listing incomplete artifacts
-   - Use **AskUserQuestion tool** to confirm user wants to proceed
+   - Ask the user to confirm whether to proceed
    - Proceed if user confirms
 
 3. **Check task completion status**
@@ -45,14 +49,14 @@ Archive a completed change in the experimental workflow.
 
    **If incomplete tasks found:**
    - Display warning showing count of incomplete tasks
-   - Use **AskUserQuestion tool** to confirm user wants to proceed
+   - Ask the user to confirm whether to proceed
    - Proceed if user confirms
 
    **If no tasks file exists:** Proceed without task-related warning.
 
 4. **Assess delta spec sync state**
 
-   Check for delta specs at `openspec/changes/<name>/specs/`. If none exist, proceed without sync prompt.
+   Check for delta specs in the work item spec directory. For spec-driven changes use `openspec/changes/<name>/specs/`. For bugfixes, skip this step unless your workflow explicitly creates delta specs.
 
    **If delta specs exist:**
    - Compare each delta spec with its corresponding main spec at `openspec/specs/<capability>/spec.md`
@@ -63,7 +67,7 @@ Archive a completed change in the experimental workflow.
    - If changes needed: "Sync now (recommended)", "Archive without syncing"
    - If already synced: "Archive now", "Sync anyway", "Cancel"
 
-   If user chooses sync, use Task tool (subagent_type: "general-purpose", prompt: "Use Skill tool to invoke openspec-sync-specs for change '<name>'. Delta spec analysis: <include the analyzed delta spec summary>"). Proceed to archive regardless of choice.
+   If user chooses sync, invoke the repository's available spec-sync workflow if one exists. Proceed to archive regardless of whether sync was run or skipped.
 
 5. **Check for spec impact from bugfixes**
 
@@ -71,7 +75,7 @@ Archive a completed change in the experimental workflow.
    - Read `openspec/bugs/<name>/fix.md` to check for `Spec_Impact` section
    - If `Spec_Impact` exists with `Affected_Spec`, `Change_Type`, and `Description`:
      - Display summary of proposed spec changes
-     - Use **AskUserQuestion tool** to confirm:
+     - Ask the user to confirm:
        > "This bugfix includes a spec impact. Apply changes to `<affected_spec_path>`?"
        > Options: ["Apply spec changes", "Skip spec update", "Cancel archive"]
    - If user chooses to apply:
@@ -137,7 +141,7 @@ All artifacts complete. All tasks complete.
 - Don't block archive on warnings - just inform and confirm
 - Preserve .openspec.yaml when moving to archive (it moves with the directory)
 - Show clear summary of what happened
-- If sync is requested, use openspec-sync-specs approach (agent-driven)
+- If sync is requested, use the repository's available spec-sync workflow instead of assuming a specific tool name
 - If delta specs exist, always run the sync assessment and show the combined summary before prompting
 - For bugfixes with Spec_Impact, always prompt before applying spec changes
 - Support both spec-driven (changes/) and bugfix (bugs/) directory structures

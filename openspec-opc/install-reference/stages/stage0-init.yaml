@@ -22,7 +22,7 @@ steps:
   - id: ask_init_method
     name: "选择初始化方式"
     prompt: |
-      检测到你需要创建新项目。OpenSpec Harness 需要在项目根目录安装。
+      检测到你需要创建新项目。OpenSpec OPC 需要在项目根目录安装。
 
       请选择项目初始化方式：
 
@@ -67,7 +67,7 @@ steps:
       - file: "pyproject.toml"
       - dir: ".git"
     on_pass:
-      action: "记录 INSTALL_TARGET_CONFIRMED = yes 到 harness-install-tasks.md"
+      action: "记录 INSTALL_TARGET_CONFIRMED = yes 到当前安装上下文，待任务账本创建后再写入"
       next: "stage1"
     on_fail:
       retry: true

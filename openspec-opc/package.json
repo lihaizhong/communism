@@ -1,0 +1,28 @@
+{
+  "name": "openspec-opc-workspace",
+  "private": true,
+  "type": "module",
+  "packageManager": "npm@10",
+  "workspaces": [
+    "packages/*",
+    "plugins/*"
+  ],
+  "scripts": {
+    "build": "npm run build:core && npm run build:codex",
+    "build:core": "npm --prefix packages/opc-guard-core run build",
+    "build:codex": "npm --prefix plugins/codex-spec-opc run build",
+    "build:opencode": "npm --prefix plugins/opencode-spec-opc run build",
+    "validate:stages": "node ./install-reference/validate-stages.mjs",
+    "test": "npm run build:core && npm --prefix plugins/codex-spec-opc run test && npm --prefix plugins/opencode-spec-opc run test",
+    "test:core": "npm --prefix packages/opc-guard-core run build",
+    "test:codex": "npm --prefix plugins/codex-spec-opc run test",
+    "test:opencode": "npm --prefix plugins/opencode-spec-opc run test",
+    "pack:dry-run": "node ./scripts/pack-dry-run.mjs",
+    "release:check": "node ./scripts/check-workspace-versions.mjs && npm run validate:stages && npm test && npm run pack:dry-run"
+  },
+  "devDependencies": {
+    "@types/node": "^25.5.2",
+    "typescript": "^6.0.2",
+    "yaml": "^2.8.3"
+  }
+}

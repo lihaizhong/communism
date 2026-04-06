@@ -1,8 +1,8 @@
 # 01 概览
 
-## OpenSpec Harness 是什么
+## OpenSpec OPC 是什么
 
-OpenSpec Harness 是一套面向个人开发者的 AI 协作开发环境，核心是把“想法、规格、测试、实现、归档”串成稳定流程。
+OpenSpec OPC 是一套面向个人开发者的 AI 协作开发环境，核心是把“想法、规格、测试、实现、归档”串成稳定流程。
 
 它强调两件事：
 
