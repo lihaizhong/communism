@@ -16,7 +16,7 @@ fallback:
   on_missing_input: "不得猜测项目类型或目录意图"
 variable_conventions:
   case: "UPPER_SNAKE_CASE for task variables"
-  write_scope: "Only write task variables, do not modify business files"
+  write_scope: "Only record install state before the task file exists; do not modify business files"
 
 steps:
   - id: check_cli
@@ -62,14 +62,14 @@ steps:
       options:
         - id: confirm_current
           label: "当前目录就是目标项目根目录"
-          action: "记录 INSTALL_TARGET_CONFIRMED = yes 到 harness-install-tasks.md"
+          action: "记录 INSTALL_TARGET_CONFIRMED = yes 到当前安装上下文，待任务账本创建后再写入"
           next: "check_git"
         - id: switch_dir
           label: "切换到其他目录后重试"
           action: "引导用户切换到目标项目根目录后重新执行本阶段"
         - id: init_project
           label: "在这里初始化新项目"
-          action: "记录 USER_REQUESTED_PROJECT_INIT = yes 到 harness-install-tasks.md"
+          action: "记录 USER_REQUESTED_PROJECT_INIT = yes 到当前安装上下文，待任务账本创建后再写入"
           next: "stage0"
         - id: cancel
           label: "取消安装"
@@ -79,8 +79,8 @@ steps:
     name: "检查 Git 初始化"
     command: "git rev-parse --git-dir 2>/dev/null"
     on_pass:
-      action: "记录 GIT_INITIALIZED = yes 到 harness-install-tasks.md"
+      action: "记录 GIT_INITIALIZED = yes 到当前安装上下文，待任务账本创建后再写入"
       next: "stage1"
     on_fail:
-      action: "记录 GIT_INITIALIZED = no 到 harness-install-tasks.md"
+      action: "记录 GIT_INITIALIZED = no 到当前安装上下文，待任务账本创建后再写入"
       next: "stage1"

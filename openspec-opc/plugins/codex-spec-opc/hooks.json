@@ -1,0 +1,9 @@
+{
+  "entry": "./hooks/index.mjs",
+  "api": "provisional",
+  "events": [
+    "beforeMutation",
+    "afterMutation",
+    "sessionCompact"
+  ]
+}

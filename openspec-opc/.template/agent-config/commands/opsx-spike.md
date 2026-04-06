@@ -12,7 +12,7 @@ I'll help you explore technical questions, evaluate options, and reach a clear d
 
 1. **If no input provided, ask about the research question**
 
-   Use the **AskUserQuestion tool** to ask:
+   Ask the user directly:
 
    > "What technical question do you want to explore? Describe the problem or options you're investigating."
 
@@ -52,7 +52,7 @@ I'll help you explore technical questions, evaluate options, and reach a clear d
    - **Success_Criteria** (optional): How do we know we're done?
    - **Timebox** (optional): How much time to spend? (default: 4h)
 
-   Use **AskUserQuestion** for any missing critical information.
+   Ask follow-up questions for any missing critical information.
 
 5. **Create exploration-log.md**
 

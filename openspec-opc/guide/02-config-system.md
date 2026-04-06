@@ -1,6 +1,6 @@
 # 02 配置体系
 
-## 四层配置
+## 安装到目标项目后的四层配置
 
 ### 1. `AGENTS.md`
 
@@ -42,3 +42,16 @@
 - 工具适配放 AI 配置目录
 
 边界清晰的好处是：改协作方式不影响项目事实，改工作流不必重写命令。
+
+## 仓库维护视角
+
+如果你维护的是 `openspec-opc` 仓库本身，而不是目标项目，当前实现已经进一步拆成：
+
+- `packages/opc-guard-core`
+  `@openspec-opc/guard-core`，平台无关的 enforcement 核心
+- `plugins/opencode-spec-opc`
+  `@openspec-opc/opencode-plugin`，OpenCode 适配层
+- `plugins/codex-spec-opc`
+  `@openspec-opc/codex-plugin`，Codex 适配层
+
+这层拆分是仓库实现结构，不是安装后目标项目必须长成这样。

@@ -15,6 +15,7 @@ inputs:
   - TEST_INSTALL_CMD
 outputs:
   - CI_TYPE
+  - CI_CONFIG_PATH
   - GENERATE_PRE_COMMIT
   - INSTALL_RESULT
 fallback:
@@ -95,8 +96,7 @@ core_tasks:
       ├─ openspec/schemas/
       ├─ AGENTS.md
       ├─ {{AI_CONFIG_DIR}}/
-      ├─ .opencode/plugins/（仅 OpenCode）
-      └─ .opencode/vendor/（仅 OpenCode）
+      └─ .opencode/opencode.json（仅 OpenCode，用于注册 @openspec-opc/opencode-plugin）
 
       若目标已存在，必须先展示冲突处理策略：
       ├─ backup_overwrite 备份后覆盖
@@ -146,13 +146,22 @@ core_tasks:
 
   - id: T5
     name: "填充技术栈变量"
-    action: "读取 harness-install-tasks.md 配置变量表，替换所有 {{变量名}}"
+    action: "读取 harness-install-tasks.md 配置变量表，替换所有已生成模板文件中的 {{变量名}}，至少包括 openspec/config.yaml、AGENTS.md、CI 模板文件和 pre-commit hook（如已生成）"
     target_files:
       - "openspec/config.yaml"
       - "AGENTS.md"
+      - "{{CI_CONFIG_PATH}}"
+      - ".git/hooks/pre-commit"
+      - ".husky/pre-commit"
     verify:
-      command: "grep -E '\\{\\{[A-Z_]+\\}\\}' openspec/config.yaml AGENTS.md"
-      expected: "无输出"
+      command: |
+        ! grep -E '\\{\\{[A-Z_]+\\}\\}' openspec/config.yaml AGENTS.md && \
+        { [ -z "{{CI_CONFIG_PATH}}" ] || ! grep -E '\\{\\{[A-Z_]+\\}\\}' "{{CI_CONFIG_PATH}}"; } && \
+        { [ "{{GENERATE_PRE_COMMIT}}" != "yes" ] || { \
+          { [ ! -f .git/hooks/pre-commit ] || ! grep -E '\\{\\{[A-Z_]+\\}\\}' .git/hooks/pre-commit; } && \
+          { [ ! -f .husky/pre-commit ] || ! grep -E '\\{\\{[A-Z_]+\\}\\}' .husky/pre-commit; }; \
+        }; }
+      expected: "已生成的模板文件中不存在未替换的 {{变量名}}"
     on_complete: "标记 T5 [x]"
 
   - id: T6
@@ -165,9 +174,7 @@ core_tasks:
       - dirs_count: "{{AI_CONFIG_DIR}}/skills/ == 6"
       - not_exists: "{{AI_CONFIG_DIR}}/../command/"
       - if: "AI_TOOL_NAME == opencode"
-        file_exists: ".opencode/plugins/opencode-spec-opc.js"
-      - if: "AI_TOOL_NAME == opencode"
-        file_exists: ".opencode/vendor/opencode-spec-opc/index.js"
+        file_exists: ".opencode/opencode.json"
       - if: "TEST_STATUS == pending"
         action: "记录测试框架尚未完成，不阻塞安装完成"
     verify:
@@ -179,19 +186,24 @@ core_tasks:
           {{AI_CONFIG_DIR}}/skills && \
         test -s openspec/config.yaml && \
         test -s AGENTS.md && \
+        { [ -z "{{CI_CONFIG_PATH}}" ] || { test -s "{{CI_CONFIG_PATH}}" && ! grep -E '\\{\\{[A-Z_]+\\}\\}' "{{CI_CONFIG_PATH}}"; }; } && \
+        { [ "{{GENERATE_PRE_COMMIT}}" != "yes" ] || { \
+          { [ ! -f .git/hooks/pre-commit ] || { test -s .git/hooks/pre-commit && ! grep -E '\\{\\{[A-Z_]+\\}\\}' .git/hooks/pre-commit; }; } && \
+          { [ ! -f .husky/pre-commit ] || { test -s .husky/pre-commit && ! grep -E '\\{\\{[A-Z_]+\\}\\}' .husky/pre-commit; }; }; \
+        }; } && \
         [ "$(find {{AI_CONFIG_DIR}}/commands -type f -name '*.md' | wc -l | tr -d ' ')" = "6" ] && \
         [ "$(find {{AI_CONFIG_DIR}}/commands -type f -name '*.md' -size +0c | wc -l | tr -d ' ')" = "6" ] && \
         [ "$(find {{AI_CONFIG_DIR}}/skills -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')" = "6" ] && \
         [ "$(find {{AI_CONFIG_DIR}}/skills -mindepth 1 -maxdepth 1 -type d -exec test -s '{}/SKILL.md' ';' -print | wc -l | tr -d ' ')" = "6" ] && \
-        { [ "{{AI_TOOL_NAME}}" != "opencode" ] || { test -s .opencode/plugins/opencode-spec-opc.js && test -s .opencode/vendor/opencode-spec-opc/index.js; }; }
+        { [ "{{AI_TOOL_NAME}}" != "opencode" ] || { test -s .opencode/opencode.json && rg -q '@openspec-opc/opencode-plugin' .opencode/opencode.json; }; }
       expected: "退出码为 0，且不存在 TODO/占位/空壳命令或缺失 SKILL.md 的技能目录"
     on_complete: "标记 T6 [x]"
 
 conditional_tasks:
   - id: T2.5
-    name: "安装 OpenCode 运行时守卫插件"
+    name: "配置 OpenCode 运行时守卫插件"
     condition: "AI_TOOL_NAME == opencode"
-    action: "将 .template/opencode-runtime/plugins/opencode-spec-opc.js 复制到 .opencode/plugins/opencode-spec-opc.js，并将 .template/opencode-runtime/vendor/opencode-spec-opc/ 复制到 .opencode/vendor/opencode-spec-opc/"
+    action: "创建或合并 .opencode/opencode.json，确保其 plugin 数组包含 @openspec-opc/opencode-plugin；不要再复制 vendored runtime 或本地 bridge loader 文件。"
     on_complete: "标记 T2.5 [x]"
 
   - id: T7
@@ -232,8 +244,8 @@ ci_config:
       label: "3 - 其他平台"
       output: "HARNESS_CI.md"
   on_select:
-    action: "根据选择生成 CI/CD 配置"
-  on_complete: "记录 CI_TYPE 到 harness-install-tasks.md"
+    action: "根据选择生成 CI/CD 配置，并记录 CI_TYPE 和 CI_CONFIG_PATH 到 harness-install-tasks.md"
+  on_complete: "记录 CI_TYPE 和 CI_CONFIG_PATH 到 harness-install-tasks.md"
 
 on_complete:
   verify: "harness-install-tasks.md 中核心任务全部 [x] 或带有明确 pending 原因"

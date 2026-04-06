@@ -85,7 +85,7 @@ test_framework_missing:
   note: "推荐补齐测试框架。本阶段记录选择，实际安装在阶段 5 执行；若暂不安装，必须记录 pending 状态。"
   prompt: |
     ⚠️ 未检测到测试框架
-    OpenSpec Harness 的 Validate 和 Archive 步骤依赖测试来验证变更质量。
+    OpenSpec OPC 的 Validate 和 Archive 步骤依赖测试来验证变更质量。
     建议安装测试框架；若当前项目暂不接入测试，也可继续，但必须记录为 pending。
 
     请选择测试框架：

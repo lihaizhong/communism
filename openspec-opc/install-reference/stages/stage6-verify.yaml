@@ -8,6 +8,7 @@ inputs:
   - AI_TOOL_NAME
   - AI_CONFIG_DIR
   - CI_TYPE
+  - CI_CONFIG_PATH
   - GENERATE_PRE_COMMIT
   - TEST_STATUS
   - TEST_BLOCKER_REASON
@@ -36,12 +37,9 @@ steps:
       - not_exists: "{{AI_CONFIG_DIR}}/../command/"
         desc: "不存在旧的单数目录"
       - if: "AI_TOOL_NAME == opencode"
-        file_exists: ".opencode/plugins/opencode-spec-opc.js"
-        desc: "OpenCode 运行时守卫 loader 已安装"
-      - if: "AI_TOOL_NAME == opencode"
-        file_exists: ".opencode/vendor/opencode-spec-opc/index.js"
-        desc: "OpenCode 运行时守卫 runtime 已安装"
-      - file_exists: "{{CI 配置文件路径}}"
+        file_exists: ".opencode/opencode.json"
+        desc: "OpenCode 配置文件存在"
+      - file_exists: "{{CI_CONFIG_PATH}}"
         desc: "CI/CD 配置存在（不可跳过）"
       - if: "TEST_STATUS == pending"
         action: "在完成摘要中展示测试框架待处理"
@@ -60,17 +58,23 @@ steps:
           {{AI_CONFIG_DIR}}/skills && \
         test -s openspec/config.yaml && \
         test -s AGENTS.md && \
+        test -s "{{CI_CONFIG_PATH}}" && \
+        ! grep -E '\\{\\{[A-Z_]+\\}\\}' "{{CI_CONFIG_PATH}}" && \
+        { [ "{{GENERATE_PRE_COMMIT}}" != "yes" ] || { \
+          { [ ! -f .git/hooks/pre-commit ] || { test -s .git/hooks/pre-commit && ! grep -E '\\{\\{[A-Z_]+\\}\\}' .git/hooks/pre-commit; }; } && \
+          { [ ! -f .husky/pre-commit ] || { test -s .husky/pre-commit && ! grep -E '\\{\\{[A-Z_]+\\}\\}' .husky/pre-commit; }; }; \
+        }; } && \
         [ "$(find {{AI_CONFIG_DIR}}/commands -type f -name '*.md' | wc -l | tr -d ' ')" = "6" ] && \
         [ "$(find {{AI_CONFIG_DIR}}/commands -type f -name '*.md' -size +0c | wc -l | tr -d ' ')" = "6" ] && \
         [ "$(find {{AI_CONFIG_DIR}}/skills -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')" = "6" ] && \
         [ "$(find {{AI_CONFIG_DIR}}/skills -mindepth 1 -maxdepth 1 -type d -exec test -s '{}/SKILL.md' ';' -print | wc -l | tr -d ' ')" = "6" ] && \
-        { [ "{{AI_TOOL_NAME}}" != "opencode" ] || { test -s .opencode/plugins/opencode-spec-opc.js && test -s .opencode/vendor/opencode-spec-opc/index.js; }; }
+        { [ "{{AI_TOOL_NAME}}" != "opencode" ] || { test -s .opencode/opencode.json && rg -q '@openspec-opc/opencode-plugin' .opencode/opencode.json; }; }
       expected: "退出码为 0，且不存在 TODO/占位/空文件/缺失 SKILL.md 的伪完成情况"
 
   - id: show_summary
     name: "显示完成摘要"
     template: |
-      🎉 OpenSpec Harness 环境搭建完成！
+      🎉 OpenSpec OPC 环境搭建完成！
 
       配置摘要：
       ├─ openspec/config.yaml         ✅ 已配置
@@ -79,8 +83,7 @@ steps:
       ├─ {{AI_CONFIG_DIR}}/commands/  ✅ 6 个命令
       ├─ {{AI_CONFIG_DIR}}/skills/    ✅ 6 个技能
       {{- if AI_TOOL_NAME == opencode }}
-      ├─ .opencode/plugins/           ✅ 已安装 runtime guard loader
-      ├─ .opencode/vendor/            ✅ 已安装 runtime guard runtime
+      ├─ .opencode/opencode.json      ✅ 已配置 OpenCode 插件引用
       ├─ openspec/.opencode-spec-opc-state.json  ℹ️ 运行时由 /opsx-apply 刷新
       {{- endif }}
       ├─ CI/CD 配置                   ✅ 已配置 ({{CI_TYPE}})

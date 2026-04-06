@@ -1,14 +1,14 @@
 ---
 target: AI Assistant
-purpose: Minimal operating rules for PROJECT_NAME
+purpose: Minimal operating rules for {{PROJECT_NAME}}
 version: 1.0
 ---
 
-# AI Agent Guidelines - PROJECT_NAME
+# AI Agent Guidelines - {{PROJECT_NAME}}
 
 ## Context
 
-PROJECT_NAME - PROJECT_DESCRIPTION
+{{PROJECT_NAME}} - {{PROJECT_DESCRIPTION}}
 
 Read [openspec/config.yaml](./openspec/config.yaml) for project facts, commands, modules, and workflow settings.
 
