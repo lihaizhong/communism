@@ -13,6 +13,7 @@
    - `openspec/schemas/`
    - `AGENTS.md`
    - 对应 AI 工具目录下的 `commands/` 和 `skills/`
+   - 如果目标是 OpenCode，还应存在 `.opencode/plugins/opencode-spec-opc.js` 和 `.opencode/vendor/opencode-spec-opc/index.js`
 4. 通过 `/opsx-propose <change-name>`、`/opsx-bugfix <bug-id>` 或 `/opsx-spike <topic>` 启动第一次流程。
 
 ## 推荐顺序

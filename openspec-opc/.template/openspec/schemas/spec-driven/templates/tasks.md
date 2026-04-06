@@ -2,6 +2,8 @@
 
 ## Phase 1: Red (Write Tests)
 
+**Owner:** red subagent
+
 {{#tasks.red}}
 
 ### {{number}}. {{title}}
@@ -11,6 +13,8 @@
   {{/tasks.red}}
 
 ## Phase 2: Green (Make Tests Pass)
+
+**Owner:** green subagent
 
 {{#tasks.green}}
 
@@ -22,6 +26,8 @@
 
 ## Phase 3: Refactor (Improve Code)
 
+**Owner:** green subagent
+
 {{#tasks.refactor}}
 
 ### {{number}}. {{title}}
@@ -31,6 +37,8 @@
   {{/tasks.refactor}}
 
 ## Verification Checklist
+
+**Owner:** verify subagent
 
 - [ ] All configured tests pass
 - [ ] Configured lint or equivalent quality checks pass

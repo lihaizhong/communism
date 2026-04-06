@@ -54,6 +54,7 @@ openspec-opc/
     ├── agent-config/           → 目标项目: {{AI_CONFIG_DIR}}/（动态重命名）
     │   ├── commands/
     │   └── skills/
+    ├── opencode-runtime/       → 目标项目: .opencode/plugins/ + .opencode/vendor/（仅 OpenCode）
     ├── ci-templates/           → 目标项目: 根据 CI_TYPE 生成对应配置，并可选安装 pre-commit hook
     └── README.md               ← 模板说明（安装时不复制）
 ```

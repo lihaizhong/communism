@@ -95,6 +95,8 @@ core_tasks:
       ├─ openspec/schemas/
       ├─ AGENTS.md
       ├─ {{AI_CONFIG_DIR}}/
+      ├─ .opencode/plugins/（仅 OpenCode）
+      └─ .opencode/vendor/（仅 OpenCode）
 
       若目标已存在，必须先展示冲突处理策略：
       ├─ backup_overwrite 备份后覆盖
@@ -162,6 +164,10 @@ core_tasks:
       - files_count: "{{AI_CONFIG_DIR}}/commands/*.md == 6"
       - dirs_count: "{{AI_CONFIG_DIR}}/skills/ == 6"
       - not_exists: "{{AI_CONFIG_DIR}}/../command/"
+      - if: "AI_TOOL_NAME == opencode"
+        file_exists: ".opencode/plugins/opencode-spec-opc.js"
+      - if: "AI_TOOL_NAME == opencode"
+        file_exists: ".opencode/vendor/opencode-spec-opc/index.js"
       - if: "TEST_STATUS == pending"
         action: "记录测试框架尚未完成，不阻塞安装完成"
     verify:
@@ -176,11 +182,18 @@ core_tasks:
         [ "$(find {{AI_CONFIG_DIR}}/commands -type f -name '*.md' | wc -l | tr -d ' ')" = "6" ] && \
         [ "$(find {{AI_CONFIG_DIR}}/commands -type f -name '*.md' -size +0c | wc -l | tr -d ' ')" = "6" ] && \
         [ "$(find {{AI_CONFIG_DIR}}/skills -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')" = "6" ] && \
-        [ "$(find {{AI_CONFIG_DIR}}/skills -mindepth 1 -maxdepth 1 -type d -exec test -s '{}/SKILL.md' ';' -print | wc -l | tr -d ' ')" = "6" ]
+        [ "$(find {{AI_CONFIG_DIR}}/skills -mindepth 1 -maxdepth 1 -type d -exec test -s '{}/SKILL.md' ';' -print | wc -l | tr -d ' ')" = "6" ] && \
+        { [ "{{AI_TOOL_NAME}}" != "opencode" ] || { test -s .opencode/plugins/opencode-spec-opc.js && test -s .opencode/vendor/opencode-spec-opc/index.js; }; }
       expected: "退出码为 0，且不存在 TODO/占位/空壳命令或缺失 SKILL.md 的技能目录"
     on_complete: "标记 T6 [x]"
 
 conditional_tasks:
+  - id: T2.5
+    name: "安装 OpenCode 运行时守卫插件"
+    condition: "AI_TOOL_NAME == opencode"
+    action: "将 .template/opencode-runtime/plugins/opencode-spec-opc.js 复制到 .opencode/plugins/opencode-spec-opc.js，并将 .template/opencode-runtime/vendor/opencode-spec-opc/ 复制到 .opencode/vendor/opencode-spec-opc/"
+    on_complete: "标记 T2.5 [x]"
+
   - id: T7
     name: "整合非技术类信息到 AGENTS.md"
     condition: "INTEGRATE_AI_DOCS == yes"
