@@ -59,7 +59,35 @@ I'll help you fix bugs efficiently with minimal overhead and proper regression t
    - If successful, document any additional details
    - If cannot reproduce, ask user for more information
 
-6. **Create fix.md and implement**
+6. **Split work across three different subagents**
+
+   Use three distinct subagents or worker sessions:
+   - `red` subagent: only write the regression test
+   - `green` subagent: only write the fix
+   - `verify` subagent: only run validation and summarize
+
+   These three phases must not reuse the same runtime session id.
+
+7. **Acquire the phase lock before each phase**
+
+   Before each phase starts, write `openspec/.opencode-spec-opc-state.json` with:
+   - `mode: "apply"`
+   - `kind: "bugfix"`
+   - `name: "<bug-id>"`
+   - `phase`: one of `red`, `green`, `verify`
+   - `sessionId`: current phase runtime session id
+   - `redSessionId`
+   - `greenSessionId`
+   - `verifySessionId`
+   - `updatedAt`: current ISO timestamp
+
+   Rules:
+   - In `red` phase, set `redSessionId` to the current subagent session
+   - In `green` phase, set `greenSessionId` to a different subagent session
+   - In `verify` phase, set `verifySessionId` to a third subagent session
+   - `red`, `green`, `verify` must all be different session ids
+
+8. **Create fix.md and implement**
 
    Document in fix.md:
    - **Root_Cause**: The actual cause found
@@ -72,7 +100,7 @@ I'll help you fix bugs efficiently with minimal overhead and proper regression t
    - Add a regression test
    - Run the project's validation commands from `openspec/config.yaml` (for example: unit tests, lint, type-check or static analysis)
 
-7. **Mark complete and summarize**
+9. **Mark complete and summarize**
 
    Show summary:
    - Bug ID and root cause
@@ -98,5 +126,7 @@ I'll help you fix bugs efficiently with minimal overhead and proper regression t
 
 - Only fix the bug, don't refactor unrelated code
 - Every bugfix must include a regression test
+- Always use three different subagent sessions for `red`, `green`, and `verify`
+- Always refresh `openspec/.opencode-spec-opc-state.json` before each phase
 - Document the root cause for future prevention
 - For P0 critical bugs, use hotfix override

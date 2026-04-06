@@ -11,7 +11,9 @@ project-root/
 │   └── changes/
 ├── .opencode/ 或其他 AI 目录
 │   ├── commands/
-│   └── skills/
+│   ├── skills/
+│   ├── plugins/
+│   └── vendor/
 └── harness-install-tasks.md
 ```
 
@@ -27,6 +29,10 @@ project-root/
   执行器命令入口。
 - `skills/`
   AI 任务能力封装。
+- `plugins/`
+  OpenCode 本地插件入口，负责加载运行时守卫。
+- `vendor/`
+  vendored OpenCode runtime 插件实现，避免安装后依赖外部绝对路径。
 
 ## 安装相关文件
 

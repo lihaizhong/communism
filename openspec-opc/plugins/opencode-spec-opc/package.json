@@ -1,0 +1,21 @@
+{
+  "name": "opencode-spec-opc",
+  "version": "0.1.0",
+  "description": "OpenCode runtime guard plugin for OpenSpec OPC workflows",
+  "type": "module",
+  "main": "./index.js",
+  "bin": {
+    "opencode-spec-opc-render-loader": "./scripts/render-loader.js"
+  },
+  "exports": {
+    ".": "./index.js"
+  },
+  "keywords": [
+    "opencode",
+    "openspec",
+    "plugin",
+    "guardrails",
+    "workflow"
+  ],
+  "license": "MIT"
+}

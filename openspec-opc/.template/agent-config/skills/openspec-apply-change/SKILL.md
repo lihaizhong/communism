@@ -64,14 +64,41 @@ Implement tasks from an OpenSpec change.
    - Remaining tasks overview
    - Dynamic instruction from CLI
 
-6. **Implement tasks (loop until done or blocked)**
+6. **Split work across three different subagents**
+
+   Use three distinct subagents or worker sessions:
+   - `red` subagent: only write failing tests
+   - `green` subagent: only write implementation code to make tests pass
+   - `verify` subagent: only run validation and summarize
+
+   These three phases must not reuse the same runtime session id.
+
+7. **Acquire the phase lock before each phase**
+
+   Before each phase starts, write `openspec/.opencode-spec-opc-state.json` with:
+   - `mode: "apply"`
+   - `kind: "change"`
+   - `name: "<name>"`
+    - `phase`: one of `red`, `green`, `verify`
+   - `sessionId`: current phase runtime session id
+   - `redSessionId`
+   - `greenSessionId`
+   - `verifySessionId`
+   - `updatedAt`: current ISO timestamp
+
+   Rules:
+   - In `red` phase, set `redSessionId` to the current subagent session
+   - In `green` phase, set `greenSessionId` to a different subagent session
+   - In `verify` phase, set `verifySessionId` to a third subagent session
+   - `red`, `green`, `verify` must all be different session ids
+
+8. **Implement tasks (loop until done or blocked)**
 
    For each pending task:
-   - Show which task is being worked on
-   - Make the code changes required
-   - Keep changes minimal and focused
-   - Mark task complete in the tasks file: `- [ ]` → `- [x]`
-   - Continue to next task
+   - `red` subagent writes or updates tests first, then stops once the test fails for the expected reason
+   - `green` subagent changes implementation code only, then stops once the test passes
+   - `verify` subagent runs configured validations and reports results without changing business code
+   - Mark task complete in the tasks file only after `verify` succeeds for that scope
 
    **Pause if:**
    - Task is unclear → ask for clarification
@@ -79,7 +106,7 @@ Implement tasks from an OpenSpec change.
    - Error or blocker encountered → report and wait for guidance
    - User interrupts
 
-7. **On completion or pause, show status**
+9. **On completion or pause, show status**
 
    Display:
    - Tasks completed this session
@@ -141,6 +168,8 @@ What would you like to do?
 **Guardrails**
 - Keep going through tasks until done or blocked
 - Always read context files before starting (from the apply instructions output)
+- Always use three different subagent sessions for `red`, `green`, and `verify`
+- Always refresh `openspec/.opencode-spec-opc-state.json` before each phase
 - If task is ambiguous, pause and ask before implementing
 - If implementation reveals issues, pause and suggest artifact updates
 - Keep code changes minimal and scoped to each task

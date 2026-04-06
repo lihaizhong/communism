@@ -80,7 +80,35 @@ Implement bug fixes using the bugfix schema workflow.
    - **Risks** (optional): Any risks introduced
    - **Follow_Up** (optional): Related improvements needed
 
-6. **Implement the fix**
+6. **Split work across three different subagents**
+
+   Use three distinct subagents or worker sessions:
+   - `red` subagent: only write the regression test
+   - `green` subagent: only write the fix
+   - `verify` subagent: only run validation and summarize
+
+   These three phases must not reuse the same runtime session id.
+
+7. **Acquire the phase lock before each phase**
+
+   Before each phase starts, write `openspec/.opencode-spec-opc-state.json` with:
+   - `mode: "apply"`
+   - `kind: "bugfix"`
+   - `name: "<bug-id>"`
+   - `phase`: one of `red`, `green`, `verify`
+   - `sessionId`: current phase runtime session id
+   - `redSessionId`
+   - `greenSessionId`
+   - `verifySessionId`
+   - `updatedAt`: current ISO timestamp
+
+   Rules:
+   - In `red` phase, set `redSessionId` to the current subagent session
+   - In `green` phase, set `greenSessionId` to a different subagent session
+   - In `verify` phase, set `verifySessionId` to a third subagent session
+   - `red`, `green`, `verify` must all be different session ids
+
+8. **Implement the fix**
    - Make minimal changes to fix the bug
    - Follow existing code patterns in the codebase
    - Write a regression test that:
@@ -88,7 +116,7 @@ Implement bug fixes using the bugfix schema workflow.
      2. Passes after the fix
      3. Catches similar bugs in the future
 
-7. **Run validation gates**
+9. **Run validation gates**
 
    Execute the project's configured validation commands from `openspec/config.yaml`.
    Typical categories are:
@@ -98,11 +126,11 @@ Implement bug fixes using the bugfix schema workflow.
 
    Ensure all pass before considering the fix complete.
 
-8. **Mark tasks complete**
+10. **Mark tasks complete**
 
    Update tasks in the bugfix directory as completed.
 
-9. **Show summary**
+11. **Show summary**
 
    Display:
    - Bug ID and description
@@ -115,6 +143,8 @@ Implement bug fixes using the bugfix schema workflow.
 
 - **Minimal changes**: Only fix the bug, don't refactor surrounding code
 - **Always add regression test**: Every bugfix must include a test
+- **Always use three distinct sessions**: `red`, `green`, and `verify` must be different subagent sessions
+- **Always refresh apply state**: Refresh `openspec/.opencode-spec-opc-state.json` before each phase
 - **Document root cause**: Helps prevent similar bugs and improve processes
 - **Follow severity guidelines**: P0 bugs can use hotfix path, others use full workflow
 - **Don't suppress language checks**: Fix compiler, type, or static analysis errors properly
