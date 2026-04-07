@@ -51,7 +51,7 @@ openspec-opc/
 - `skills/`
   AI 任务能力封装。
 - `.opencode/opencode.json`
-  OpenCode 的插件注册入口；当前通过 `plugin` 数组引用 `@openspec-opc/opencode-plugin`。
+  OpenCode 的插件注册入口；字段合法性以 `https://opencode.ai/config.json` 为准，当前通过 `plugin` 数组引用 `@openspec-opc/opencode-plugin`。
 - `plugins/codex-spec-opc/`
   这是仓库里的 Codex 本地插件 scaffold，不是默认安装后目标项目一定会出现的目录。
 

@@ -13,7 +13,7 @@
    - `openspec/schemas/`
    - `AGENTS.md`
    - 对应 AI 工具目录下的 `commands/` 和 `skills/`
-   - 如果目标是 OpenCode，还应已经配置好对 `@openspec-opc/opencode-plugin` 或其 `dist/index.js` 产物的引用
+   - 如果目标是 OpenCode，还应已经在 `.opencode/opencode.json` 的 `plugin` 数组里配置 `@openspec-opc/opencode-plugin`
 4. 通过 `/opsx-propose <change-name>`、`/opsx-bugfix <bug-id>` 或 `/opsx-spike <topic>` 启动第一次流程。
 
 ## 推荐顺序
@@ -29,7 +29,7 @@
 - `openspec/config.yaml` 定义项目是什么
 - `openspec/schemas/` 定义工作流怎么跑
 - `{{AI_CONFIG_DIR}}/commands` 定义命令入口
-- OpenCode 通过 `.opencode/opencode.json` 的 `plugin` 数组接入 runtime guard
+- OpenCode 通过符合 `https://opencode.ai/config.json` 的 `.opencode/opencode.json` 接入 runtime guard
 - Codex 侧当前只有本地插件 scaffold，还不属于默认安装流
 
 ## 下一步

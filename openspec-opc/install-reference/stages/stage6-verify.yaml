@@ -68,8 +68,13 @@ steps:
         [ "$(find {{AI_CONFIG_DIR}}/commands -type f -name '*.md' -size +0c | wc -l | tr -d ' ')" = "6" ] && \
         [ "$(find {{AI_CONFIG_DIR}}/skills -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')" = "6" ] && \
         [ "$(find {{AI_CONFIG_DIR}}/skills -mindepth 1 -maxdepth 1 -type d -exec test -s '{}/SKILL.md' ';' -print | wc -l | tr -d ' ')" = "6" ] && \
-        { [ "{{AI_TOOL_NAME}}" != "opencode" ] || { test -s .opencode/opencode.json && rg -q '@openspec-opc/opencode-plugin' .opencode/opencode.json; }; }
-      expected: "退出码为 0，且不存在 TODO/占位/空文件/缺失 SKILL.md 的伪完成情况"
+        { [ "{{AI_TOOL_NAME}}" != "opencode" ] || { \
+          test -s .opencode/opencode.json && \
+          rg -q '"\\$schema"\\s*:\\s*"https://opencode.ai/config.json"' .opencode/opencode.json && \
+          rg -q '"plugin"\\s*:' .opencode/opencode.json && \
+          rg -q '@openspec-opc/opencode-plugin' .opencode/opencode.json; \
+        }; }
+      expected: "退出码为 0，且不存在 TODO/占位/空文件/缺失 SKILL.md 的伪完成情况；若目标是 OpenCode，则 .opencode/opencode.json 至少包含官方 schema、plugin 字段和 @openspec-opc/opencode-plugin"
 
   - id: show_summary
     name: "显示完成摘要"

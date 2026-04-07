@@ -252,6 +252,8 @@ session 必须先进入明确的 work item 上下文。
 }
 ```
 
+这里的字段合法性以官方 schema `https://opencode.ai/config.json` 为准。
+
 如果是 workspace 或本地源码消费，也应该直接引用：
 
 ```text

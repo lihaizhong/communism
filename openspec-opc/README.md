@@ -174,7 +174,7 @@ The `.template` directory is located in the same directory as `install.md`.
 - 创建目录结构
 - 填充配置文件
 - 验证安装结果
-- 如果目标是 OpenCode，写入 `.opencode/opencode.json` 并注册 `@openspec-opc/opencode-plugin`
+- 如果目标是 OpenCode，写入符合 `https://opencode.ai/config.json` 的 `.opencode/opencode.json`，并在 `plugin` 数组里注册 `@openspec-opc/opencode-plugin`
 
 当前 Codex 侧仍然是实验性的本地插件 scaffold，不属于 `install.md` 默认落地的正式安装路径。
 

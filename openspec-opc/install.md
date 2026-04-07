@@ -66,6 +66,24 @@ openspec-opc/
 - 如果 `AI_TOOL_NAME == opencode`，创建或合并 `.opencode/opencode.json`
 - 确保其 `plugin` 数组包含 `@openspec-opc/opencode-plugin`
 
+`.opencode/opencode.json` 的目标格式应为：
+
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "plugin": ["@openspec-opc/opencode-plugin"]
+}
+```
+
+该文件的字段合法性应以官方 schema `https://opencode.ai/config.json` 为准。安装流程在创建或合并 `.opencode/opencode.json` 时，应遵循该 schema 的字段命名和数据类型约束。
+
+如果目标项目已存在 `.opencode/opencode.json`，应在保留现有合法配置的前提下合并，并确保：
+
+- 顶层字段名是 `plugin`，不是 `plugins`
+- `plugin` 的值是数组
+- 数组中包含 `@openspec-opc/opencode-plugin`
+- `$schema` 使用 `https://opencode.ai/config.json`
+
 当前安装流程**不会**复制旧版 `.opencode/plugins/` 或 `.opencode/vendor/` runtime 文件。
 
 Codex 侧当前仍处于本地插件 scaffold 阶段；仓库里有 `plugins/codex-spec-opc/`，但截至当前版本，它还不是 `install.md` 默认执行的正式安装目标。
