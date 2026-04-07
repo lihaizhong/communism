@@ -195,15 +195,20 @@ core_tasks:
         [ "$(find {{AI_CONFIG_DIR}}/commands -type f -name '*.md' -size +0c | wc -l | tr -d ' ')" = "6" ] && \
         [ "$(find {{AI_CONFIG_DIR}}/skills -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')" = "6" ] && \
         [ "$(find {{AI_CONFIG_DIR}}/skills -mindepth 1 -maxdepth 1 -type d -exec test -s '{}/SKILL.md' ';' -print | wc -l | tr -d ' ')" = "6" ] && \
-        { [ "{{AI_TOOL_NAME}}" != "opencode" ] || { test -s .opencode/opencode.json && rg -q '@openspec-opc/opencode-plugin' .opencode/opencode.json; }; }
-      expected: "退出码为 0，且不存在 TODO/占位/空壳命令或缺失 SKILL.md 的技能目录"
+        { [ "{{AI_TOOL_NAME}}" != "opencode" ] || { \
+          test -s .opencode/opencode.json && \
+          rg -q '"\\$schema"\\s*:\\s*"https://opencode.ai/config.json"' .opencode/opencode.json && \
+          rg -q '"plugin"\\s*:' .opencode/opencode.json && \
+          rg -q '@openspec-opc/opencode-plugin' .opencode/opencode.json; \
+        }; }
+      expected: "退出码为 0，且不存在 TODO/占位/空壳命令或缺失 SKILL.md 的技能目录；若目标是 OpenCode，则 .opencode/opencode.json 至少包含官方 schema、plugin 字段和 @openspec-opc/opencode-plugin"
     on_complete: "标记 T6 [x]"
 
 conditional_tasks:
   - id: T2.5
     name: "配置 OpenCode 运行时守卫插件"
     condition: "AI_TOOL_NAME == opencode"
-    action: "创建或合并 .opencode/opencode.json，确保其 plugin 数组包含 @openspec-opc/opencode-plugin；不要再复制 vendored runtime 或本地 bridge loader 文件。"
+    action: "创建或合并 .opencode/opencode.json，目标结构至少应为 { \"$schema\": \"https://opencode.ai/config.json\", \"plugin\": [\"@openspec-opc/opencode-plugin\"] }；字段合法性以 https://opencode.ai/config.json 为准。保留其他现有合法配置，但不要写成 plugins，也不要再复制 vendored runtime 或本地 bridge loader 文件。"
     on_complete: "标记 T2.5 [x]"
 
   - id: T7

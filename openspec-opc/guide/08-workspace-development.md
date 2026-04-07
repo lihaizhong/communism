@@ -184,6 +184,8 @@ npm install @openspec-opc/opencode-plugin
 }
 ```
 
+这里的字段合法性以官方 schema `https://opencode.ai/config.json` 为准。
+
 如果是 workspace 或未发布阶段的源码消费，稳定边界是：
 
 - `plugins/opencode-spec-opc/dist/index.js`

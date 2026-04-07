@@ -58,6 +58,17 @@ cp -r .template/agent-config/skills/* <your-ai-config-dir>/skills/
 
 如果目标是 OpenCode，还需要手工维护 `.opencode/opencode.json`，把 `@openspec-opc/opencode-plugin` 注册到 `plugin` 数组。
 
+推荐最小配置：
+
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "plugin": ["@openspec-opc/opencode-plugin"]
+}
+```
+
+字段合法性以官方 schema `https://opencode.ai/config.json` 为准。
+
 ## 占位符
 
 安装阶段会替换 `{{UPPER_SNAKE_CASE}}` 占位符，主要分布在：

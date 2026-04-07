@@ -81,6 +81,6 @@ npm run pack:dry-run
 ## 当前注意事项
 
 - `codex-spec-opc/hooks.json` 仍然是 provisional contract
-- `opencode-spec-opc` 不再依赖目标项目里的桥接 loader 文件，稳定消费边界是包名或 `dist/index.js`
+- `opencode-spec-opc` 不再依赖目标项目里的桥接 loader 文件；目标项目安装时应优先通过符合 `https://opencode.ai/config.json` 的 `.opencode/opencode.json` 引用包名，`dist/index.js` 只应视为 workspace 或本地源码开发阶段的消费边界
 - 发布前应至少确保 `npm install` 已在 workspace 根执行过一次，以建立 workspace 链接
 - 截至 2026-04-06，官方 OpenAI 文档可验证到 Codex 总览、Docs MCP、local shell/tool 模式，但没有看到公开稳定的 Codex 本地插件 manifest 规范；因此 `codex-spec-opc` 的 hook 形状仍应视为仓库内约定，不应对外宣称为官方格式
