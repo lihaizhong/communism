@@ -142,3 +142,38 @@ test("codex plugin install wires compact hook to summary output", async () => {
 
   assert.ok(summary.some((line) => line.includes("selected_work_item: change:add-dark-mode")))
 })
+
+test("codex plugin install tolerates partial hook support and alias hook names", async () => {
+  const rootDir = await makeTempWorktree()
+  await createChangeFixture(rootDir, ["- [ ] todo", "- [ ] fix"].join("\n"))
+
+  let beforeHandler = null as null | ((event: any) => Promise<any>)
+  const plugin = createCodexPlugin()
+
+  assert.doesNotThrow(() => {
+    plugin.install({
+      beforeMutation(handler) {
+        beforeHandler = handler
+      },
+    })
+  })
+
+  assert.ok(beforeHandler)
+
+  await beforeHandler!({
+    rootDir,
+    sessionId: "sess-plugin-alias",
+    tool: "bash",
+    args: { command: "openspec --change add-dark-mode" },
+  })
+
+  const blocked = await beforeHandler!({
+    rootDir,
+    sessionId: "sess-plugin-alias",
+    tool: "write",
+    args: { filePath: "src/app.js" },
+  })
+
+  assert.equal(blocked.action, "block")
+  assert.equal(blocked.code, "APPLY_READY_FAILED")
+})
