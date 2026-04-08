@@ -96,6 +96,41 @@ Codex 侧当前仍处于本地插件 scaffold 阶段；仓库里有 `plugins/cod
 | **Node.js** | 18.0.0 | 22.x LTS |
 | **Git** | 2.0.0 | latest |
 
+### Windows 中文编码处理
+
+在 Windows 环境下处理文件写入时，必须遵循以下规则：
+
+1. **始终明确指定 UTF-8 编码**
+   - Node.js: `fs.writeFile(path, content, { encoding: "utf8" })`
+   - Bun: `Bun.write(path, content)` (默认 UTF-8)
+   - PowerShell: 使用 `[System.IO.File]::WriteAllText($path, $content, [System.Text.UTF8Encoding]::new($false))`
+
+2. **YAML 结构必须符合 schema 定义**
+   - `context` 字段必须是**字符串**，不是对象
+   - 避免嵌套对象结构导致 YAML 解析错误
+   - 示例正确格式：
+     ```yaml
+     context: "项目名称: My Project"
+     ```
+     不是：
+     ```yaml
+     context:
+       project:
+         name: "My Project"  # 错误 - 这是对象
+     ```
+
+3. **PowerShell 写入时要特别注意**
+   - 避免使用 `Set-Content` 默认编码（会使用系统默认而非 UTF-8）
+   - 使用 .NET 方法明确指定 UTF-8
+   - 或使用 Node.js/Bun 脚本间接写入
+
+4. **检测编码问题的迹象**
+   - 中文显示为 `???` 或乱码
+   - YAML 解析报错（重复字段、结构错误）
+   - 文件中出现 `\"\\n\"` 字面量（换行符未转义）
+
+当检测到文件写入后出现乱码或结构异常时，应立即使用正确的编码方式重新写入。
+
 ## 判定规则
 
 ### 当前目录是否可作为安装目标

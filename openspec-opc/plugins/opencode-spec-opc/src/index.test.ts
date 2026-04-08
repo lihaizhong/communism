@@ -125,7 +125,7 @@ test("allows quality-passing work items to reach apply lock checks", async () =>
   )
 })
 
-test("blocks red phase doc-only writes before any test evidence exists", async () => {
+test("allows openspec artifact writes in any phase", async () => {
   const rootDir = await makeTempWorktree()
   await createChangeFixture(rootDir)
   await writeApplyState(rootDir, {
@@ -146,12 +146,10 @@ test("blocks red phase doc-only writes before any test evidence exists", async (
   const plugin = await pluginFactory({ worktree: rootDir })
   await selectChange(plugin, "sess-red")
 
-  await assert.rejects(
-    plugin["tool.execute.before"](
-      { tool: "write", sessionId: "sess-red" },
-      { args: { filePath: "openspec/changes/add-dark-mode/design.md" }, context: [] },
-    ),
-    /Red phase must start by writing at least one test file/i,
+  // OpenSpec artifacts should always be allowed, regardless of phase
+  await plugin["tool.execute.before"](
+    { tool: "write", sessionId: "sess-red" },
+    { args: { filePath: "openspec/changes/add-dark-mode/design.md" }, context: [] },
   )
 })
 
@@ -248,7 +246,7 @@ test("records red test evidence and then allows green phase to reach lock checks
   assert.deepEqual(updatedAfterGreen.phaseEvidence.greenTouchedImplFiles, ["src/app.js"])
 })
 
-test("blocks verify phase doc writes until a validation command has run", async () => {
+test("allows openspec artifact writes in verify phase", async () => {
   const rootDir = await makeTempWorktree()
   await createChangeFixture(rootDir)
   await writeApplyState(rootDir, {
@@ -272,12 +270,10 @@ test("blocks verify phase doc writes until a validation command has run", async 
   const plugin = await pluginFactory({ worktree: rootDir })
   await selectChange(plugin, "sess-verify")
 
-  await assert.rejects(
-    plugin["tool.execute.before"](
-      { tool: "write", sessionId: "sess-verify" },
-      { args: { filePath: "openspec/changes/add-dark-mode/verification.md" }, context: [] },
-    ),
-    /Verify phase must run at least one validation command/i,
+  // OpenSpec artifacts should always be allowed, even in verify phase
+  await plugin["tool.execute.before"](
+    { tool: "write", sessionId: "sess-verify" },
+    { args: { filePath: "openspec/changes/add-dark-mode/verification.md" }, context: [] },
   )
 })
 

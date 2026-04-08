@@ -277,7 +277,7 @@ async function enforceWorkflow(
     applyState.name === selection.name &&
     applyState.sessionId === sessionId
 
-  if (allPathsAlwaysAllowed && !hasActiveApplySelection) return
+  if (allPathsAlwaysAllowed) return
   if (!options.failClosed && state.readyItems.length === 0) return
   if (!selection) throw new Error(buildDenyMessage(state, null))
 

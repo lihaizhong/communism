@@ -23,13 +23,49 @@ export interface CodexPluginAllowedResult {
 export type CodexPluginMutationResult = CodexPluginAllowedResult | CodexPluginBlockedResult
 
 export interface CodexPluginHooks {
-  onBeforeMutation: (handler: (event: CodexPluginEvent) => Promise<CodexPluginMutationResult>) => void
-  onAfterMutation: (handler: (event: CodexPluginEvent) => Promise<void>) => void
-  onSessionCompact: (handler: (event: CodexPluginEvent) => Promise<string[]>) => void
+  onBeforeMutation?: (handler: (event: CodexPluginEvent) => Promise<CodexPluginMutationResult>) => void
+  beforeMutation?: (handler: (event: CodexPluginEvent) => Promise<CodexPluginMutationResult>) => void
+  registerBeforeMutation?: (handler: (event: CodexPluginEvent) => Promise<CodexPluginMutationResult>) => void
+  onAfterMutation?: (handler: (event: CodexPluginEvent) => Promise<void>) => void
+  afterMutation?: (handler: (event: CodexPluginEvent) => Promise<void>) => void
+  registerAfterMutation?: (handler: (event: CodexPluginEvent) => Promise<void>) => void
+  onSessionCompact?: (handler: (event: CodexPluginEvent) => Promise<string[]>) => void
+  sessionCompact?: (handler: (event: CodexPluginEvent) => Promise<string[]>) => void
+  registerSessionCompact?: (handler: (event: CodexPluginEvent) => Promise<string[]>) => void
 }
 
 export interface CodexPluginContract {
   install: (hooks: CodexPluginHooks) => void
+}
+
+type HookRegistrar<Handler> = (handler: Handler) => void
+
+function resolveRegistrar<Handler>(
+  hooks: CodexPluginHooks,
+  names: readonly string[],
+): HookRegistrar<Handler> | null {
+  const hookRecord = hooks as Record<string, unknown>
+
+  for (const name of names) {
+    const registrar = hookRecord[name]
+    if (typeof registrar === "function") {
+      return registrar as HookRegistrar<Handler>
+    }
+  }
+
+  return null
+}
+
+function registerHook<Handler>(
+  hooks: CodexPluginHooks,
+  names: readonly string[],
+  handler: Handler,
+): boolean {
+  const registrar = resolveRegistrar<Handler>(hooks, names)
+  if (!registrar) return false
+
+  registrar(handler)
+  return true
 }
 
 export function createCodexPlugin(options: RuntimeGuardOptions = {}): CodexPluginContract {
@@ -38,7 +74,9 @@ export function createCodexPlugin(options: RuntimeGuardOptions = {}): CodexPlugi
 
   return {
     install(hooks: CodexPluginHooks): void {
-      hooks.onBeforeMutation(async (event: CodexPluginEvent): Promise<CodexPluginMutationResult> => {
+      registerHook(hooks, ["onBeforeMutation", "beforeMutation", "registerBeforeMutation"], async (
+        event: CodexPluginEvent,
+      ): Promise<CodexPluginMutationResult> => {
         const result = await bridge.beforeMutation(event)
         if (result.ok) {
           return { action: "allow" }
@@ -51,11 +89,15 @@ export function createCodexPlugin(options: RuntimeGuardOptions = {}): CodexPlugi
         }
       })
 
-      hooks.onAfterMutation(async (event: CodexPluginEvent): Promise<void> => {
+      registerHook(hooks, ["onAfterMutation", "afterMutation", "registerAfterMutation"], async (
+        event: CodexPluginEvent,
+      ): Promise<void> => {
         await bridge.afterMutation(event)
       })
 
-      hooks.onSessionCompact(async (event: CodexPluginEvent): Promise<string[]> => {
+      registerHook(hooks, ["onSessionCompact", "sessionCompact", "registerSessionCompact"], async (
+        event: CodexPluginEvent,
+      ): Promise<string[]> => {
         return bridge.onSessionCompact(event)
       })
     },
