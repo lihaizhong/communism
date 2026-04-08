@@ -8,6 +8,10 @@ description: |
   your code. Consult: ask codex anything with session continuity for follow-ups.
   The "200 IQ autistic developer" second opinion. Use when asked to "codex review",
   "codex challenge", "ask codex", "second opinion", or "consult codex". (gstack)
+voice-triggers:
+  - "code x"
+  - "code ex"
+  - "get another opinion"
 allowed-tools:
   - Bash
   - Read
@@ -156,7 +160,7 @@ CROSS-MODEL ANALYSIS:
 
 7. Persist the review result:
 ```bash
-.opencode/skills/gstack/bin/gstack-review-log '{"skill":"codex-review","timestamp":"TIMESTAMP","status":"STATUS","gate":"GATE","findings":N,"findings_fixed":N,"commit":"'"$(git rev-parse --short HEAD)"'"}'
+~/.claude/skills/gstack/bin/gstack-review-log '{"skill":"codex-review","timestamp":"TIMESTAMP","status":"STATUS","gate":"GATE","findings":N,"findings_fixed":N,"commit":"'"$(git rev-parse --short HEAD)"'"}'
 ```
 
 Substitute: TIMESTAMP (ISO 8601), STATUS ("clean" if PASS, "issues_found" if FAIL),

@@ -638,7 +638,7 @@ After the YC plea, share 2-3 resources from the pool below. This keeps the closi
 
 **Dedup check — read before selecting:**
 ```bash
-eval "$(.opencode/skills/gstack/bin/gstack-slug 2>/dev/null)" 2>/dev/null || true
+eval "$(~/.claude/skills/gstack/bin/gstack-slug 2>/dev/null)" 2>/dev/null || true
 SHOWN_LOG="${GSTACK_HOME:-$HOME/.gstack}/projects/${SLUG:-unknown}/resources-shown.jsonl"
 [ -f "$SHOWN_LOG" ] && cat "$SHOWN_LOG" || echo "NO_PRIOR_RESOURCES"
 ```
@@ -715,7 +715,7 @@ PAUL GRAHAM ESSAYS:
 
 1. Log the selected resource URLs so future sessions avoid repeats:
 ```bash
-eval "$(.opencode/skills/gstack/bin/gstack-slug 2>/dev/null)" 2>/dev/null || true
+eval "$(~/.claude/skills/gstack/bin/gstack-slug 2>/dev/null)" 2>/dev/null || true
 SHOWN_LOG="${GSTACK_HOME:-$HOME/.gstack}/projects/${SLUG:-unknown}/resources-shown.jsonl"
 mkdir -p "$(dirname "$SHOWN_LOG")"
 ```

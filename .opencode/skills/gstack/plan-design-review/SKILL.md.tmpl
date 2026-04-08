@@ -181,7 +181,7 @@ Allowed commands under this exception:
 First, set up the output directory. Name it after the screen/feature being designed and today's date:
 
 ```bash
-eval "$(.opencode/skills/gstack/bin/gstack-slug 2>/dev/null)"
+eval "$(~/.claude/skills/gstack/bin/gstack-slug 2>/dev/null)"
 _DESIGN_DIR=~/.gstack/projects/$SLUG/designs/<screen-name>-$(date +%Y%m%d)
 mkdir -p "$_DESIGN_DIR"
 echo "DESIGN_DIR: $_DESIGN_DIR"
@@ -255,6 +255,8 @@ If the design binary is not available, skip this and continue with text-based
 descriptions of what 10/10 looks like.
 
 ## Review Sections (7 passes, after scope is agreed)
+
+**Anti-skip rule:** Never condense, abbreviate, or skip any review pass (1-7) regardless of plan type (strategy, spec, code, infra). Every pass in this skill exists for a reason. "This is a strategy doc so design passes don't apply" is always wrong — design gaps are where implementation breaks down. If a pass genuinely has zero findings, say "No issues found" and move on — but you must evaluate it.
 
 {{LEARNINGS_SEARCH}}
 
@@ -417,7 +419,7 @@ the same pattern. The review dashboard depends on this data. Skipping this
 command breaks the review readiness dashboard in /ship.
 
 ```bash
-.opencode/skills/gstack/bin/gstack-review-log '{"skill":"plan-design-review","timestamp":"TIMESTAMP","status":"STATUS","initial_score":N,"overall_score":N,"unresolved":N,"decisions_made":N,"commit":"COMMIT"}'
+~/.claude/skills/gstack/bin/gstack-review-log '{"skill":"plan-design-review","timestamp":"TIMESTAMP","status":"STATUS","initial_score":N,"overall_score":N,"unresolved":N,"decisions_made":N,"commit":"COMMIT"}'
 ```
 
 Substitute values from the Completion Summary:

@@ -9,7 +9,7 @@ This checklist applies to **source code in the diff** — not rendered output. R
 **Trigger:** Only run this checklist if the diff touches frontend files. Use `gstack-diff-scope` to detect:
 
 ```bash
-source <(.opencode/skills/gstack/bin/gstack-diff-scope <base> 2>/dev/null)
+source <(~/.claude/skills/gstack/bin/gstack-diff-scope <base> 2>/dev/null)
 ```
 
 If `SCOPE_FRONTEND=false`, skip the entire design review silently.
@@ -57,6 +57,8 @@ Design Review: N issues (X auto-fixable, Y need input, Z possible)
 **POSSIBLE (verify visually):**
 - [file:line] Possible issue — verify with /design-review
 ```
+
+Optional: `test_stub` — skeleton test code for this finding using the project's test framework.
 
 If no issues found: `Design Review: No issues found.`
 

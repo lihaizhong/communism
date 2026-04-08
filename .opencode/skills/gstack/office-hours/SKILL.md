@@ -30,26 +30,26 @@ allowed-tools:
 ## Preamble (run first)
 
 ```bash
-_UPD=$(.opencode/skills/gstack/bin/gstack-update-check 2>/dev/null || .claude/skills/gstack/bin/gstack-update-check 2>/dev/null || true)
+_UPD=$(~/.claude/skills/gstack/bin/gstack-update-check 2>/dev/null || .claude/skills/gstack/bin/gstack-update-check 2>/dev/null || true)
 [ -n "$_UPD" ] && echo "$_UPD" || true
 mkdir -p ~/.gstack/sessions
 touch ~/.gstack/sessions/"$PPID"
 _SESSIONS=$(find ~/.gstack/sessions -mmin -120 -type f 2>/dev/null | wc -l | tr -d ' ')
 find ~/.gstack/sessions -mmin +120 -type f -exec rm {} + 2>/dev/null || true
-_PROACTIVE=$(.opencode/skills/gstack/bin/gstack-config get proactive 2>/dev/null || echo "true")
+_PROACTIVE=$(~/.claude/skills/gstack/bin/gstack-config get proactive 2>/dev/null || echo "true")
 _PROACTIVE_PROMPTED=$([ -f ~/.gstack/.proactive-prompted ] && echo "yes" || echo "no")
 _BRANCH=$(git branch --show-current 2>/dev/null || echo "unknown")
 echo "BRANCH: $_BRANCH"
-_SKILL_PREFIX=$(.opencode/skills/gstack/bin/gstack-config get skill_prefix 2>/dev/null || echo "false")
+_SKILL_PREFIX=$(~/.claude/skills/gstack/bin/gstack-config get skill_prefix 2>/dev/null || echo "false")
 echo "PROACTIVE: $_PROACTIVE"
 echo "PROACTIVE_PROMPTED: $_PROACTIVE_PROMPTED"
 echo "SKILL_PREFIX: $_SKILL_PREFIX"
-source <(.opencode/skills/gstack/bin/gstack-repo-mode 2>/dev/null) || true
+source <(~/.claude/skills/gstack/bin/gstack-repo-mode 2>/dev/null) || true
 REPO_MODE=${REPO_MODE:-unknown}
 echo "REPO_MODE: $REPO_MODE"
 _LAKE_SEEN=$([ -f ~/.gstack/.completeness-intro-seen ] && echo "yes" || echo "no")
 echo "LAKE_INTRO: $_LAKE_SEEN"
-_TEL=$(.opencode/skills/gstack/bin/gstack-config get telemetry 2>/dev/null || true)
+_TEL=$(~/.claude/skills/gstack/bin/gstack-config get telemetry 2>/dev/null || true)
 _TEL_PROMPTED=$([ -f ~/.gstack/.telemetry-prompted ] && echo "yes" || echo "no")
 _TEL_START=$(date +%s)
 _SESSION_ID="$$-$(date +%s)"
@@ -62,35 +62,45 @@ fi
 # zsh-compatible: use find instead of glob to avoid NOMATCH error
 for _PF in $(find ~/.gstack/analytics -maxdepth 1 -name '.pending-*' 2>/dev/null); do
   if [ -f "$_PF" ]; then
-    if [ "$_TEL" != "off" ] && [ -x ".opencode/skills/gstack/bin/gstack-telemetry-log" ]; then
-      .opencode/skills/gstack/bin/gstack-telemetry-log --event-type skill_run --skill _pending_finalize --outcome unknown --session-id "$_SESSION_ID" 2>/dev/null || true
+    if [ "$_TEL" != "off" ] && [ -x "~/.claude/skills/gstack/bin/gstack-telemetry-log" ]; then
+      ~/.claude/skills/gstack/bin/gstack-telemetry-log --event-type skill_run --skill _pending_finalize --outcome unknown --session-id "$_SESSION_ID" 2>/dev/null || true
     fi
     rm -f "$_PF" 2>/dev/null || true
   fi
   break
 done
 # Learnings count
-eval "$(.opencode/skills/gstack/bin/gstack-slug 2>/dev/null)" 2>/dev/null || true
+eval "$(~/.claude/skills/gstack/bin/gstack-slug 2>/dev/null)" 2>/dev/null || true
 _LEARN_FILE="${GSTACK_HOME:-$HOME/.gstack}/projects/${SLUG:-unknown}/learnings.jsonl"
 if [ -f "$_LEARN_FILE" ]; then
   _LEARN_COUNT=$(wc -l < "$_LEARN_FILE" 2>/dev/null | tr -d ' ')
   echo "LEARNINGS: $_LEARN_COUNT entries loaded"
   if [ "$_LEARN_COUNT" -gt 5 ] 2>/dev/null; then
-    .opencode/skills/gstack/bin/gstack-learnings-search --limit 3 2>/dev/null || true
+    ~/.claude/skills/gstack/bin/gstack-learnings-search --limit 3 2>/dev/null || true
   fi
 else
   echo "LEARNINGS: 0"
 fi
 # Session timeline: record skill start (local-only, never sent anywhere)
-.opencode/skills/gstack/bin/gstack-timeline-log '{"skill":"office-hours","event":"started","branch":"'"$_BRANCH"'","session":"'"$_SESSION_ID"'"}' 2>/dev/null &
+~/.claude/skills/gstack/bin/gstack-timeline-log '{"skill":"office-hours","event":"started","branch":"'"$_BRANCH"'","session":"'"$_SESSION_ID"'"}' 2>/dev/null &
 # Check if CLAUDE.md has routing rules
 _HAS_ROUTING="no"
 if [ -f CLAUDE.md ] && grep -q "## Skill routing" CLAUDE.md 2>/dev/null; then
   _HAS_ROUTING="yes"
 fi
-_ROUTING_DECLINED=$(.opencode/skills/gstack/bin/gstack-config get routing_declined 2>/dev/null || echo "false")
+_ROUTING_DECLINED=$(~/.claude/skills/gstack/bin/gstack-config get routing_declined 2>/dev/null || echo "false")
 echo "HAS_ROUTING: $_HAS_ROUTING"
 echo "ROUTING_DECLINED: $_ROUTING_DECLINED"
+# Vendoring deprecation: detect if CWD has a vendored gstack copy
+_VENDORED="no"
+if [ -d ".claude/skills/gstack" ] && [ ! -L ".claude/skills/gstack" ]; then
+  if [ -f ".claude/skills/gstack/VERSION" ] || [ -d ".claude/skills/gstack/.git" ]; then
+    _VENDORED="yes"
+  fi
+fi
+echo "VENDORED_GSTACK: $_VENDORED"
+# Detect spawned session (OpenClaw or other orchestrator)
+[ -n "$OPENCLAW_SESSION" ] && echo "SPAWNED_SESSION: true" || true
 ```
 
 If `PROACTIVE` is `"false"`, do not proactively suggest gstack skills AND do not
@@ -102,9 +112,9 @@ The user opted out of proactive behavior.
 If `SKILL_PREFIX` is `"true"`, the user has namespaced skill names. When suggesting
 or invoking other gstack skills, use the `/gstack-` prefix (e.g., `/gstack-qa` instead
 of `/qa`, `/gstack-ship` instead of `/ship`). Disk paths are unaffected — always use
-`.opencode/skills/gstack/[skill-name]/SKILL.md` for reading skill files.
+`~/.claude/skills/gstack/[skill-name]/SKILL.md` for reading skill files.
 
-If output shows `UPGRADE_AVAILABLE <old> <new>`: read `.opencode/skills/gstack/gstack-upgrade/SKILL.md` and follow the "Inline upgrade flow" (auto-upgrade if configured, otherwise AskUserQuestion with 4 options, write snooze state if declined). If `JUST_UPGRADED <from> <to>`: tell user "Running gstack v{to} (just updated!)" and continue.
+If output shows `UPGRADE_AVAILABLE <old> <new>`: read `~/.claude/skills/gstack/gstack-upgrade/SKILL.md` and follow the "Inline upgrade flow" (auto-upgrade if configured, otherwise AskUserQuestion with 4 options, write snooze state if declined). If `JUST_UPGRADED <from> <to>`: tell user "Running gstack v{to} (just updated!)" and continue.
 
 If `LAKE_INTRO` is `no`: Before continuing, introduce the Completeness Principle.
 Tell the user: "gstack follows the **Boil the Lake** principle — always do the complete
@@ -130,7 +140,7 @@ Options:
 - A) Help gstack get better! (recommended)
 - B) No thanks
 
-If A: run `.opencode/skills/gstack/bin/gstack-config set telemetry community`
+If A: run `~/.claude/skills/gstack/bin/gstack-config set telemetry community`
 
 If B: ask a follow-up AskUserQuestion:
 
@@ -141,8 +151,8 @@ Options:
 - A) Sure, anonymous is fine
 - B) No thanks, fully off
 
-If B→A: run `.opencode/skills/gstack/bin/gstack-config set telemetry anonymous`
-If B→B: run `.opencode/skills/gstack/bin/gstack-config set telemetry off`
+If B→A: run `~/.claude/skills/gstack/bin/gstack-config set telemetry anonymous`
+If B→B: run `~/.claude/skills/gstack/bin/gstack-config set telemetry off`
 
 Always run:
 ```bash
@@ -162,8 +172,8 @@ Options:
 - A) Keep it on (recommended)
 - B) Turn it off — I'll type /commands myself
 
-If A: run `.opencode/skills/gstack/bin/gstack-config set proactive true`
-If B: run `.opencode/skills/gstack/bin/gstack-config set proactive false`
+If A: run `~/.claude/skills/gstack/bin/gstack-config set proactive true`
+If B: run `~/.claude/skills/gstack/bin/gstack-config set proactive false`
 
 Always run:
 ```bash
@@ -212,10 +222,49 @@ Key routing rules:
 
 Then commit the change: `git add CLAUDE.md && git commit -m "chore: add gstack skill routing rules to CLAUDE.md"`
 
-If B: run `.opencode/skills/gstack/bin/gstack-config set routing_declined true`
+If B: run `~/.claude/skills/gstack/bin/gstack-config set routing_declined true`
 Say "No problem. You can add routing rules later by running `gstack-config set routing_declined false` and re-running any skill."
 
 This only happens once per project. If `HAS_ROUTING` is `yes` or `ROUTING_DECLINED` is `true`, skip this entirely.
+
+If `VENDORED_GSTACK` is `yes`: This project has a vendored copy of gstack at
+`.claude/skills/gstack/`. Vendoring is deprecated. We will not keep vendored copies
+up to date, so this project's gstack will fall behind.
+
+Use AskUserQuestion (one-time per project, check for `~/.gstack/.vendoring-warned-$SLUG` marker):
+
+> This project has gstack vendored in `.claude/skills/gstack/`. Vendoring is deprecated.
+> We won't keep this copy up to date, so you'll fall behind on new features and fixes.
+>
+> Want to migrate to team mode? It takes about 30 seconds.
+
+Options:
+- A) Yes, migrate to team mode now
+- B) No, I'll handle it myself
+
+If A:
+1. Run `git rm -r .claude/skills/gstack/`
+2. Run `echo '.claude/skills/gstack/' >> .gitignore`
+3. Run `~/.claude/skills/gstack/bin/gstack-team-init required` (or `optional`)
+4. Run `git add .claude/ .gitignore CLAUDE.md && git commit -m "chore: migrate gstack from vendored to team mode"`
+5. Tell the user: "Done. Each developer now runs: `cd ~/.claude/skills/gstack && ./setup --team`"
+
+If B: say "OK, you're on your own to keep the vendored copy up to date."
+
+Always run (regardless of choice):
+```bash
+eval "$(~/.claude/skills/gstack/bin/gstack-slug 2>/dev/null)" 2>/dev/null || true
+touch ~/.gstack/.vendoring-warned-${SLUG:-unknown}
+```
+
+This only happens once per project. If the marker file exists, skip entirely.
+
+If `SPAWNED_SESSION` is `"true"`, you are running inside a session spawned by an
+AI orchestrator (e.g., OpenClaw). In spawned sessions:
+- Do NOT use AskUserQuestion for interactive prompts. Auto-choose the recommended option.
+- Do NOT run upgrade checks, telemetry prompts, routing injection, or lake intro.
+- Focus on completing the task and reporting results via prose output.
+- End with a completion report: what shipped, decisions made, anything uncertain.
 
 ## Voice
 
@@ -269,7 +318,7 @@ After compaction or at session start, check for recent project artifacts.
 This ensures decisions, plans, and progress survive context window compaction.
 
 ```bash
-eval "$(.opencode/skills/gstack/bin/gstack-slug 2>/dev/null)"
+eval "$(~/.claude/skills/gstack/bin/gstack-slug 2>/dev/null)"
 _PROJ="${GSTACK_HOME:-$HOME/.gstack}/projects/${SLUG:-unknown}"
 if [ -d "$_PROJ" ]; then
   echo "--- RECENT ARTIFACTS ---"
@@ -345,7 +394,7 @@ Always flag anything that looks wrong — one sentence, what you noticed and its
 
 ## Search Before Building
 
-Before building anything unfamiliar, **search first.** See `.opencode/skills/gstack/ETHOS.md`.
+Before building anything unfamiliar, **search first.** See `~/.claude/skills/gstack/ETHOS.md`.
 - **Layer 1** (tried and true) — don't reinvent. **Layer 2** (new and popular) — scrutinize. **Layer 3** (first principles) — prize above all.
 
 **Eureka:** When first-principles reasoning contradicts conventional wisdom, name it and log:
@@ -389,7 +438,7 @@ Before completing, reflect on this session:
 If yes, log an operational learning for future sessions:
 
 ```bash
-.opencode/skills/gstack/bin/gstack-learnings-log '{"skill":"SKILL_NAME","type":"operational","key":"SHORT_KEY","insight":"DESCRIPTION","confidence":N,"source":"observed"}'
+~/.claude/skills/gstack/bin/gstack-learnings-log '{"skill":"SKILL_NAME","type":"operational","key":"SHORT_KEY","insight":"DESCRIPTION","confidence":N,"source":"observed"}'
 ```
 
 Replace SKILL_NAME with the current skill name. Only log genuine operational discoveries.
@@ -415,14 +464,14 @@ _TEL_END=$(date +%s)
 _TEL_DUR=$(( _TEL_END - _TEL_START ))
 rm -f ~/.gstack/analytics/.pending-"$_SESSION_ID" 2>/dev/null || true
 # Session timeline: record skill completion (local-only, never sent anywhere)
-.opencode/skills/gstack/bin/gstack-timeline-log '{"skill":"SKILL_NAME","event":"completed","branch":"'$(git branch --show-current 2>/dev/null || echo unknown)'","outcome":"OUTCOME","duration_s":"'"$_TEL_DUR"'","session":"'"$_SESSION_ID"'"}' 2>/dev/null || true
+~/.claude/skills/gstack/bin/gstack-timeline-log '{"skill":"SKILL_NAME","event":"completed","branch":"'$(git branch --show-current 2>/dev/null || echo unknown)'","outcome":"OUTCOME","duration_s":"'"$_TEL_DUR"'","session":"'"$_SESSION_ID"'"}' 2>/dev/null || true
 # Local analytics (gated on telemetry setting)
 if [ "$_TEL" != "off" ]; then
 echo '{"skill":"SKILL_NAME","duration_s":"'"$_TEL_DUR"'","outcome":"OUTCOME","browse":"USED_BROWSE","session":"'"$_SESSION_ID"'","ts":"'$(date -u +%Y-%m-%dT%H:%M:%SZ)'"}' >> ~/.gstack/analytics/skill-usage.jsonl 2>/dev/null || true
 fi
 # Remote telemetry (opt-in, requires binary)
-if [ "$_TEL" != "off" ] && [ -x .opencode/skills/gstack/bin/gstack-telemetry-log ]; then
-  .opencode/skills/gstack/bin/gstack-telemetry-log \
+if [ "$_TEL" != "off" ] && [ -x ~/.claude/skills/gstack/bin/gstack-telemetry-log ]; then
+  ~/.claude/skills/gstack/bin/gstack-telemetry-log \
     --skill "SKILL_NAME" --duration "$_TEL_DUR" --outcome "OUTCOME" \
     --used-browse "USED_BROWSE" --session-id "$_SESSION_ID" 2>/dev/null &
 fi
@@ -448,6 +497,31 @@ artifacts that inform the plan, not code changes:
 These are read-only in spirit — they inspect the live site, generate visual artifacts,
 or get independent opinions. They do NOT modify project source files.
 
+## Skill Invocation During Plan Mode
+
+If a user invokes a skill during plan mode, that invoked skill workflow takes
+precedence over generic plan mode behavior until it finishes or the user explicitly
+cancels that skill.
+
+Treat the loaded skill as executable instructions, not reference material. Follow
+it step by step. Do not summarize, skip, reorder, or shortcut its steps.
+
+If the skill says to use AskUserQuestion, do that. Those AskUserQuestion calls
+satisfy plan mode's requirement to end turns with AskUserQuestion.
+
+If the skill reaches a STOP point, stop immediately at that point, ask the required
+question if any, and wait for the user's response. Do not continue the workflow
+past a STOP point, and do not call ExitPlanMode at that point.
+
+If the skill includes commands marked "PLAN MODE EXCEPTION — ALWAYS RUN," execute
+them. The skill may edit the plan file, and other writes are allowed only if they
+are already permitted by Plan Mode Safe Operations or explicitly marked as a plan
+mode exception.
+
+Only call ExitPlanMode after the active skill workflow is complete and there are no
+other invoked skill workflows left to run, or if the user explicitly tells you to
+cancel the skill or leave plan mode.
+
 ## Plan Status Footer
 
 When you are in plan mode and about to call ExitPlanMode:
@@ -457,7 +531,7 @@ When you are in plan mode and about to call ExitPlanMode:
 3. If it does NOT — run this command:
 
 \`\`\`bash
-.opencode/skills/gstack/bin/gstack-review-read
+~/.claude/skills/gstack/bin/gstack-review-read
 \`\`\`
 
 Then write a `## GSTACK REVIEW REPORT` section to the end of the plan file:
@@ -476,6 +550,7 @@ Then write a `## GSTACK REVIEW REPORT` section to the end of the plan file:
 | Codex Review | \`/codex review\` | Independent 2nd opinion | 0 | — | — |
 | Eng Review | \`/plan-eng-review\` | Architecture & tests (required) | 0 | — | — |
 | Design Review | \`/plan-design-review\` | UI/UX gaps | 0 | — | — |
+| DX Review | \`/plan-devex-review\` | Developer experience gaps | 0 | — | — |
 
 **VERDICT:** NO REVIEWS YET — run \`/autoplan\` for full review pipeline, or individual reviews above.
 \`\`\`
@@ -490,7 +565,7 @@ plan's living status.
 _ROOT=$(git rev-parse --show-toplevel 2>/dev/null)
 B=""
 [ -n "$_ROOT" ] && [ -x "$_ROOT/.claude/skills/gstack/browse/dist/browse" ] && B="$_ROOT/.claude/skills/gstack/browse/dist/browse"
-[ -z "$B" ] && B=.opencode/skills/gstack/browse/dist/browse
+[ -z "$B" ] && B=~/.claude/skills/gstack/browse/dist/browse
 if [ -x "$B" ]; then
   echo "READY: $B"
 else
@@ -533,7 +608,7 @@ You are a **YC office hours partner**. Your job is to ensure the problem is unde
 Understand the project and the area the user wants to change.
 
 ```bash
-eval "$(.opencode/skills/gstack/bin/gstack-slug 2>/dev/null)"
+eval "$(~/.claude/skills/gstack/bin/gstack-slug 2>/dev/null)"
 ```
 
 1. Read `CLAUDE.md`, `TODOS.md` (if they exist).
@@ -551,12 +626,12 @@ eval "$(.opencode/skills/gstack/bin/gstack-slug 2>/dev/null)"
 Search for relevant learnings from previous sessions:
 
 ```bash
-_CROSS_PROJ=$(.opencode/skills/gstack/bin/gstack-config get cross_project_learnings 2>/dev/null || echo "unset")
+_CROSS_PROJ=$(~/.claude/skills/gstack/bin/gstack-config get cross_project_learnings 2>/dev/null || echo "unset")
 echo "CROSS_PROJECT: $_CROSS_PROJ"
 if [ "$_CROSS_PROJ" = "true" ]; then
-  .opencode/skills/gstack/bin/gstack-learnings-search --limit 10 --cross-project 2>/dev/null || true
+  ~/.claude/skills/gstack/bin/gstack-learnings-search --limit 10 --cross-project 2>/dev/null || true
 else
-  .opencode/skills/gstack/bin/gstack-learnings-search --limit 10 2>/dev/null || true
+  ~/.claude/skills/gstack/bin/gstack-learnings-search --limit 10 2>/dev/null || true
 fi
 ```
 
@@ -571,8 +646,8 @@ Options:
 - A) Enable cross-project learnings (recommended)
 - B) Keep learnings project-scoped only
 
-If A: run `.opencode/skills/gstack/bin/gstack-config set cross_project_learnings true`
-If B: run `.opencode/skills/gstack/bin/gstack-config set cross_project_learnings false`
+If A: run `~/.claude/skills/gstack/bin/gstack-config set cross_project_learnings true`
+If B: run `~/.claude/skills/gstack/bin/gstack-config set cross_project_learnings false`
 
 Then re-run the search with the appropriate flag.
 
@@ -1027,7 +1102,7 @@ Present via AskUserQuestion. Do NOT proceed without user approval of the approac
 _ROOT=$(git rev-parse --show-toplevel 2>/dev/null)
 D=""
 [ -n "$_ROOT" ] && [ -x "$_ROOT/.claude/skills/gstack/design/dist/design" ] && D="$_ROOT/.claude/skills/gstack/design/dist/design"
-[ -z "$D" ] && D=.opencode/skills/gstack/design/dist/design
+[ -z "$D" ] && D=~/.claude/skills/gstack/design/dist/design
 [ -x "$D" ] && echo "DESIGN_READY" || echo "DESIGN_NOT_AVAILABLE"
 ```
 
@@ -1041,7 +1116,7 @@ Generating visual mockups of the proposed design... (say "skip" if you don't nee
 **Step 1: Set up the design directory**
 
 ```bash
-eval "$(.opencode/skills/gstack/bin/gstack-slug 2>/dev/null)"
+eval "$(~/.claude/skills/gstack/bin/gstack-slug 2>/dev/null)"
 _DESIGN_DIR=~/.gstack/projects/$SLUG/designs/mockup-$(date +%Y%m%d)
 mkdir -p "$_DESIGN_DIR"
 echo "DESIGN_DIR: $_DESIGN_DIR"
@@ -1208,7 +1283,7 @@ Count the signals. You'll use this count in Phase 6 to determine which tier of c
 Write the design document to the project directory.
 
 ```bash
-eval "$(.opencode/skills/gstack/bin/gstack-slug 2>/dev/null)" && mkdir -p ~/.gstack/projects/$SLUG
+eval "$(~/.claude/skills/gstack/bin/gstack-slug 2>/dev/null)" && mkdir -p ~/.gstack/projects/$SLUG
 USER=$(whoami)
 DATETIME=$(date +%Y%m%d-%H%M%S)
 ```
@@ -1483,7 +1558,7 @@ After the YC plea, share 2-3 resources from the pool below. This keeps the closi
 
 **Dedup check — read before selecting:**
 ```bash
-eval "$(.opencode/skills/gstack/bin/gstack-slug 2>/dev/null)" 2>/dev/null || true
+eval "$(~/.claude/skills/gstack/bin/gstack-slug 2>/dev/null)" 2>/dev/null || true
 SHOWN_LOG="${GSTACK_HOME:-$HOME/.gstack}/projects/${SLUG:-unknown}/resources-shown.jsonl"
 [ -f "$SHOWN_LOG" ] && cat "$SHOWN_LOG" || echo "NO_PRIOR_RESOURCES"
 ```
@@ -1560,7 +1635,7 @@ PAUL GRAHAM ESSAYS:
 
 1. Log the selected resource URLs so future sessions avoid repeats:
 ```bash
-eval "$(.opencode/skills/gstack/bin/gstack-slug 2>/dev/null)" 2>/dev/null || true
+eval "$(~/.claude/skills/gstack/bin/gstack-slug 2>/dev/null)" 2>/dev/null || true
 SHOWN_LOG="${GSTACK_HOME:-$HOME/.gstack}/projects/${SLUG:-unknown}/resources-shown.jsonl"
 mkdir -p "$(dirname "$SHOWN_LOG")"
 ```
@@ -1608,7 +1683,7 @@ If you discovered a non-obvious pattern, pitfall, or architectural insight durin
 this session, log it for future sessions:
 
 ```bash
-.opencode/skills/gstack/bin/gstack-learnings-log '{"skill":"office-hours","type":"TYPE","key":"SHORT_KEY","insight":"DESCRIPTION","confidence":N,"source":"SOURCE","files":["path/to/relevant/file"]}'
+~/.claude/skills/gstack/bin/gstack-learnings-log '{"skill":"office-hours","type":"TYPE","key":"SHORT_KEY","insight":"DESCRIPTION","confidence":N,"source":"SOURCE","files":["path/to/relevant/file"]}'
 ```
 
 **Types:** `pattern` (reusable approach), `pitfall` (what NOT to do), `preference`
