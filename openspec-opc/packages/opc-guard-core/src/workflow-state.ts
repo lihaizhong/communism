@@ -15,9 +15,18 @@ import type {
 export const SPEC_CHANGE_ROOT = "openspec/changes"
 export const BUGFIX_ROOT = "openspec/bugs"
 
+export async function readTextFile(filePath: string): Promise<string> {
+  const bytes = await fs.readFile(filePath)
+  try {
+    return new TextDecoder("utf-8", { fatal: true }).decode(bytes).replace(/^\uFEFF/, "")
+  } catch {
+    return new TextDecoder("gb18030").decode(bytes).replace(/^\uFEFF/, "")
+  }
+}
+
 export async function readIfExists(filePath: string): Promise<string> {
   if (!(await exists(filePath))) return ""
-  return fs.readFile(filePath, "utf8")
+  return readTextFile(filePath)
 }
 
 export async function summarizeTasks(tasksPath: string): Promise<TasksSummary> {
@@ -25,7 +34,7 @@ export async function summarizeTasks(tasksPath: string): Promise<TasksSummary> {
     return { total: 0, remaining: 0, complete: 0, items: [] }
   }
 
-  const content = await fs.readFile(tasksPath, "utf8")
+  const content = await readTextFile(tasksPath)
   const items = Array.from(content.matchAll(/^- \[( |x)\]\s+(.+)$/gim), (match): TasksSummaryItem => ({
     done: match[1].toLowerCase() === "x",
     text: match[2].trim(),
@@ -51,7 +60,7 @@ export async function collectSpecContents(specsDir: string): Promise<string[]> {
       if (entry.isDirectory()) {
         await walk(absolute)
       } else if (entry.isFile() && /\.md$/i.test(entry.name)) {
-        results.push(await fs.readFile(absolute, "utf8"))
+        results.push(await readTextFile(absolute))
       }
     }
   }

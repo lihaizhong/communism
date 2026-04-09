@@ -4,9 +4,8 @@ import os from "node:os"
 import path from "node:path"
 import test from "node:test"
 
+import { APPLY_STATE_PATH } from "@openspec-opc/guard-core/state-io"
 import { createOpenSpecOPCPlugin } from "./index.js"
-
-const APPLY_STATE_PATH = "openspec/.opencode-spec-opc-state.json"
 
 async function makeTempWorktree(): Promise<string> {
   return fs.mkdtemp(path.join(os.tmpdir(), "opencode-spec-opc-"))
@@ -151,6 +150,25 @@ test("allows openspec artifact writes in any phase", async () => {
     { tool: "write", sessionId: "sess-red" },
     { args: { filePath: "openspec/changes/add-dark-mode/design.md" }, context: [] },
   )
+})
+
+test("allows bash writes that only mutate openspec artifacts", async () => {
+  const rootDir = await makeTempWorktree()
+  await createChangeFixture(rootDir)
+
+  const pluginFactory = createOpenSpecOPCPlugin()
+  const plugin = await pluginFactory({ worktree: rootDir })
+
+  for (const command of [
+    "mkdir -p openspec/changes/add-dark-mode/specs && cat > openspec/changes/add-dark-mode/specs/ui.md",
+    "mkdir -p openspec/changes/add-dark-mode/specs; cat > openspec/changes/add-dark-mode/specs/ui.md",
+    "cp tmp/generated.md openspec/changes/add-dark-mode/specs/ui.test.md",
+    "install -m 0644 tmp/generated.md openspec/changes/add-dark-mode/specs/ui.test.md",
+  ]) {
+    await assert.doesNotReject(
+      plugin["tool.execute.before"]({ tool: "bash", sessionId: "sess-doc-bash" }, { args: { command }, context: [] }),
+    )
+  }
 })
 
 test("blocks green phase until red test evidence exists", async () => {

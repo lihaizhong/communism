@@ -88,7 +88,7 @@
 
 - 当前 session 是否已经选中了 work item
 - 该 work item 是否 `apply-ready`
-- `openspec/.opencode-spec-opc-state.json` 是否由当前 session 的 `/opsx-apply` 刷新
+- `openspec/.openspec-opc-state.json` 是否由当前 session 的 `/opsx-apply` 刷新
 - 显式锁是否仍在 TTL 内
 - 如果存在 `tasks.md`，其中是否仍有未完成任务
 - 当前 phase 是否使用了对应的独立 session id
@@ -163,7 +163,7 @@ session 必须先进入明确的 work item 上下文。
 
 ### Phase evidence
 
-插件会把阶段证据写回 `openspec/.opencode-spec-opc-state.json`。
+插件会把阶段证据写回 `openspec/.openspec-opc-state.json`。
 
 当前会记录：
 

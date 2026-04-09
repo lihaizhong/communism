@@ -98,14 +98,21 @@ Codex 侧当前仍处于本地插件 scaffold 阶段；仓库里有 `plugins/cod
 
 ### Windows 中文编码处理
 
-在 Windows 环境下处理文件写入时，必须遵循以下规则：
+在 Windows 环境下处理 OpenSpec OPC 文件时，读写两端都可能出现编码问题。安装器和运行时应遵循以下规则：
 
-1. **始终明确指定 UTF-8 编码**
+1. **写入时始终明确指定 UTF-8 编码**
    - Node.js: `fs.writeFile(path, content, { encoding: "utf8" })`
    - Bun: `Bun.write(path, content)` (默认 UTF-8)
    - PowerShell: 使用 `[System.IO.File]::WriteAllText($path, $content, [System.Text.UTF8Encoding]::new($false))`
+   - 避免使用 PowerShell `Set-Content` 默认编码；不同 PowerShell 版本和系统配置下结果不稳定
 
-2. **YAML 结构必须符合 schema 定义**
+2. **读取时不能假设文件一定是 UTF-8**
+   - 下游项目中的 `openspec/**/*.md` 可能来自 Windows 编辑器、PowerShell 或旧工具链，实际编码可能是 GBK/GB18030
+   - 读取 markdown 文档时应优先严格按 UTF-8 解码；如果失败，再 fallback 到 GB18030
+   - 如果直接把 GBK/GB18030 文件按 UTF-8 读取，中文标题可能变成 `����`，导致 proposal/design/tasks 被质量门误判为缺少结构或内容太短
+   - JSON 状态文件仍应按 UTF-8 写入和读取，例如 `openspec/.openspec-opc-state.json`
+
+3. **YAML 结构必须符合 schema 定义**
    - `context` 字段必须是**字符串**，不是对象
    - 避免嵌套对象结构导致 YAML 解析错误
    - 示例正确格式：
@@ -119,17 +126,14 @@ Codex 侧当前仍处于本地插件 scaffold 阶段；仓库里有 `plugins/cod
          name: "My Project"  # 错误 - 这是对象
      ```
 
-3. **PowerShell 写入时要特别注意**
-   - 避免使用 `Set-Content` 默认编码（会使用系统默认而非 UTF-8）
-   - 使用 .NET 方法明确指定 UTF-8
-   - 或使用 Node.js/Bun 脚本间接写入
-
 4. **检测编码问题的迹象**
    - 中文显示为 `???` 或乱码
+   - 中文显示为 `����`
    - YAML 解析报错（重复字段、结构错误）
+   - 质量门误报 `proposal.md is missing structure`、`design.md is too short`、`tasks.md must contain...`
    - 文件中出现 `\"\\n\"` 字面量（换行符未转义）
 
-当检测到文件写入后出现乱码或结构异常时，应立即使用正确的编码方式重新写入。
+当检测到乱码或结构异常时，不要只检查写入代码；也要检查读取路径是否把 Windows 本地编码文件误当成 UTF-8。
 
 ## 判定规则
 

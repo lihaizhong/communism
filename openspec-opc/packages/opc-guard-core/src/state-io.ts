@@ -3,9 +3,10 @@ import path from "node:path"
 
 import type { ApplyState, SessionSelection } from "./types.js"
 import { normalizePath } from "./guard-engine.js"
+import { APPLY_STATE_PATH } from "./constants.js"
 
 export const ARCHIVE_SEGMENT = "/archive/"
-export const APPLY_STATE_PATH = "openspec/.opencode-spec-opc-state.json"
+export { APPLY_STATE_PATH } from "./constants.js"
 
 export function extractSelectionFromFile(filePath: string | null | undefined): SessionSelection | null {
   const normalized = normalizePath(filePath)

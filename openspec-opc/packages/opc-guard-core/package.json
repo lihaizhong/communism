@@ -1,6 +1,6 @@
 {
   "name": "@openspec-opc/guard-core",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "description": "Shared runtime guard core for OpenSpec OPC adapters.",
   "type": "module",
   "homepage": "https://github.com/lihaizhong/communism/tree/main/openspec-opc",
@@ -16,6 +16,7 @@
   "types": "./dist/index.d.ts",
   "exports": {
     ".": "./dist/index.js",
+    "./constants": "./dist/constants.js",
     "./guard-engine": "./dist/guard-engine.js",
     "./state-io": "./dist/state-io.js",
     "./tooling": "./dist/tooling.js",
@@ -23,13 +24,17 @@
     "./workflow-state": "./dist/workflow-state.js"
   },
   "files": [
-    "dist/"
+    "dist/",
+    "!dist/*.test.js",
+    "!dist/*.test.d.ts"
   ],
   "publishConfig": {
     "access": "public"
   },
   "scripts": {
-    "build": "node ../../node_modules/typescript/bin/tsc -p tsconfig.json"
+    "clean": "node -e \"require('node:fs').rmSync('dist', { recursive: true, force: true })\"",
+    "build": "npm run clean && node ../../node_modules/typescript/bin/tsc -p tsconfig.json",
+    "test": "npm run build && node --test dist/*.test.js"
   },
   "keywords": [
     "openspec",

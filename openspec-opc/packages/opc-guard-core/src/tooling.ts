@@ -59,6 +59,102 @@ function collectNonOptionArgs(tokens: string[], startIndex = 0): string[] {
   return results
 }
 
+function splitShellSegments(command: string): string[] {
+  const segments: string[] = []
+  let current = ""
+  let quote: '"' | "'" | null = null
+
+  for (let index = 0; index < command.length; index += 1) {
+    const char = command[index]
+    const next = command[index + 1]
+
+    if ((char === '"' || char === "'") && quote === null) {
+      quote = char
+      current += char
+      continue
+    }
+
+    if (char === quote) {
+      quote = null
+      current += char
+      continue
+    }
+
+    if (!quote && (char === ";" || char === "|" || (char === "&" && next === "&"))) {
+      const segment = current.trim()
+      if (segment) segments.push(segment)
+      current = ""
+      if ((char === "&" && next === "&") || (char === "|" && next === "|")) index += 1
+      continue
+    }
+
+    current += char
+  }
+
+  const segment = current.trim()
+  if (segment) segments.push(segment)
+  return segments
+}
+
+function parseBashMutationSegment(command: string, record: (token: string | null | undefined) => void): void {
+  const value = String(command || "").trim()
+  if (!value) return
+
+  for (const match of value.matchAll(/(?:^|[^\d])>>?\s*("[^"]*"|'[^']*'|[^\s|&;]+)/g)) {
+    record(match[1])
+  }
+
+  const tokens = stripLeadingAssignments(tokenizeShellWords(value))
+  if (tokens.length === 0) return
+
+  const commandName = tokens[0]
+  const subcommand = tokens[1]
+
+  if (commandName === "git" && subcommand === "mv") {
+    for (const token of collectNonOptionArgs(tokens, 2)) record(token)
+    return
+  }
+
+  if (commandName === "rm" || commandName === "touch" || commandName === "mkdir") {
+    for (const token of collectNonOptionArgs(tokens, 1)) record(token)
+    return
+  }
+
+  if (commandName === "cp") {
+    const args = collectNonOptionArgs(tokens, 1)
+    if (args.length > 0) record(args[args.length - 1])
+    return
+  }
+
+  if (commandName === "mv") {
+    for (const token of collectNonOptionArgs(tokens, 1)) record(token)
+    return
+  }
+
+  if (commandName === "chmod" || commandName === "chown") {
+    const args = collectNonOptionArgs(tokens, 1)
+    for (const token of args.slice(1)) record(token)
+    return
+  }
+
+  if (commandName === "sed" || commandName === "perl") {
+    const args = collectNonOptionArgs(tokens, 1)
+    if (args.length > 0) record(args[args.length - 1])
+    return
+  }
+
+  if (commandName === "tee") {
+    for (const token of collectNonOptionArgs(tokens, 1)) record(token)
+    return
+  }
+
+  if (commandName === "install") {
+    const args = collectNonOptionArgs(tokens, 1)
+    if (args.length > 0) record(args[args.length - 1])
+    return
+  }
+}
+
 export function parseBashMutationPaths(command: string | null | undefined): string[] {
   const value = String(command || "").trim()
   if (!value) return []
@@ -70,58 +166,9 @@ export function parseBashMutationPaths(command: string | null | undefined): stri
     normalized.add(candidate)
   }
 
-  for (const match of value.matchAll(/(?:^|[^\d])>>?\s*("[^"]*"|'[^']*'|[^\s|&;]+)/g)) {
-    record(match[1])
+  for (const segment of splitShellSegments(value)) {
+    parseBashMutationSegment(segment, record)
   }
-
-  const tokens = stripLeadingAssignments(tokenizeShellWords(value))
-  if (tokens.length === 0) return [...normalized]
-
-  const commandName = tokens[0]
-  const subcommand = tokens[1]
-
-  if (commandName === "git" && subcommand === "mv") {
-    for (const token of collectNonOptionArgs(tokens, 2)) record(token)
-    return [...normalized]
-  }
-
-  if (commandName === "rm" || commandName === "touch" || commandName === "mkdir") {
-    for (const token of collectNonOptionArgs(tokens, 1)) record(token)
-    return [...normalized]
-  }
-
-  if (commandName === "cp" || commandName === "mv") {
-    for (const token of collectNonOptionArgs(tokens, 1)) record(token)
-    return [...normalized]
-  }
-
-  if (commandName === "chmod" || commandName === "chown") {
-    const args = collectNonOptionArgs(tokens, 1)
-    for (const token of args.slice(1)) record(token)
-    return [...normalized]
-  }
-
-  if (commandName === "sed" || commandName === "perl") {
-    const args = collectNonOptionArgs(tokens, 1)
-    if (args.length > 0) record(args[args.length - 1])
-    return [...normalized]
-  }
-
-  if (commandName === "tee") {
-    for (const token of collectNonOptionArgs(tokens, 1)) record(token)
-    return [...normalized]
-  }
-
-  if (commandName === "install") {
-    const args = collectNonOptionArgs(tokens, 1)
-    for (const token of args) record(token)
-    return [...normalized]
-  }
-
-  if (commandName === "cat" && normalized.size > 0) {
-    return [...normalized]
-  }
-
   return [...normalized]
 }
 

@@ -89,7 +89,7 @@ steps:
       ├─ {{AI_CONFIG_DIR}}/skills/    ✅ 6 个技能
       {{- if AI_TOOL_NAME == opencode }}
       ├─ .opencode/opencode.json      ✅ 已配置 OpenCode 插件引用
-      ├─ openspec/.opencode-spec-opc-state.json  ℹ️ 运行时由 /opsx-apply 刷新
+      ├─ openspec/.openspec-opc-state.json  ℹ️ 运行时由 /opsx-apply 刷新
       {{- endif }}
       ├─ CI/CD 配置                   ✅ 已配置 ({{CI_TYPE}})
       {{- if TEST_STATUS == pending }}

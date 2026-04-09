@@ -10,6 +10,7 @@ import type {
   TasksSummary,
   WorkItemQualityDocuments,
 } from "./types.js"
+import { APPLY_STATE_PATH } from "./constants.js"
 
 export const DEFAULT_GUARD_CONFIG: GuardConfig = {
   minProposalChars: 120,
@@ -40,7 +41,7 @@ export function isLikelyTestFilename(filePath: string): boolean {
   return /(^|\/)(test|tests)\b|(\.|-)(spec|test)\.[^.]+$/i.test(filePath)
 }
 
-export function classifyPath(filePath: string, applyStatePath = "openspec/.opencode-spec-opc-state.json"): PathKind {
+export function classifyPath(filePath: string, applyStatePath = APPLY_STATE_PATH): PathKind {
   const normalized = normalizePath(filePath)
   if (!normalized) return "unknown"
   if (normalized === applyStatePath) return "state"
@@ -472,7 +473,7 @@ export function isValidPhaseSession(phase: Phase, sessionId: string, input: {
 export function targetPathsContainKind(
   targetPaths: string[],
   expectedKind: PathKind,
-  applyStatePath = "openspec/.opencode-spec-opc-state.json",
+  applyStatePath = APPLY_STATE_PATH,
 ): boolean {
   return targetPaths.some((filePath) => classifyPath(filePath, applyStatePath) === expectedKind)
 }
@@ -480,7 +481,7 @@ export function targetPathsContainKind(
 export function assertPhasePathAllowed(
   phase: Phase,
   targetPaths: string[],
-  applyStatePath = "openspec/.opencode-spec-opc-state.json",
+  applyStatePath = APPLY_STATE_PATH,
 ): GuardDecision | null {
   for (const filePath of targetPaths) {
     const kind = classifyPath(filePath, applyStatePath)
@@ -502,7 +503,7 @@ export function assertPhaseEntryAllowed(
   phase: Phase,
   targetPaths: string[],
   evidence: Partial<PhaseEvidence>,
-  applyStatePath = "openspec/.opencode-spec-opc-state.json",
+  applyStatePath = APPLY_STATE_PATH,
 ): GuardDecision | null {
   if (phase === "red") {
     if (!hasPhaseEvidence(evidence, "redTouchedTestFiles") && !targetPathsContainKind(targetPaths, "test", applyStatePath)) {
