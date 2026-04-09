@@ -1,1 +1,0 @@
-/Users/lihaizhong/Documents/Project/communism/.opencode/skills/gstack/review/SKILL.md
