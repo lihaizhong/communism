@@ -12,6 +12,11 @@ inputs:
   - GENERATE_PRE_COMMIT
   - TEST_STATUS
   - TEST_BLOCKER_REASON
+  - INSTALL_LANE_ID
+  - INSTALL_LANE_PROFILE
+  - EXECUTION_PATH
+  - CONFORMANCE_REPORT_PATH
+  - CONFORMANCE_JSON_PATH
 outputs:
   - INSTALL_RESULT
 fallback:
@@ -19,6 +24,9 @@ fallback:
 variable_conventions:
   case: "UPPER_SNAKE_CASE for task variables"
   write_scope: "Verification and summary only"
+contracts:
+  canonical_result: "openspec-opc/install-reference/conformance-contract.mjs"
+  render_contract: "openspec-opc/install-reference/render-contract.mjs"
 
 steps:
   - id: final_check
@@ -77,36 +85,40 @@ steps:
       expected: "退出码为 0，且不存在 TODO/占位/空文件/缺失 SKILL.md 的伪完成情况；若目标是 OpenCode，则 .opencode/opencode.json 至少包含官方 schema、plugin 字段和 @openspec-opc/opencode-plugin"
 
   - id: show_summary
-    name: "显示完成摘要"
+    name: "通过 render contract 显示 canonical result card"
     template: |
-      🎉 OpenSpec OPC 环境搭建完成！
-
-      配置摘要：
-      ├─ openspec/config.yaml         ✅ 已配置
-      ├─ openspec/schemas/            ✅ 已创建
-      ├─ AGENTS.md                    ✅ 已配置
-      ├─ {{AI_CONFIG_DIR}}/commands/  ✅ 6 个命令
-      ├─ {{AI_CONFIG_DIR}}/skills/    ✅ 6 个技能
+      OpenSpec OPC install result
+      overall result: {{INSTALL_RESULT}}
+      execution path: {{EXECUTION_PATH}} ({{INSTALL_LANE_ID}}/{{INSTALL_LANE_PROFILE}})
+      gate results:
+      ├─ lint: passed|failed|missing|not_run
+      ├─ test: passed|failed|missing|not_run
+      ├─ typecheck: passed|failed|missing|not_run
+      written changes:
+      ├─ openspec/config.yaml
+      ├─ openspec/schemas/
+      ├─ AGENTS.md
+      ├─ {{AI_CONFIG_DIR}}/commands/
+      ├─ {{AI_CONFIG_DIR}}/skills/
       {{- if AI_TOOL_NAME == opencode }}
-      ├─ .opencode/opencode.json      ✅ 已配置 OpenCode 插件引用
-      ├─ openspec/.openspec-opc-state.json  ℹ️ 运行时由 /opsx-apply 刷新
+      ├─ .opencode/opencode.json
+      ├─ openspec/.openspec-opc-state.json
       {{- endif }}
-      ├─ CI/CD 配置                   ✅ 已配置 ({{CI_TYPE}})
+      ├─ {{CI_CONFIG_PATH}}
       {{- if TEST_STATUS == pending }}
-      ├─ 测试框架                     ⏳ 待处理 ({{TEST_BLOCKER_REASON}})
+      ├─ pending: 测试框架未完成 ({{TEST_BLOCKER_REASON}})
       {{- endif }}
       {{- if GENERATE_PRE_COMMIT == yes }}
-      ├─ pre-commit hook              ✅ 已配置
+      ├─ pre-commit hook
       {{- endif }}
-
-      下一步：
+      next actions:
       1. 查看 openspec/config.yaml 确认配置
       2. 阅读 AGENTS.md 了解 AI 助手的工作方式
-      3. 创建第一个变更：
-
-         新功能：/opsx-propose my-first-feature
-         Bug 修复：/opsx-bugfix some-bug
-         技术调研：/opsx-spike evaluate-options
+      3. 运行默认首条路径：/opsx-propose my-first-feature
+      artifact paths:
+      - human report: {{CONFORMANCE_REPORT_PATH}}
+      - machine json: {{CONFORMANCE_JSON_PATH}}
+      note: gate status lines must come from canonical_result.gates via render_contract, not from raw command variables
 
 on_complete:
   action: "仅在最终验证通过时标记 harness-install-tasks.md 任务完成并保留 pending 项说明；若发现伪完成痕迹，则将 INSTALL_RESULT 记录为 failed，并回写具体失败文件与原因"

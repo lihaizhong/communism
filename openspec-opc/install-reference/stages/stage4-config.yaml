@@ -20,6 +20,8 @@ fallback:
 variable_conventions:
   case: "UPPER_SNAKE_CASE for task variables"
   write_scope: "Only task file and staging metadata before stage5"
+contracts:
+  stop_point_contract: "openspec-opc/install-reference/stop-points.mjs"
 
 steps:
   - id: scan_config_dirs
@@ -59,31 +61,19 @@ steps:
       • 合并到已有目录
       • 并存安装到新目录
     options:
-      - id: use_opencode
-        label: "使用 .opencode/（推荐）"
+      - id: recommended
+        label: "recommended - 使用 .opencode/"
         ai_tool: "opencode"
         ai_config_dir: ".opencode"
-      - id: use_claude
-        label: "使用 .claude/"
-        ai_tool: "claude"
-        ai_config_dir: ".claude"
-      - id: use_cursor
-        label: "使用 .cursor/"
-        ai_tool: "cursor"
-        ai_config_dir: ".cursor"
-      - id: use_copilot
-        label: "使用 .github/copilot/"
-        ai_tool: "copilot"
-        ai_config_dir: ".github/copilot"
-      - id: create_new
-        label: "创建新目录"
-      - id: cancel
-        label: "取消安装"
+      - id: custom
+        label: "custom - 选择 .claude/.cursor/.github/copilot 或新目录"
+      - id: abort
+        label: "abort - 取消安装"
     on_select:
-      cancel:
+      abort:
         action: "终止流程"
       default:
-        action: "记录 AI_TOOL_NAME 和 AI_CONFIG_DIR 到 harness-install-tasks.md；如目标目录已存在则标记 CONFIG_CONFLICT = yes"
+        action: "若选择 recommended，则记录 AI_TOOL_NAME = opencode、AI_CONFIG_DIR = .opencode；若选择 custom，则继续追问具体目录（.claude/.cursor/.github/copilot/新目录）后再写入 harness-install-tasks.md；如目标目录已存在则标记 CONFIG_CONFLICT = yes"
 
   - id: detect_ai_docs
     name: "检测已存在的 AI 文档"
@@ -110,17 +100,14 @@ steps:
 
       请选择：
     options:
-      - id: integrate
-        label: "整合非技术类信息到新配置"
+      - id: recommended
+        label: "recommended - 整合非技术类信息到新配置"
         action: "设置 INTEGRATE_AI_DOCS = yes，暂存非技术类信息"
-      - id: coexist
-        label: "保留现有文档并并存"
-        action: "设置 INTEGRATE_AI_DOCS = coexist，不覆盖现有文档，生成新的 OpenSpec 配置"
-      - id: no_integrate
-        label: "不整合，使用 OpenSpec 默认模板"
-        action: "设置 INTEGRATE_AI_DOCS = no"
-      - id: cancel
-        label: "取消安装"
+      - id: custom
+        label: "custom - 保留并并存，或完全使用默认模板"
+        action: "继续追问用户要保留并并存（coexist）还是完全不整合（no）；然后写入 INTEGRATE_AI_DOCS"
+      - id: abort
+        label: "abort - 取消安装"
         action: "终止流程"
     on_select:
       default:

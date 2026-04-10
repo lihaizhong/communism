@@ -16,6 +16,9 @@ outputs:
   - PACKAGE_MANAGER
   - RUNTIME
   - PRIMARY_FRAMEWORK
+  - INSTALL_LANE_ID
+  - INSTALL_LANE_PROFILE
+  - EXECUTION_PATH
   - TEST_FRAMEWORK
   - TEST_INSTALL_CMD
   - TEST_STATUS
@@ -36,6 +39,10 @@ fallback:
 variable_conventions:
   case: "UPPER_SNAKE_CASE for task variables"
   mapping_rule: "auto-detected values override guesses, but explicit user confirmation overrides both"
+contracts:
+  lane_registry: "openspec-opc/install-reference/lanes/registry.json"
+  lane_runtime: "openspec-opc/install-reference/lane-registry.mjs"
+  stop_point_contract: "openspec-opc/install-reference/stop-points.mjs"
 
 branches:
   new_project:
@@ -60,6 +67,10 @@ branches:
   existing_project:
     action: "auto_detect"
     detect_steps:
+      - id: detect_lane
+        method: "根据 lane registry 判断是否进入 Node/TS 新 lane，未命中则标记 legacy_fallback"
+      - id: resolve_profile
+        method: "若命中 Node/TS lane，则解析 app/service/library；多重命中时进入共享 stop-point，而不是静默猜测"
       - id: detect_framework
         method: "检查依赖声明文件"
       - id: detect_package_manager
@@ -72,6 +83,9 @@ branches:
         method: "检查 engines 或语言版本文件"
     report_template: |
       🔍 技术栈检测报告
+      ├─ 安装路径: {{EXECUTION_PATH}}
+      ├─ Lane: {{INSTALL_LANE_ID}}
+      ├─ Profile: {{INSTALL_LANE_PROFILE}}
       ├─ 项目类型: {{TECH_CATEGORY}}
       ├─ 框架: {{PRIMARY_FRAMEWORK}}
       ├─ 语言: {{LANGUAGE}}
@@ -115,5 +129,5 @@ test_framework_recommendations:
   "Java": { framework: "JUnit", command: "通过 Maven/Gradle 添加" }
 
 on_complete:
-  action: "将所有检测结果映射并写入 harness-install-tasks.md 配置变量表；统一输出 PRIMARY_FRAMEWORK、SRC_DIR、TEST_DIR 和项目命令变量；如自动检测与用户输入冲突，优先展示冲突并请求确认"
+  action: "将所有检测结果映射并写入 harness-install-tasks.md 配置变量表；统一输出 INSTALL_LANE_ID、INSTALL_LANE_PROFILE、PRIMARY_FRAMEWORK、SRC_DIR、TEST_DIR 和项目命令变量；如 profile 命中冲突，必须进入共享 stop-point，使用 recommended/custom/abort 动作标签"
   next: "stage4"

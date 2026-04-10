@@ -1,0 +1,15 @@
+{
+  "version": "1.0",
+  "default_gate_order": ["lint", "test", "typecheck"],
+  "result_states": ["success", "failed", "partial_install", "legacy_fallback"],
+  "lanes": [
+    {
+      "id": "node-ts",
+      "label": "Node/TypeScript",
+      "execution_path": "new_lane",
+      "profiles": ["app", "service", "library"],
+      "required_files": ["package.json"],
+      "gate_order": ["lint", "test", "typecheck"]
+    }
+  ]
+}
