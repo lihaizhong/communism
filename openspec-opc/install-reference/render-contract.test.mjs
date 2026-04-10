@@ -7,33 +7,8 @@ import { parse as parseYaml } from "yaml";
 import { renderHumanReport, renderTerminalResultCard } from "./render-contract.mjs";
 
 const ROOT = path.dirname(new URL(import.meta.url).pathname);
+const STAGE5_PATH = path.join(ROOT, "stages", "stage5-execute.yaml");
 const STAGE6_PATH = path.join(ROOT, "stages", "stage6-verify.yaml");
-
-function extractSummaryMarkers(text) {
-  return text
-    .split("\n")
-    .map((line) => line.trim())
-    .filter((line) => {
-      return (
-        line === "OpenSpec OPC install result" ||
-        line.startsWith("overall result:") ||
-        line.startsWith("execution path:") ||
-        line === "gate results:" ||
-        line === "written changes:" ||
-        line === "next actions:" ||
-        line === "artifact paths:"
-      );
-    })
-    .map((line) => {
-      if (line.startsWith("overall result:")) {
-        return "overall result:";
-      }
-      if (line.startsWith("execution path:")) {
-        return "execution path:";
-      }
-      return line;
-    });
-}
 
 test("terminal result card preserves reading order and next actions before artifacts", () => {
   const output = renderTerminalResultCard({
@@ -93,35 +68,34 @@ test("terminal result card renders canonical gate status, not caller supplied st
   assert.match(output, /- test: failed \| npm test/);
 });
 
-test("stage6 summary template stays aligned with the terminal render contract", () => {
+test("stage5 node-ts contract requires real commands and rendered artifacts", () => {
+  const stage5 = parseYaml(fs.readFileSync(STAGE5_PATH, "utf8"));
+  const taskT6 = stage5.core_tasks.find((task) => task.id === "T6");
+  const verifyCommand = taskT6?.verify?.command || "";
+
+  assert.ok(stage5.outputs.includes("TERMINAL_RESULT_CARD_PATH"));
+  assert.ok(stage5.outputs.includes("CONFORMANCE_REPORT_PATH"));
+  assert.ok(stage5.outputs.includes("CONFORMANCE_JSON_PATH"));
+  assert.match(
+    verifyCommand,
+    /printf '%s\\n%s\\n%s\\n' "\{\{LINT_COMMAND\}\}" "\{\{TEST_COMMAND\}\}" "\{\{TYPE_CHECK_COMMAND\}\}"/,
+  );
+  assert.match(verifyCommand, /error:\\\\s\*no test specified\|TODO\|TBD\|placeholder\|stub\|mock\|待补充\|未实现/);
+  assert.match(verifyCommand, /test -s "\{\{TERMINAL_RESULT_CARD_PATH\}\}"/);
+  assert.match(verifyCommand, /test -s "\{\{CONFORMANCE_REPORT_PATH\}\}"/);
+  assert.match(verifyCommand, /test -s "\{\{CONFORMANCE_JSON_PATH\}\}"/);
+});
+
+test("stage6 summary delegates to the rendered terminal card artifact", () => {
   const stage6 = parseYaml(fs.readFileSync(STAGE6_PATH, "utf8"));
   const summaryStep = stage6.steps.find((step) => step.id === "show_summary");
   const template = summaryStep?.template || "";
-  const rendered = renderTerminalResultCard({
-    executionPath: "new_lane",
-    laneId: "node-ts",
-    laneProfile: "app",
-    gates: [
-      { id: "lint", status: "passed", command: "npm run lint" },
-      { id: "test", status: "failed", command: "npm test" },
-      { id: "typecheck", status: "not_run", command: "npm run typecheck" },
-    ],
-    writtenChanges: ["openspec/config.yaml"],
-    nextActions: ["fix the failing test command"],
-    artifacts: {
-      reportPath: "openspec/install-report.md",
-      jsonPath: "openspec/install-report.json",
-    },
-  });
 
   assert.equal(stage6.contracts?.canonical_result, "openspec-opc/install-reference/conformance-contract.mjs");
   assert.equal(stage6.contracts?.render_contract, "openspec-opc/install-reference/render-contract.mjs");
-  assert.ok(!stage6.inputs.includes("LINT_COMMAND"));
-  assert.ok(!stage6.inputs.includes("TEST_COMMAND"));
-  assert.ok(!stage6.inputs.includes("TYPE_CHECK_COMMAND"));
-  assert.deepEqual(extractSummaryMarkers(template), extractSummaryMarkers(rendered));
-  assert.match(template, /lint: passed\|failed\|missing\|not_run/);
-  assert.match(template, /test: passed\|failed\|missing\|not_run/);
-  assert.match(template, /typecheck: passed\|failed\|missing\|not_run/);
-  assert.doesNotMatch(template, /\{\{LINT_COMMAND\}\}|\{\{TEST_COMMAND\}\}|\{\{TYPE_CHECK_COMMAND\}\}/);
+  assert.ok(stage6.inputs.includes("TERMINAL_RESULT_CARD_PATH"));
+  assert.match(template, /render exactly the contents of \{\{TERMINAL_RESULT_CARD_PATH\}\}/);
+  assert.match(template, /terminal result card: \{\{TERMINAL_RESULT_CARD_PATH\}\}/);
+  assert.doesNotMatch(template, /execution path:|lint: passed\|failed\|missing\|not_run|test: passed\|failed\|missing\|not_run|typecheck: passed\|failed\|missing\|not_run/);
+  assert.doesNotMatch(template, /\{\{INSTALL_LANE_ID\}\}\/\{\{INSTALL_LANE_PROFILE\}\}/);
 });

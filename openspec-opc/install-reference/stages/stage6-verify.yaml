@@ -15,6 +15,7 @@ inputs:
   - INSTALL_LANE_ID
   - INSTALL_LANE_PROFILE
   - EXECUTION_PATH
+  - TERMINAL_RESULT_CARD_PATH
   - CONFORMANCE_REPORT_PATH
   - CONFORMANCE_JSON_PATH
 outputs:
@@ -47,6 +48,15 @@ steps:
       - if: "AI_TOOL_NAME == opencode"
         file_exists: ".opencode/opencode.json"
         desc: "OpenCode 配置文件存在"
+      - if: "INSTALL_LANE_ID == node-ts"
+        file_exists: "{{TERMINAL_RESULT_CARD_PATH}}"
+        desc: "terminal result card 已生成"
+      - if: "INSTALL_LANE_ID == node-ts"
+        file_exists: "{{CONFORMANCE_REPORT_PATH}}"
+        desc: "human-readable conformance report 已生成"
+      - if: "INSTALL_LANE_ID == node-ts"
+        file_exists: "{{CONFORMANCE_JSON_PATH}}"
+        desc: "machine JSON conformance bundle 已生成"
       - file_exists: "{{CI_CONFIG_PATH}}"
         desc: "CI/CD 配置存在（不可跳过）"
       - if: "TEST_STATUS == pending"
@@ -81,44 +91,27 @@ steps:
           rg -q '"\\$schema"\\s*:\\s*"https://opencode.ai/config.json"' .opencode/opencode.json && \
           rg -q '"plugin"\\s*:' .opencode/opencode.json && \
           rg -q '@openspec-opc/opencode-plugin' .opencode/opencode.json; \
+        }; } && \
+        { [ "{{INSTALL_LANE_ID}}" != "node-ts" ] || { \
+          test -s "{{TERMINAL_RESULT_CARD_PATH}}" && \
+          test -s "{{CONFORMANCE_REPORT_PATH}}" && \
+          test -s "{{CONFORMANCE_JSON_PATH}}" && \
+          ! grep -E '\\{\\{[A-Z_]+\\}\\}' "{{TERMINAL_RESULT_CARD_PATH}}" "{{CONFORMANCE_REPORT_PATH}}" "{{CONFORMANCE_JSON_PATH}}"; \
         }; }
-      expected: "退出码为 0，且不存在 TODO/占位/空文件/缺失 SKILL.md 的伪完成情况；若目标是 OpenCode，则 .opencode/opencode.json 至少包含官方 schema、plugin 字段和 @openspec-opc/opencode-plugin"
+      expected: "退出码为 0，且不存在 TODO/占位/空文件/缺失 SKILL.md 的伪完成情况；若目标是 OpenCode，则 .opencode/opencode.json 至少包含官方 schema、plugin 字段和 @openspec-opc/opencode-plugin；若命中 Node/TS lane，则必须已经写出 terminal result card、human report、machine JSON 三类结果产物"
 
   - id: show_summary
-    name: "通过 render contract 显示 canonical result card"
+    name: "显示 render contract 生成的 terminal result card"
     template: |
-      OpenSpec OPC install result
-      overall result: {{INSTALL_RESULT}}
-      execution path: {{EXECUTION_PATH}} ({{INSTALL_LANE_ID}}/{{INSTALL_LANE_PROFILE}})
-      gate results:
-      ├─ lint: passed|failed|missing|not_run
-      ├─ test: passed|failed|missing|not_run
-      ├─ typecheck: passed|failed|missing|not_run
-      written changes:
-      ├─ openspec/config.yaml
-      ├─ openspec/schemas/
-      ├─ AGENTS.md
-      ├─ {{AI_CONFIG_DIR}}/commands/
-      ├─ {{AI_CONFIG_DIR}}/skills/
-      {{- if AI_TOOL_NAME == opencode }}
-      ├─ .opencode/opencode.json
-      ├─ openspec/.openspec-opc-state.json
-      {{- endif }}
-      ├─ {{CI_CONFIG_PATH}}
-      {{- if TEST_STATUS == pending }}
-      ├─ pending: 测试框架未完成 ({{TEST_BLOCKER_REASON}})
-      {{- endif }}
-      {{- if GENERATE_PRE_COMMIT == yes }}
-      ├─ pre-commit hook
-      {{- endif }}
-      next actions:
-      1. 查看 openspec/config.yaml 确认配置
-      2. 阅读 AGENTS.md 了解 AI 助手的工作方式
-      3. 运行默认首条路径：/opsx-propose my-first-feature
-      artifact paths:
+      source of truth:
+      - render exactly the contents of {{TERMINAL_RESULT_CARD_PATH}}
+      - do not reconstruct overall result, execution path, gate lines, written changes, next actions, or artifact paths inside stage6
+      - if {{TERMINAL_RESULT_CARD_PATH}} is missing, treat verification as failed
+      artifact bundle:
+      - terminal result card: {{TERMINAL_RESULT_CARD_PATH}}
       - human report: {{CONFORMANCE_REPORT_PATH}}
       - machine json: {{CONFORMANCE_JSON_PATH}}
-      note: gate status lines must come from canonical_result.gates via render_contract, not from raw command variables
+      note: stage6 only displays the render-contract artifact; canonical_result.gates and execution path formatting must come from render_contract, not handwritten template lines
 
 on_complete:
   action: "仅在最终验证通过时标记 harness-install-tasks.md 任务完成并保留 pending 项说明；若发现伪完成痕迹，则将 INSTALL_RESULT 记录为 failed，并回写具体失败文件与原因"

@@ -1,6 +1,7 @@
 # Install Reference
 
 本目录包含 OpenSpec OPC 安装流程的阶段定义、lane contract、canonical result/rendering contract，以及对应校验工具。
+它服务的是 AI 驱动、文档驱动、文本反馈优先的安装器，不假设浏览器页面或图形安装界面。
 
 ## 文件说明
 

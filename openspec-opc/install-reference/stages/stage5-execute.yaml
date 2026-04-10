@@ -23,6 +23,7 @@ outputs:
   - CI_CONFIG_PATH
   - GENERATE_PRE_COMMIT
   - EXECUTION_PATH
+  - TERMINAL_RESULT_CARD_PATH
   - CONFORMANCE_REPORT_PATH
   - CONFORMANCE_JSON_PATH
   - INSTALL_RESULT
@@ -66,7 +67,7 @@ pre_check:
       - if: "INTEGRATE_AI_DOCS == yes"
         action: "将 T7 从 [-] 改为 [ ]"
       - if: "INSTALL_LANE_ID == node-ts"
-        action: "设置 EXECUTION_PATH = new_lane；后续 gate 顺序固定为 lint -> test -> typecheck，并要求生成 terminal result card、human report、machine JSON"
+        action: "设置 EXECUTION_PATH = new_lane、TERMINAL_RESULT_CARD_PATH = openspec/install-result.txt、CONFORMANCE_REPORT_PATH = openspec/install-report.md、CONFORMANCE_JSON_PATH = openspec/install-report.json；后续 gate 顺序固定为 lint -> test -> typecheck，并要求生成 terminal result card、human report、machine JSON"
 
 core_tasks:
   - id: T0
@@ -195,7 +196,7 @@ core_tasks:
       - if: "TEST_STATUS == pending"
         action: "记录测试框架尚未完成，不阻塞安装完成"
       - if: "INSTALL_LANE_ID == node-ts"
-        action: "必须真实执行 lint / test / typecheck；仅命令存在不算 success"
+        action: "必须基于真实 gate 结果生成 canonical result，并写入 TERMINAL_RESULT_CARD_PATH、CONFORMANCE_REPORT_PATH、CONFORMANCE_JSON_PATH；仅命令存在不算 success"
     verify:
       command: |
         ! rg -n -i 'TODO|TBD|placeholder|stub|mock|待补充|未实现' \
@@ -221,10 +222,15 @@ core_tasks:
           rg -q '@openspec-opc/opencode-plugin' .opencode/opencode.json; \
         }; } && \
         { [ "{{INSTALL_LANE_ID}}" != "node-ts" ] || { \
-          test -n "{{LINT_COMMAND}}" && test -n "{{TEST_COMMAND}}" && test -n "{{TYPE_CHECK_COMMAND}}"; \
+          test -n "{{LINT_COMMAND}}" && test -n "{{TEST_COMMAND}}" && test -n "{{TYPE_CHECK_COMMAND}}" && \
+          ! printf '%s\n%s\n%s\n' "{{LINT_COMMAND}}" "{{TEST_COMMAND}}" "{{TYPE_CHECK_COMMAND}}" | rg -n -i 'error:\\s*no test specified|TODO|TBD|placeholder|stub|mock|待补充|未实现' && \
+          test -s "{{TERMINAL_RESULT_CARD_PATH}}" && \
+          test -s "{{CONFORMANCE_REPORT_PATH}}" && \
+          test -s "{{CONFORMANCE_JSON_PATH}}" && \
+          ! grep -E '\\{\\{[A-Z_]+\\}\\}' "{{TERMINAL_RESULT_CARD_PATH}}" "{{CONFORMANCE_REPORT_PATH}}" "{{CONFORMANCE_JSON_PATH}}"; \
         }; }
-      expected: "退出码为 0，且不存在 TODO/占位/空壳命令或缺失 SKILL.md 的技能目录；若目标是 OpenCode，则 .opencode/opencode.json 至少包含官方 schema、plugin 字段和 @openspec-opc/opencode-plugin；若命中 Node/TS lane，则 lint/test/typecheck 都必须具备真实 conformance 命令"
-    on_complete: "标记 T6 [x]"
+      expected: "退出码为 0，且不存在 TODO/占位/空壳命令或缺失 SKILL.md 的技能目录；若目标是 OpenCode，则 .opencode/opencode.json 至少包含官方 schema、plugin 字段和 @openspec-opc/opencode-plugin；若命中 Node/TS lane，则 lint/test/typecheck 都必须具备真实 conformance 命令，且 terminal result card、human report、machine JSON 三类结果产物都已实际写出"
+    on_complete: "若 INSTALL_LANE_ID == node-ts，则基于真实 gate 结果构造 canonical result，写入 {{TERMINAL_RESULT_CARD_PATH}}、{{CONFORMANCE_REPORT_PATH}}、{{CONFORMANCE_JSON_PATH}} 后再标记 T6 [x]"
 
 conditional_tasks:
   - id: T2.5
