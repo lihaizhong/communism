@@ -47,9 +47,9 @@ export function deriveResultState({
   }
 
   const normalizedGates = normalizeGateResults(gateResults);
-  const hasFailure = normalizedGates.some((gate) => gate.status === "failed");
+  const hasBlockingGate = normalizedGates.some((gate) => gate.status !== "passed");
   const hasArtifactFailure = artifactFailures.length > 0;
-  if (!hasFailure && !hasArtifactFailure) {
+  if (!hasBlockingGate && !hasArtifactFailure) {
     return "success";
   }
 

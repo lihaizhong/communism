@@ -2,11 +2,12 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 import { parse as parseYaml } from "yaml";
 import { renderHumanReport, renderTerminalResultCard } from "./render-contract.mjs";
 
-const ROOT = path.dirname(new URL(import.meta.url).pathname);
+const ROOT = path.dirname(fileURLToPath(import.meta.url));
 const STAGE5_PATH = path.join(ROOT, "stages", "stage5-execute.yaml");
 const STAGE6_PATH = path.join(ROOT, "stages", "stage6-verify.yaml");
 

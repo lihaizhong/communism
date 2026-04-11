@@ -8,7 +8,7 @@
       "label": "Node/TypeScript",
       "execution_path": "new_lane",
       "profiles": ["app", "service", "library"],
-      "required_files": ["package.json"],
+      "required_files": ["package.json", "tsconfig.json"],
       "gate_order": ["lint", "test", "typecheck"]
     }
   ]

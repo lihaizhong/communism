@@ -2,12 +2,13 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 import { createCanonicalResult } from "./conformance-contract.mjs";
 import { detectInstallerLane, planNodeTsConformance, resolveNodeTsProfile } from "./lane-registry.mjs";
 import { renderHumanReport, renderTerminalResultCard } from "./render-contract.mjs";
 
-const ROOT = path.dirname(new URL(import.meta.url).pathname);
+const ROOT = path.dirname(fileURLToPath(import.meta.url));
 const FIXTURE_ROOT = path.join(ROOT, "fixtures", "node-ts-minimal");
 const EXPECTED_ROOT = path.join(FIXTURE_ROOT, "expected");
 

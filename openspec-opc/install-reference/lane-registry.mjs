@@ -1,7 +1,8 @@
 import fs from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
-const ROOT = path.dirname(new URL(import.meta.url).pathname);
+const ROOT = path.dirname(fileURLToPath(import.meta.url));
 const REGISTRY_PATH = path.join(ROOT, "lanes", "registry.json");
 
 const APP_MARKERS = ["react", "next", "vue", "nuxt", "@angular/core", "svelte", "@remix-run/react", "vite"];
@@ -38,10 +39,13 @@ export function getLaneDefinition(laneId, registry = loadLaneRegistry()) {
 
 export function detectInstallerLane(snapshot = {}, registry = loadLaneRegistry()) {
   const files = toSet(snapshot.files || []);
-  if (files.has("package.json")) {
+  const nodeTsLane = getLaneDefinition("node-ts", registry);
+  const requiredFiles = nodeTsLane?.required_files || [];
+
+  if (requiredFiles.every((file) => files.has(file))) {
     return {
       laneId: "node-ts",
-      executionPath: getLaneDefinition("node-ts", registry)?.execution_path || "new_lane",
+      executionPath: nodeTsLane?.execution_path || "new_lane",
     };
   }
 

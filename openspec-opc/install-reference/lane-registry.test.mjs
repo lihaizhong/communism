@@ -18,6 +18,15 @@ test("detectInstallerLane routes package.json projects to node-ts", () => {
   assert.equal(lane.executionPath, "new_lane");
 });
 
+test("detectInstallerLane falls back when TypeScript required files are missing", () => {
+  const lane = detectInstallerLane({
+    files: ["package.json"],
+  });
+
+  assert.equal(lane.laneId, "");
+  assert.equal(lane.executionPath, "legacy_fallback");
+});
+
 test("resolveNodeTsProfile returns ambiguous when app and service markers overlap", () => {
   const resolution = resolveNodeTsProfile({
     packageJson: {
