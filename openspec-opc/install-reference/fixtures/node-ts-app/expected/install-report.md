@@ -4,7 +4,7 @@
 overall result: success
 
 ## Execution Path
-execution path: new_lane (node-ts/library)
+execution path: new_lane (node-ts/app)
 
 ## Gate Results
 - lint: passed | npm run lint
@@ -12,7 +12,7 @@ execution path: new_lane (node-ts/library)
 - typecheck: passed | npm run typecheck
 
 ## Profile Smoke
-- runtime smoke: not_applicable | not applicable for library profile
+- frontend page smoke: passed | npm run smoke | app root marker is present
 
 ## Written Changes
 - openspec/config.yaml
@@ -25,7 +25,7 @@ execution path: new_lane (node-ts/library)
 ## Next Actions
 - 查看 openspec/config.yaml 确认配置
 - 阅读 AGENTS.md 了解 AI 助手的工作方式
-- 运行默认首条路径：/opsx-propose my-first-feature
+- 运行默认首条路径：/opsx-propose landing-page-refresh
 
 ## Artifact Paths
 - human report: openspec/install-report.md

@@ -21,6 +21,9 @@
 - `lane-registry.mjs`
   - 加载 lane registry
   - 执行 lane 检测、Node/TS profile 解析、conformance gate 规划
+- `profile-smoke-contract.mjs`
+  - 为 `app / service` profile 定义最小 runtime smoke contract
+  - 负责 smoke 命令发现、成功/失败语义、以及结果报告字段约定
 - `conformance-contract.mjs`
   - canonical result model
   - 固定结果态、固定 gate 顺序、`partial_install` 推导规则
@@ -30,9 +33,16 @@
   - `recommended / custom / abort` 共享 stop-point interaction contract
 - `fixtures/node-ts-minimal/`
   - 文档驱动安装器的最小 first-success fixture
-  - 包含输入项目快照、walkthrough，以及期望的 terminal/report/json 结果产物
+  - 同时承担 `library` profile proof
+- `fixtures/node-ts-app/`
+  - `app` profile fixture
+  - 提供真实的 `lint / test / typecheck` 命令和期望结果产物
+- `fixtures/node-ts-service/`
+  - `service` profile fixture
+  - 提供真实的 `lint / test / typecheck` 命令和期望结果产物
 - `*.test.mjs`
-  - 对 lane 检测、canonical result、rendering、stop-point 顺序做 contract tests
+  - 对 lane 检测、profile smoke contract、canonical result、rendering、stop-point 顺序做 contract tests
+  - fixture walkthrough tests 还会真实执行 fixture 自己的 conformance gates 和 smoke 命令
 
 ## 使用方式
 

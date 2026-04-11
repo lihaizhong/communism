@@ -178,6 +178,30 @@ The `.template` directory is located in the same directory as `install.md`.
 
 当前 Codex 侧仍然是实验性的本地插件 scaffold，不属于 `install.md` 默认落地的正式安装路径。
 
+## 先看效果：Zero-Install Preview
+
+如果你还没决定要不要把 OpenSpec OPC 接进自己的仓库，可以先直接看安装成功后的结果卡，不需要跑真实安装流。
+
+在 `openspec-opc/` 目录执行：
+
+```bash
+node ./scripts/preview-demo.mjs
+```
+
+如果你已经装好了 workspace 依赖，也可以执行：
+
+```bash
+npm run preview:demo
+```
+
+默认会依次展示 `library / app / service` 三种 `Node/TS` profile 的真实预期结果卡；如果你只想看其中一种：
+
+```bash
+node ./scripts/preview-demo.mjs --profile app
+```
+
+这个 preview 直接重放 `install-reference/fixtures/*/expected/install-result.txt`，所以它和当前 contract tests 锁定的是同一份 first-success 输出，而不是单独维护一套 marketing 文案。
+
 ## 核心概念
 
 ### SDD + TDD 双驱动流程
@@ -226,6 +250,7 @@ AI 辅助实现代码 -> 让测试通过
 | [07-示例演示](guide/07-examples.md) | 端到端完整示例 | 需要完整流程参考 |
 | [08-Workspace 开发](guide/08-workspace-development.md) | workspace 包结构、build/test、dist 消费方式 | 维护这个仓库本身时 |
 | [09-发布说明](guide/09-release.md) | 版本策略、发布前检查、消费边界 | 准备发布这些包时 |
+| [DESIGN.md](DESIGN.md) | 安装器、结果卡、报告和 stop-point 的设计基线 | 扩展新 lane 或调整输出语言前 |
 
 ### 扩展阅读
 

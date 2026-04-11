@@ -6,6 +6,14 @@
 
 ## 5 分钟路径
 
+如果你还没准备把 OpenSpec OPC 真正接进自己的仓库，可以先在 `openspec-opc/` 目录执行一次：
+
+```bash
+node ./scripts/preview-demo.mjs
+```
+
+它会直接重放 `library / app / service` 三种 Node/TS profile 的安装成功结果卡，让你先看“第一次成功长什么样”。
+
 1. 把 [install.md](../install.md) 交给 AI 执行器。
    - 如果你是从 GitHub 某个分支、tag 或提交阅读文档，请使用同一 ref 下的 `openspec-opc/install.md`，不要跳回 `main`。
 2. 让 AI 按阶段完成前置检查、项目识别、配置选择和安装。
