@@ -1,0 +1,44 @@
+# Changelog
+
+All notable changes to `openspec-opc` are documented in this file.
+
+## 0.2.0 - 2026-04-11
+
+This release turns `openspec-opc` into a publishable multi-package workspace with
+installer contracts, runtime guard adapters, and a documented manual release path.
+
+### Added
+
+- Added the `@openspec-opc/guard-core` package to centralize runtime enforcement,
+  state IO, tooling selection, and workflow-state collection.
+- Added `@openspec-opc/opencode-plugin` as the formal OpenCode adapter and
+  `@openspec-opc/codex-plugin` as the experimental Codex scaffold adapter.
+- Added installer contract coverage for lane detection, profile smoke, rendered
+  result cards, stop-point handling, and fixture walkthroughs.
+- Added `node-ts-minimal`, `node-ts-app`, and `node-ts-service` install-reference
+  fixtures with expected artifacts and real smoke/lint commands.
+- Added preview and release utility scripts:
+  `scripts/preview-demo.mjs`, `scripts/check-workspace-versions.mjs`,
+  `scripts/pack-dry-run.mjs`, and `scripts/benchmark-guard.mjs`.
+- Added workspace development and release documentation in
+  `guide/08-workspace-development.md` and `guide/09-release.md`.
+
+### Changed
+
+- Reworked the installer flow and result-card contracts so stage validation and
+  install-reference output stay aligned.
+- Tightened lane and result contract rules, including correct `node-ts` library
+  profile resolution and explicit profile-smoke gating.
+- Simplified package builds to compile directly with `tsc`.
+- Clarified `install.md`, onboarding links, and the OpenCode config guidance so
+  installs point at `.opencode/opencode.json` instead of a bridge loader path.
+- Documented the system design baseline in `DESIGN.md` and refreshed the main
+  `README.md` to match the workspace/package architecture.
+
+### Notes
+
+- `@openspec-opc/codex-plugin` remains an experimental scaffold and should still
+  be treated as a provisional integration surface.
+- Publish the workspace packages in dependency order:
+  `@openspec-opc/guard-core`, `@openspec-opc/opencode-plugin`,
+  `@openspec-opc/codex-plugin`.

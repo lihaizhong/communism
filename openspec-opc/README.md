@@ -250,6 +250,7 @@ AI 辅助实现代码 -> 让测试通过
 | [07-示例演示](guide/07-examples.md) | 端到端完整示例 | 需要完整流程参考 |
 | [08-Workspace 开发](guide/08-workspace-development.md) | workspace 包结构、build/test、dist 消费方式 | 维护这个仓库本身时 |
 | [09-发布说明](guide/09-release.md) | 版本策略、发布前检查、消费边界 | 准备发布这些包时 |
+| [CHANGELOG.md](CHANGELOG.md) | 已发布版本的摘要与手动发布顺序 | 准备发版或回看变更时 |
 | [DESIGN.md](DESIGN.md) | 安装器、结果卡、报告和 stop-point 的设计基线 | 扩展新 lane 或调整输出语言前 |
 
 ### 扩展阅读

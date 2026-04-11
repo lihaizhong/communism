@@ -1,6 +1,6 @@
 {
   "name": "@openspec-opc/codex-plugin",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "description": "Codex runtime guard plugin for OpenSpec OPC workflows.",
   "type": "module",
   "homepage": "https://github.com/lihaizhong/communism/tree/main/openspec-opc",
@@ -15,7 +15,7 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "dependencies": {
-    "@openspec-opc/guard-core": "0.1.2"
+    "@openspec-opc/guard-core": "0.2.0"
   },
   "exports": {
     ".": "./dist/index.js",

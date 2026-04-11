@@ -53,12 +53,33 @@ npm run release:check
 2. 如果插件依赖 `@openspec-opc/guard-core`
    - 同步更新依赖版本
 3. 运行 `npm run release:check`
+4. 更新 `CHANGELOG.md`
 
 如果你只想先看打包内容，不跑完整检查，也可以单独执行：
 
 ```bash
 npm run pack:dry-run
 ```
+
+## 手动发布顺序
+
+如果你通过 npm OTP / 2FA 手动发布，建议固定按依赖顺序执行：
+
+1. 在 `openspec-opc/` 根目录运行 `npm run release:check`
+2. 确认 `CHANGELOG.md` 已包含本次版本说明
+3. 先发布 `@openspec-opc/guard-core`
+4. 再发布 `@openspec-opc/opencode-plugin`
+5. 最后发布 `@openspec-opc/codex-plugin`
+
+对应命令示例：
+
+```bash
+npm publish --workspace packages/opc-guard-core --access public
+npm publish --workspace plugins/opencode-spec-opc --access public
+npm publish --workspace plugins/codex-spec-opc --access public
+```
+
+之所以按这个顺序，是因为两个插件都依赖 `@openspec-opc/guard-core` 的同版本包。
 
 ## 发布产物边界
 

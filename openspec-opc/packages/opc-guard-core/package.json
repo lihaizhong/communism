@@ -1,6 +1,6 @@
 {
   "name": "@openspec-opc/guard-core",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "description": "Shared runtime guard core for OpenSpec OPC adapters.",
   "type": "module",
   "homepage": "https://github.com/lihaizhong/communism/tree/main/openspec-opc",
