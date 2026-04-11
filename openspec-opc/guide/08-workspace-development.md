@@ -147,6 +147,25 @@ npm run test:codex
 npm run test:opencode
 ```
 
+### Benchmark
+
+```bash
+npm run benchmark:guard
+```
+
+这个命令会先执行 `npm run build`，然后运行 `scripts/benchmark-guard.mjs`，测量两条 runtime guard 关键路径在 `10 / 100 / 500` 个活跃 work items 下的延迟：
+
+- `collectWorkflowState()`
+- `codex beforeMutation()`
+
+用途是给后续是否要做 workflow-state caching 提供真实基线，而不是凭感觉优化。
+
+注意：
+
+- 这是信息性 benchmark，不属于 release gate。
+- 如果你刚改了 `packages/opc-guard-core/src` 或 `plugins/codex-spec-opc/src`，优先先跑一次这个命令确认延迟没有明显恶化。
+- benchmark 使用的是构建后的 `dist/` 产物，因此不要跳过前面的 build。
+
 ## 源码和产物边界
 
 维护时只改：
@@ -219,6 +238,13 @@ npm install @openspec-opc/opencode-plugin
 2. 先跑 `npm run test:install-reference`
 3. 再跑 `npm test`
 4. 最后同步 `install-reference/README.md` 和相关 guide 文档
+
+如果你在改 Node/TS profile 级 runtime smoke contract：
+
+1. 先改 `install-reference/profile-smoke-contract.mjs`
+2. 再改对应 fixture 的 `scripts/smoke.mjs`
+3. 先跑 `npm run test:install-reference`
+4. 再跑 `npm test`
 
 如果你在改目标项目接入方式：
 

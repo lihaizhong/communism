@@ -4,6 +4,7 @@ export const RESULT_SECTION_ORDER = [
   "overall_result",
   "execution_path",
   "gate_results",
+  "profile_smoke",
   "written_changes",
   "next_actions",
   "artifact_paths",
@@ -13,6 +14,7 @@ export const REPORT_SECTION_ORDER = [
   "overall_result",
   "execution_path",
   "gate_results",
+  "profile_smoke",
   "written_changes",
   "next_actions",
   "artifact_paths",
@@ -24,6 +26,14 @@ function renderList(items, fallback = "none") {
     return [`- ${fallback}`];
   }
   return items.map((item) => `- ${item}`);
+}
+
+function renderProfileSmoke(smoke = {}) {
+  const details = [smoke.command, smoke.summary, ...(smoke.artifacts || [])].filter(Boolean);
+  if (!smoke?.label && !smoke?.status) {
+    return ["- none"];
+  }
+  return [`- ${smoke.label}: ${smoke.status}${details.length > 0 ? ` | ${details.join(" | ")}` : ""}`];
 }
 
 export function toRenderView(input) {
@@ -41,6 +51,7 @@ export function toRenderView(input) {
       const detail = gate.command ? ` | ${gate.command}` : "";
       return `- ${gate.id}: ${gate.status}${detail}`;
     }),
+    profileSmokeLines: renderProfileSmoke(result.profileSmoke),
     writtenChangeLines: renderList(result.writtenChanges),
     nextActionLines: renderList(result.nextActions),
     artifactLines: renderList(
@@ -61,6 +72,8 @@ export function renderTerminalResultCard(input) {
     view.executionPathLine,
     "gate results:",
     ...view.gateLines,
+    "profile smoke:",
+    ...view.profileSmokeLines,
     "written changes:",
     ...view.writtenChangeLines,
     "next actions:",
@@ -83,6 +96,9 @@ export function renderHumanReport(input) {
     "",
     "## Gate Results",
     ...view.gateLines,
+    "",
+    "## Profile Smoke",
+    ...view.profileSmokeLines,
     "",
     "## Written Changes",
     ...view.writtenChangeLines,

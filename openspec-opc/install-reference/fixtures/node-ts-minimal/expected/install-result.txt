@@ -5,6 +5,8 @@ gate results:
 - lint: passed | npm run lint
 - test: passed | npm test
 - typecheck: passed | npm run typecheck
+profile smoke:
+- runtime smoke: not_applicable | not applicable for library profile
 written changes:
 - openspec/config.yaml
 - openspec/schemas/

@@ -6,7 +6,9 @@ import { createCanonicalResult, deriveResultState } from "./conformance-contract
 test("deriveResultState returns partial_install when writes happened before failure", () => {
   const result = deriveResultState({
     executionPath: "new_lane",
+    laneProfile: "app",
     gateResults: [{ id: "test", status: "failed" }],
+    profileSmoke: { status: "passed" },
     wroteFiles: ["openspec/config.yaml"],
   });
 
@@ -17,7 +19,9 @@ test("deriveResultState treats missing or not_run gates as non-success", () => {
   assert.equal(
     deriveResultState({
       executionPath: "new_lane",
+      laneProfile: "library",
       gateResults: [{ id: "lint", status: "passed" }],
+      profileSmoke: { status: "not_applicable" },
     }),
     "failed",
   );
@@ -25,7 +29,40 @@ test("deriveResultState treats missing or not_run gates as non-success", () => {
   assert.equal(
     deriveResultState({
       executionPath: "new_lane",
+      laneProfile: "library",
       gateResults: [{ id: "lint", status: "passed" }],
+      profileSmoke: { status: "not_applicable" },
+      wroteFiles: ["openspec/config.yaml"],
+    }),
+    "partial_install",
+  );
+});
+
+test("deriveResultState requires passed profile smoke for app and service lanes", () => {
+  assert.equal(
+    deriveResultState({
+      executionPath: "new_lane",
+      laneProfile: "app",
+      gateResults: [
+        { id: "lint", status: "passed" },
+        { id: "test", status: "passed" },
+        { id: "typecheck", status: "passed" },
+      ],
+      profileSmoke: { status: "not_run" },
+    }),
+    "failed",
+  );
+
+  assert.equal(
+    deriveResultState({
+      executionPath: "new_lane",
+      laneProfile: "service",
+      gateResults: [
+        { id: "lint", status: "passed" },
+        { id: "test", status: "passed" },
+        { id: "typecheck", status: "passed" },
+      ],
+      profileSmoke: { status: "missing" },
       wroteFiles: ["openspec/config.yaml"],
     }),
     "partial_install",
@@ -60,4 +97,61 @@ test("createCanonicalResult rejects caller-supplied state drift", () => {
       }),
     /canonical result state must match derived state/,
   );
+});
+
+test("createCanonicalResult normalizes profile smoke with library default", () => {
+  const result = createCanonicalResult({
+    executionPath: "new_lane",
+    laneProfile: "library",
+    gates: [
+      { id: "lint", status: "passed" },
+      { id: "test", status: "passed" },
+      { id: "typecheck", status: "passed" },
+    ],
+  });
+
+  assert.equal(result.profileSmoke.status, "not_applicable");
+  assert.match(result.profileSmoke.summary, /library profile/);
+  assert.equal(result.state, "success");
+});
+
+test("createCanonicalResult preserves explicit profile smoke payload", () => {
+  const result = createCanonicalResult({
+    executionPath: "new_lane",
+    laneProfile: "app",
+    gates: [
+      { id: "lint", status: "passed" },
+      { id: "test", status: "passed" },
+      { id: "typecheck", status: "passed" },
+    ],
+    profileSmoke: {
+      id: "app-page-smoke",
+      label: "frontend page smoke",
+      status: "passed",
+      command: "npm run smoke",
+      summary: "app root marker is present",
+      artifacts: ["openspec/smoke-app.txt"],
+    },
+  });
+
+  assert.equal(result.profileSmoke.id, "app-page-smoke");
+  assert.equal(result.profileSmoke.status, "passed");
+  assert.equal(result.profileSmoke.command, "npm run smoke");
+  assert.deepEqual(result.profileSmoke.artifacts, ["openspec/smoke-app.txt"]);
+  assert.equal(result.state, "success");
+});
+
+test("createCanonicalResult does not allow app success without passed profile smoke", () => {
+  const result = createCanonicalResult({
+    executionPath: "new_lane",
+    laneProfile: "app",
+    gates: [
+      { id: "lint", status: "passed" },
+      { id: "test", status: "passed" },
+      { id: "typecheck", status: "passed" },
+    ],
+  });
+
+  assert.equal(result.profileSmoke.status, "not_run");
+  assert.equal(result.state, "failed");
 });

@@ -1,13 +1,15 @@
 {
-  "name": "node-ts-minimal",
+  "name": "node-ts-service",
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "exports": {
-    ".": "./src/index.ts"
+  "dependencies": {
+    "express": "^5.0.0"
   },
   "scripts": {
+    "start": "node ./src/server.ts",
     "lint": "node ./scripts/lint.mjs",
+    "smoke": "node ./scripts/smoke.mjs",
     "test": "node --test ./test/*.test.mjs",
     "typecheck": "node ../../../node_modules/typescript/bin/tsc --noEmit -p tsconfig.json"
   }

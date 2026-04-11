@@ -8,12 +8,20 @@ inputs:
   - AI_TOOL_NAME
   - AI_CONFIG_DIR
   - EXISTING_AI_DOCS
+  - INSTALL_LANE_ID
+  - INSTALL_LANE_PROFILE
+  - PROFILE_SMOKE_STATUS
+  - PROFILE_SMOKE_COMMAND
+  - PROFILE_SMOKE_SUMMARY
 outputs:
   - AI_TOOL_NAME
   - AI_CONFIG_DIR
   - CONFIG_CONFLICT
   - INTEGRATE_AI_DOCS
   - EXISTING_AI_DOCS
+  - PROFILE_SMOKE_STATUS
+  - PROFILE_SMOKE_COMMAND
+  - PROFILE_SMOKE_SUMMARY
 fallback:
   on_conflict: "停止并要求用户选择策略"
   on_missing_confirmation: "保持在当前停止点"
@@ -114,5 +122,5 @@ steps:
         action: "记录 INTEGRATE_AI_DOCS 和 EXISTING_AI_DOCS 到 harness-install-tasks.md"
 
 on_complete:
-  action: "确认 harness-install-tasks.md 中 AI_TOOL_NAME、AI_CONFIG_DIR、INTEGRATE_AI_DOCS 已填写；若存在 CONFIG_CONFLICT，阶段 5 前必须再次确认处理策略"
+  action: "确认 harness-install-tasks.md 中 AI_TOOL_NAME、AI_CONFIG_DIR、INTEGRATE_AI_DOCS 已填写；若 INSTALL_LANE_ID == node-ts，则必须保留 stage3 规划出的 PROFILE_SMOKE_STATUS、PROFILE_SMOKE_COMMAND、PROFILE_SMOKE_SUMMARY，不得在 stage4 静默清空或覆盖；若存在 CONFIG_CONFLICT，阶段 5 前必须再次确认处理策略"
   next: "stage5"

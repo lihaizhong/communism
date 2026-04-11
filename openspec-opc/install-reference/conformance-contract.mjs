@@ -4,6 +4,7 @@ export const RESULT_STATES = ["success", "failed", "partial_install", "legacy_fa
 export const EXECUTION_PATHS = ["new_lane", "legacy_fallback"];
 export const GATE_ORDER = ["lint", "test", "typecheck"];
 export const GATE_STATUSES = ["passed", "failed", "missing", "not_run"];
+export const PROFILE_SMOKE_STATUSES = ["passed", "failed", "missing", "not_run", "not_applicable"];
 
 export function normalizeGateId(value) {
   return String(value || "").trim().toLowerCase();
@@ -38,7 +39,9 @@ export function normalizeGateResults(gates = []) {
 
 export function deriveResultState({
   executionPath = "new_lane",
+  laneProfile = "",
   gateResults = [],
+  profileSmoke = {},
   wroteFiles = [],
   artifactFailures = [],
 } = {}) {
@@ -47,21 +50,57 @@ export function deriveResultState({
   }
 
   const normalizedGates = normalizeGateResults(gateResults);
+  const normalizedProfileSmoke = normalizeProfileSmoke(profileSmoke, laneProfile);
   const hasBlockingGate = normalizedGates.some((gate) => gate.status !== "passed");
+  const requiresSmokePass = laneProfile === "app" || laneProfile === "service";
+  const hasBlockingProfileSmoke = requiresSmokePass
+    ? normalizedProfileSmoke.status !== "passed"
+    : laneProfile === "library"
+      ? normalizedProfileSmoke.status !== "not_applicable"
+      : false;
   const hasArtifactFailure = artifactFailures.length > 0;
-  if (!hasBlockingGate && !hasArtifactFailure) {
+  if (!hasBlockingGate && !hasBlockingProfileSmoke && !hasArtifactFailure) {
     return "success";
   }
 
   return wroteFiles.length > 0 ? "partial_install" : "failed";
 }
 
+export function normalizeProfileSmoke(input = {}, laneProfile = "") {
+  const defaultStatus = laneProfile === "library" ? "not_applicable" : "not_run";
+  const status = PROFILE_SMOKE_STATUSES.includes(input?.status) ? input.status : defaultStatus;
+  const label =
+    input?.label ||
+    (laneProfile === "app"
+      ? "frontend page smoke"
+      : laneProfile === "service"
+        ? "service API smoke"
+        : laneProfile === "library"
+          ? "runtime smoke"
+          : "profile smoke");
+  const summary =
+    input?.summary ||
+    (status === "not_applicable" && laneProfile === "library" ? "not applicable for library profile" : "");
+
+  return {
+    id: input?.id || "",
+    label,
+    status,
+    command: input?.command || "",
+    summary,
+    artifacts: [...new Set(input?.artifacts || [])],
+  };
+}
+
 export function createCanonicalResult(input) {
   const normalizedGates = normalizeGateResults(input?.gates || input?.gateResults);
   const normalizedWrittenChanges = [...new Set(input?.writtenChanges || input?.wroteFiles || [])];
+  const normalizedProfileSmoke = normalizeProfileSmoke(input?.profileSmoke, input?.laneProfile || "");
   const derivedState = deriveResultState({
     executionPath: input?.executionPath || "new_lane",
+    laneProfile: input?.laneProfile || "",
     gateResults: normalizedGates,
+    profileSmoke: normalizedProfileSmoke,
     wroteFiles: normalizedWrittenChanges,
     artifactFailures: input?.artifactFailures || [],
   });
@@ -75,6 +114,7 @@ export function createCanonicalResult(input) {
     laneProfile: input?.laneProfile || "",
     summary: input?.summary || "",
     gates: normalizedGates,
+    profileSmoke: normalizedProfileSmoke,
     writtenChanges: normalizedWrittenChanges,
     nextActions: [...new Set(input?.nextActions || [])],
     artifacts: {
@@ -100,4 +140,8 @@ export function validateCanonicalResult(result) {
   for (const gate of result.gates) {
     assert.ok(GATE_STATUSES.includes(gate.status), `unsupported gate status: ${gate.status}`);
   }
+  assert.ok(
+    PROFILE_SMOKE_STATUSES.includes(result.profileSmoke.status),
+    `unsupported profile smoke status: ${result.profileSmoke.status}`,
+  );
 }

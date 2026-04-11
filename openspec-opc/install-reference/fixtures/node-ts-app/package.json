@@ -1,13 +1,18 @@
 {
-  "name": "node-ts-minimal",
+  "name": "node-ts-app",
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "exports": {
-    ".": "./src/index.ts"
+  "dependencies": {
+    "react": "^19.0.0"
+  },
+  "devDependencies": {
+    "vite": "^7.0.0"
   },
   "scripts": {
+    "dev": "vite",
     "lint": "node ./scripts/lint.mjs",
+    "smoke": "node ./scripts/smoke.mjs",
     "test": "node --test ./test/*.test.mjs",
     "typecheck": "node ../../../node_modules/typescript/bin/tsc --noEmit -p tsconfig.json"
   }

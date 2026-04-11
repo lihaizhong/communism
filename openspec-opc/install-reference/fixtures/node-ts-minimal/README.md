@@ -1,6 +1,7 @@
 # Node/TS Minimal Fixture
 
-这是 OpenSpec OPC 文档驱动安装器的最小 first-success 样例。
+这是 OpenSpec OPC 文档驱动安装器的最小 first-success 样例，同时也是
+`library` profile 的 conformance fixture。
 
 目标不是跑浏览器页面，而是验证：
 
@@ -8,6 +9,7 @@
 2. profile 会稳定解析为 `library`
 3. 安装完成后会写出文本优先的主结果卡
 4. `new_lane` 会额外写出人类可读报告和机器 JSON
+5. 仓库测试会真实执行 fixture 自己的 `lint / test / typecheck` 命令
 
 ## Fixture 输入
 
