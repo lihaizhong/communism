@@ -9,6 +9,7 @@
   ],
   "scripts": {
     "build": "npm run build:core && npm run build:opencode && npm run build:codex",
+    "build:installer-bundle": "node ./scripts/build-installer-bundle.mjs",
     "benchmark:guard": "npm run build && node ./scripts/benchmark-guard.mjs",
     "preview:demo": "node ./scripts/preview-demo.mjs",
     "build:core": "npm --prefix packages/opc-guard-core run build",

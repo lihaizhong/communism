@@ -2,3 +2,4 @@ node_modules/
 .npm-cache/
 packages/*/dist/
 plugins/*/dist/
+release-assets/

@@ -61,6 +61,27 @@ npm run release:check
 npm run pack:dry-run
 ```
 
+如果你还想生成一个适合挂到 GitHub Release 的安装器 bundle，可以执行：
+
+```bash
+npm run build:installer-bundle
+```
+
+默认产物会出现在 `release-assets/` 下，并保留 npm 作为默认安装路径。
+如果你需要给离线环境准备一个带本地 npm tarball fallback 的版本，可以执行：
+
+```bash
+node ./scripts/build-installer-bundle.mjs --with-local-packages
+```
+
+该 bundle 会包含：
+
+- `install.md`
+- `.template/`
+- 安装运行时所需的 `install-reference/` 子集
+- `README.md`、`CHANGELOG.md`
+- 可选的 `vendor/npm/*.tgz` fallback 包
+
 ## 手动发布顺序
 
 如果你通过 npm OTP / 2FA 手动发布，建议固定按依赖顺序执行：
@@ -70,6 +91,7 @@ npm run pack:dry-run
 3. 先发布 `@openspec-opc/guard-core`
 4. 再发布 `@openspec-opc/opencode-plugin`
 5. 最后发布 `@openspec-opc/codex-plugin`
+6. 如果需要 GitHub Release 安装包，再执行 `npm run build:installer-bundle`
 
 对应命令示例：
 
@@ -89,6 +111,8 @@ npm publish --workspace plugins/codex-spec-opc --access public
 - `plugins/*/dist`
 - `plugins/codex-spec-opc/hooks`
 - `plugins/codex-spec-opc/.codex-plugin`
+- `release-assets/openspec-opc-installer-v*/`
+- `release-assets/openspec-opc-installer-v*.tar.gz`
 
 不要把源码目录 `src/` 当成稳定消费边界。
 
@@ -98,6 +122,8 @@ npm publish --workspace plugins/codex-spec-opc --access public
   当前只发布 `dist/`
 - `@openspec-opc/codex-plugin`
   当前发布 `dist/`、`hooks/`、`.codex-plugin/`、`hooks.json`
+- installer bundle
+  当前发布 `install.md`、`.template/`、运行时必需的 `install-reference/` 子集，以及可选的本地 npm tarball fallback
 
 ## 当前注意事项
 
