@@ -39,11 +39,17 @@
 | `GENERATE_PRE_COMMIT` | | 阶段 5 用户选择是否安装 `.template/ci-templates/hooks/pre-commit` (yes/no) |
 | `INTEGRATE_AI_DOCS` | | 阶段 4 用户选择 (yes/no) |
 | `EXISTING_AI_DOCS` | | 阶段 4 检测到的已有 AI 文档列表 |
+| `INSTALL_LANE_ID` | | 阶段 3 lane router 解析结果（如 `node-ts`） |
+| `INSTALL_LANE_PROFILE` | | 阶段 3/4 确认的 lane profile（如 `app`/`service`/`library`） |
+| `EXECUTION_PATH` | | 阶段 5/6 记录 (`new_lane`/`legacy_fallback`) |
+| `TERMINAL_RESULT_CARD_PATH` | | 阶段 5 生成的主结果卡路径；新 lane 与 legacy fallback 都必须写出 |
+| `CONFORMANCE_REPORT_PATH` | | 阶段 5 生成的人类可读安装报告路径（仅 `new_lane`） |
+| `CONFORMANCE_JSON_PATH` | | 阶段 5 生成的机器可读 conformance JSON 路径（仅 `new_lane`） |
 | `GIT_INITIALIZED` | | 前置检查 (yes/no) |
 | `TECH_CATEGORY` | | 阶段 1 用户选择 |
 | `INSTALL_TARGET_CONFIRMED` | | 前置检查确认 (yes/no) |
 | `USER_REQUESTED_PROJECT_INIT` | | 前置检查记录 (yes/no) |
-| `INSTALL_RESULT` | | 阶段 5/6 记录 (`success`/`success_with_pending`/`failed`) |
+| `INSTALL_RESULT` | | 阶段 5/6 记录 (`success`/`failed`/`partial_install`/`legacy_fallback`) |
 
 ## 变量约定
 
@@ -58,7 +64,10 @@
 - 不允许通过写入 `TODO`、`TBD`、`placeholder`、`stub`、`mock`、`待补充`、`未实现` 等占位内容冒充完成
 - 若文件已创建但仍包含占位内容、模板残留、空文件、空目录或缺失关键子文件，必须标记为 `[!]`，不得标记为 `[x]`
 - 若任务因用户明确选择暂不完成，或因外部条件阻塞无法继续，可标记为 `pending`，但必须写明阻塞原因和下一步
-- `INSTALL_RESULT = success` 或 `success_with_pending` 的前提是：所有核心任务均为 `[x]`，或存在已记录原因的 `pending`；只要存在伪完成或关键校验失败，就必须记录为 `failed`
+- `INSTALL_RESULT = success` 的前提是：新 lane 的核心 gate 与 conformance artifact 都真实完成
+- 若已经发生仓库写入，但 gate 或 artifact 失败，必须记录为 `partial_install`
+- 若没有进入新 lane，而是退回旧路径，必须记录为 `legacy_fallback`
+- 只要存在伪完成或关键校验失败，就不得把结果记为 `success`
 
 ## 执行任务
 
@@ -85,6 +94,10 @@
 - [ ] **T5**: 填充技术栈变量
   - 替换 `openspec/config.yaml` 和 `AGENTS.md` 中的所有 `{{变量名}}`
   - 验证：`grep -E '\{\{[A-Z_]+\}\}' openspec/config.yaml AGENTS.md` 无输出
+- [ ] **T5.5**: 写出安装结果产物
+  - 主结果卡：`{{TERMINAL_RESULT_CARD_PATH}}`
+  - 若 `EXECUTION_PATH = new_lane`，还需写出 `{{CONFORMANCE_REPORT_PATH}}` 与 `{{CONFORMANCE_JSON_PATH}}`
+  - 若 `EXECUTION_PATH = legacy_fallback`，仍必须写出主结果卡，并明确显示 `legacy_fallback`
 - [ ] **T6**: 验证安装清单
   - `openspec/config.yaml` 存在且格式正确
   - `openspec/schemas/` 包含 spec-driven、bugfix、spike
@@ -95,6 +108,8 @@
   - `{{AI_CONFIG_DIR}}/skills/*/SKILL.md` 均存在且非空
   - 关键安装文件中不得出现 `TODO`、`TBD`、`placeholder`、`stub`、`mock`、`待补充`、`未实现`
   - 不存在旧的 `command/`（单数）目录
+  - `{{TERMINAL_RESULT_CARD_PATH}}` 存在且非空
+  - 若 `EXECUTION_PATH = new_lane`，`{{CONFORMANCE_REPORT_PATH}}` 与 `{{CONFORMANCE_JSON_PATH}}` 均存在且非空
   - CI/CD 配置文件存在
   - 若 `TEST_STATUS = pending`，在完成摘要中展示后续动作
 

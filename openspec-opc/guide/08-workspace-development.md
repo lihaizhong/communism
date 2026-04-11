@@ -6,8 +6,8 @@
 
 如果你只是在目标项目里使用 Harness，优先看：
 
-- [00-quick-start.md](/Users/lihaizhong/Documents/Project/communism/openspec-opc/guide/00-quick-start.md)
-- [05-directory-structure.md](/Users/lihaizhong/Documents/Project/communism/openspec-opc/guide/05-directory-structure.md)
+- [00-quick-start.md](00-quick-start.md)
+- [05-directory-structure.md](05-directory-structure.md)
 
 ## 当前 workspace 结构
 
@@ -111,15 +111,11 @@ npm run build
 
 ```bash
 npm run build:core
+npm run build:opencode
 npm run build:codex
 ```
 
-注意：这里**不会**构建 OpenCode 插件。
-如果你改了 `plugins/opencode-spec-opc/src`，还需要额外执行：
-
-```bash
-npm run build:opencode
-```
+这里已经**包含** OpenCode 插件构建。
 
 单独构建 OpenCode 插件：
 
@@ -136,7 +132,8 @@ npm test
 等价于：
 
 ```bash
-npm run build:core
+npm run test:install-reference
+npm run test:core
 npm --prefix plugins/codex-spec-opc run test
 npm --prefix plugins/opencode-spec-opc run test
 ```
@@ -144,6 +141,7 @@ npm --prefix plugins/opencode-spec-opc run test
 单独跑某一层：
 
 ```bash
+npm run test:install-reference
 npm run test:core
 npm run test:codex
 npm run test:opencode
@@ -155,9 +153,12 @@ npm run test:opencode
 
 - `packages/*/src`
 - `plugins/*/src`
+- `install-reference/*.mjs`
+- `install-reference/*.test.mjs`
+- `install-reference/stages/*.yaml`
 - `hooks/`
 - `scripts/`
-- `templates/`
+- `.template/`
 
 不要手改：
 
@@ -190,7 +191,8 @@ npm install @openspec-opc/opencode-plugin
 
 - `plugins/opencode-spec-opc/dist/index.js`
 
-因此如果你准备验证或消费最新 OpenCode 产物，不要只跑 `npm run build`；还需要跑 `npm run build:opencode`。
+如果你已经在 workspace 根执行了 `npm run build`，OpenCode 产物也会一起更新。
+只有在你想单独重建 OpenCode 插件时，才需要单跑 `npm run build:opencode`。
 
 ### Codex
 
@@ -210,6 +212,13 @@ npm install @openspec-opc/opencode-plugin
 2. 再改对应插件的 `src`
 3. 跑 `npm test`
 4. 最后同步插件 README 和仓库文档
+
+如果你在改 installer contract / stage flow：
+
+1. 先改 `install-reference/*.mjs`、`install-reference/*.test.mjs` 或 `install-reference/stages/*.yaml`
+2. 先跑 `npm run test:install-reference`
+3. 再跑 `npm test`
+4. 最后同步 `install-reference/README.md` 和相关 guide 文档
 
 如果你在改目标项目接入方式：
 

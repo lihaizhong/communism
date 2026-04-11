@@ -35,5 +35,5 @@ OpenSpec OPC 是一套面向个人开发者的 AI 协作开发环境，核心是
 
 ## 推荐继续阅读
 
-- [02-config-system.md](/Users/lihaizhong/Documents/Project/communism/openspec-opc/guide/02-config-system.md)
-- [03-workflows.md](/Users/lihaizhong/Documents/Project/communism/openspec-opc/guide/03-workflows.md)
+- [02-config-system.md](02-config-system.md)
+- [03-workflows.md](03-workflows.md)

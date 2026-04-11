@@ -3,10 +3,11 @@
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
+import { fileURLToPath } from "node:url";
 
 import { parse as parseYaml } from "yaml";
 
-const ROOT = path.dirname(new URL(import.meta.url).pathname);
+const ROOT = path.dirname(fileURLToPath(import.meta.url));
 const SCHEMA_PATH = path.join(ROOT, "stage.schema.json");
 const STAGES_DIR = path.join(ROOT, "stages");
 

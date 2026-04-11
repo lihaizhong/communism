@@ -13,10 +13,19 @@ inputs:
   - CONFIG_CONFLICT_STRATEGY
   - TEST_STATUS
   - TEST_INSTALL_CMD
+  - LINT_COMMAND
+  - TEST_COMMAND
+  - TYPE_CHECK_COMMAND
+  - INSTALL_LANE_ID
+  - INSTALL_LANE_PROFILE
 outputs:
   - CI_TYPE
   - CI_CONFIG_PATH
   - GENERATE_PRE_COMMIT
+  - EXECUTION_PATH
+  - TERMINAL_RESULT_CARD_PATH
+  - CONFORMANCE_REPORT_PATH
+  - CONFORMANCE_JSON_PATH
   - INSTALL_RESULT
 fallback:
   on_missing_required_vars: "回到对应阶段补充，不得继续执行"
@@ -25,6 +34,11 @@ fallback:
 variable_conventions:
   case: "UPPER_SNAKE_CASE for task variables"
   write_scope: "May modify project files and install dependencies"
+contracts:
+  lane_runtime: "openspec-opc/install-reference/lane-registry.mjs"
+  canonical_result: "openspec-opc/install-reference/conformance-contract.mjs"
+  render_contract: "openspec-opc/install-reference/render-contract.mjs"
+  stop_point_contract: "openspec-opc/install-reference/stop-points.mjs"
 
 pre_check:
   - name: "读取 harness-install-tasks.md"
@@ -36,6 +50,8 @@ pre_check:
       - PROJECT_TYPE
       - LANGUAGE
       - PRIMARY_FRAMEWORK
+      - INSTALL_LANE_ID
+      - INSTALL_LANE_PROFILE
       - SRC_DIR
       - TEST_DIR
       - AI_TOOL_NAME
@@ -50,6 +66,10 @@ pre_check:
     rules:
       - if: "INTEGRATE_AI_DOCS == yes"
         action: "将 T7 从 [-] 改为 [ ]"
+      - if: "INSTALL_LANE_ID == node-ts"
+        action: "设置 EXECUTION_PATH = new_lane、TERMINAL_RESULT_CARD_PATH = openspec/install-result.txt、CONFORMANCE_REPORT_PATH = openspec/install-report.md、CONFORMANCE_JSON_PATH = openspec/install-report.json；后续 gate 顺序固定为 lint -> test -> typecheck，并要求生成 terminal result card、human report、machine JSON"
+      - if: "INSTALL_LANE_ID != node-ts"
+        action: "设置 EXECUTION_PATH = legacy_fallback、TERMINAL_RESULT_CARD_PATH = openspec/install-result.txt；legacy fallback 仍必须输出主结果卡，但不要求生成 new lane 的 report/json artifact"
 
 core_tasks:
   - id: T0
@@ -164,8 +184,23 @@ core_tasks:
       expected: "已生成的模板文件中不存在未替换的 {{变量名}}"
     on_complete: "标记 T5 [x]"
 
+  - id: T5.5
+    name: "写出安装结果产物"
+    action: "若 EXECUTION_PATH == new_lane，则基于真实 gate 结果构造 canonical result，并写入 {{TERMINAL_RESULT_CARD_PATH}}、{{CONFORMANCE_REPORT_PATH}}、{{CONFORMANCE_JSON_PATH}}；若 EXECUTION_PATH == legacy_fallback，则仍必须写出 {{TERMINAL_RESULT_CARD_PATH}} 作为主输出，并明确显示 legacy_fallback，而不是伪造 new lane report/json"
+    verify:
+      command: |
+        test -s "{{TERMINAL_RESULT_CARD_PATH}}" && \
+        ! grep -E '\\{\\{[A-Z_]+\\}\\}' "{{TERMINAL_RESULT_CARD_PATH}}" && \
+        { [ "{{EXECUTION_PATH}}" != "new_lane" ] || { \
+          test -s "{{CONFORMANCE_REPORT_PATH}}" && \
+          test -s "{{CONFORMANCE_JSON_PATH}}" && \
+          ! grep -E '\\{\\{[A-Z_]+\\}\\}' "{{CONFORMANCE_REPORT_PATH}}" "{{CONFORMANCE_JSON_PATH}}"; \
+        }; }
+      expected: "主结果卡必须总是先写出；若命中 new lane，则 human report 与 machine JSON 也必须在进入 T6 前已经生成"
+    on_complete: "标记 T5.5 [x]"
+
   - id: T6
-    name: "验证安装清单与伪完成痕迹"
+    name: "运行 conformance 校验并验证安装清单"
     checks:
       - file_exists: "openspec/config.yaml"
       - dir_has_content: "openspec/schemas/"
@@ -177,6 +212,16 @@ core_tasks:
         file_exists: ".opencode/opencode.json"
       - if: "TEST_STATUS == pending"
         action: "记录测试框架尚未完成，不阻塞安装完成"
+      - file_exists: "{{TERMINAL_RESULT_CARD_PATH}}"
+        desc: "主结果卡已生成"
+      - if: "INSTALL_LANE_ID == node-ts"
+        file_exists: "{{CONFORMANCE_REPORT_PATH}}"
+        desc: "human-readable conformance report 已生成"
+      - if: "INSTALL_LANE_ID == node-ts"
+        file_exists: "{{CONFORMANCE_JSON_PATH}}"
+        desc: "machine JSON conformance bundle 已生成"
+      - if: "INSTALL_LANE_ID == node-ts"
+        action: "必须验证真实 gate 结果与 new lane artifact；仅命令存在不算 success"
     verify:
       command: |
         ! rg -n -i 'TODO|TBD|placeholder|stub|mock|待补充|未实现' \
@@ -191,6 +236,8 @@ core_tasks:
           { [ ! -f .git/hooks/pre-commit ] || { test -s .git/hooks/pre-commit && ! grep -E '\\{\\{[A-Z_]+\\}\\}' .git/hooks/pre-commit; }; } && \
           { [ ! -f .husky/pre-commit ] || { test -s .husky/pre-commit && ! grep -E '\\{\\{[A-Z_]+\\}\\}' .husky/pre-commit; }; }; \
         }; } && \
+        test -s "{{TERMINAL_RESULT_CARD_PATH}}" && \
+        ! grep -E '\\{\\{[A-Z_]+\\}\\}' "{{TERMINAL_RESULT_CARD_PATH}}" && \
         [ "$(find {{AI_CONFIG_DIR}}/commands -type f -name '*.md' | wc -l | tr -d ' ')" = "6" ] && \
         [ "$(find {{AI_CONFIG_DIR}}/commands -type f -name '*.md' -size +0c | wc -l | tr -d ' ')" = "6" ] && \
         [ "$(find {{AI_CONFIG_DIR}}/skills -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')" = "6" ] && \
@@ -200,8 +247,16 @@ core_tasks:
           rg -q '"\\$schema"\\s*:\\s*"https://opencode.ai/config.json"' .opencode/opencode.json && \
           rg -q '"plugin"\\s*:' .opencode/opencode.json && \
           rg -q '@openspec-opc/opencode-plugin' .opencode/opencode.json; \
+        }; } && \
+        { [ "{{INSTALL_LANE_ID}}" != "node-ts" ] || { \
+          test -n "{{LINT_COMMAND}}" && test -n "{{TEST_COMMAND}}" && test -n "{{TYPE_CHECK_COMMAND}}" && \
+          ! printf '%s\n%s\n%s\n' "{{LINT_COMMAND}}" "{{TEST_COMMAND}}" "{{TYPE_CHECK_COMMAND}}" | rg -n -i 'error:\\s*no test specified|TODO|TBD|placeholder|stub|mock|待补充|未实现' && \
+          test -s "{{TERMINAL_RESULT_CARD_PATH}}" && \
+          test -s "{{CONFORMANCE_REPORT_PATH}}" && \
+          test -s "{{CONFORMANCE_JSON_PATH}}" && \
+          ! grep -E '\\{\\{[A-Z_]+\\}\\}' "{{TERMINAL_RESULT_CARD_PATH}}" "{{CONFORMANCE_REPORT_PATH}}" "{{CONFORMANCE_JSON_PATH}}"; \
         }; }
-      expected: "退出码为 0，且不存在 TODO/占位/空壳命令或缺失 SKILL.md 的技能目录；若目标是 OpenCode，则 .opencode/opencode.json 至少包含官方 schema、plugin 字段和 @openspec-opc/opencode-plugin"
+      expected: "退出码为 0，且不存在 TODO/占位/空壳命令或缺失 SKILL.md 的技能目录；若目标是 OpenCode，则 .opencode/opencode.json 至少包含官方 schema、plugin 字段和 @openspec-opc/opencode-plugin；若命中 Node/TS lane，则 lint/test/typecheck 都必须具备真实 conformance 命令，且 terminal result card、human report、machine JSON 三类结果产物都已实际写出"
     on_complete: "标记 T6 [x]"
 
 conditional_tasks:
@@ -253,6 +308,6 @@ ci_config:
   on_complete: "记录 CI_TYPE 和 CI_CONFIG_PATH 到 harness-install-tasks.md"
 
 on_complete:
-  verify: "harness-install-tasks.md 中核心任务全部 [x] 或带有明确 pending 原因"
-  action: "仅当 T6 验证通过时记录 INSTALL_RESULT = success 或 success_with_pending；若发现占位内容、空文件或缺失关键文件，则记录 INSTALL_RESULT = failed，并将对应任务标记为 [!]"
+  verify: "harness-install-tasks.md 中核心任务全部 [x]，且 canonical result 状态可被 render contract 直接消费"
+  action: "仅当新 lane gate 与 artifact 都通过时记录 INSTALL_RESULT = success；若写入后失败则记录 partial_install；若退回旧路径则记录 legacy_fallback；若发现占位内容、空文件或缺失关键文件，则记录 INSTALL_RESULT = failed，并将对应任务标记为 [!]"
   next: "stage6"
