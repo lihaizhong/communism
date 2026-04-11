@@ -28,6 +28,9 @@
   - terminal result card / human report / plain-text export 的共享渲染 contract
 - `stop-points.mjs`
   - `recommended / custom / abort` 共享 stop-point interaction contract
+- `fixtures/node-ts-minimal/`
+  - 文档驱动安装器的最小 first-success fixture
+  - 包含输入项目快照、walkthrough，以及期望的 terminal/report/json 结果产物
 - `*.test.mjs`
   - 对 lane 检测、canonical result、rendering、stop-point 顺序做 contract tests
 

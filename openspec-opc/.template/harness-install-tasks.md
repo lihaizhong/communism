@@ -42,8 +42,9 @@
 | `INSTALL_LANE_ID` | | 阶段 3 lane router 解析结果（如 `node-ts`） |
 | `INSTALL_LANE_PROFILE` | | 阶段 3/4 确认的 lane profile（如 `app`/`service`/`library`） |
 | `EXECUTION_PATH` | | 阶段 5/6 记录 (`new_lane`/`legacy_fallback`) |
-| `CONFORMANCE_REPORT_PATH` | | 阶段 5 生成的人类可读安装报告路径 |
-| `CONFORMANCE_JSON_PATH` | | 阶段 5 生成的机器可读 conformance JSON 路径 |
+| `TERMINAL_RESULT_CARD_PATH` | | 阶段 5 生成的主结果卡路径；新 lane 与 legacy fallback 都必须写出 |
+| `CONFORMANCE_REPORT_PATH` | | 阶段 5 生成的人类可读安装报告路径（仅 `new_lane`） |
+| `CONFORMANCE_JSON_PATH` | | 阶段 5 生成的机器可读 conformance JSON 路径（仅 `new_lane`） |
 | `GIT_INITIALIZED` | | 前置检查 (yes/no) |
 | `TECH_CATEGORY` | | 阶段 1 用户选择 |
 | `INSTALL_TARGET_CONFIRMED` | | 前置检查确认 (yes/no) |
@@ -93,6 +94,10 @@
 - [ ] **T5**: 填充技术栈变量
   - 替换 `openspec/config.yaml` 和 `AGENTS.md` 中的所有 `{{变量名}}`
   - 验证：`grep -E '\{\{[A-Z_]+\}\}' openspec/config.yaml AGENTS.md` 无输出
+- [ ] **T5.5**: 写出安装结果产物
+  - 主结果卡：`{{TERMINAL_RESULT_CARD_PATH}}`
+  - 若 `EXECUTION_PATH = new_lane`，还需写出 `{{CONFORMANCE_REPORT_PATH}}` 与 `{{CONFORMANCE_JSON_PATH}}`
+  - 若 `EXECUTION_PATH = legacy_fallback`，仍必须写出主结果卡，并明确显示 `legacy_fallback`
 - [ ] **T6**: 验证安装清单
   - `openspec/config.yaml` 存在且格式正确
   - `openspec/schemas/` 包含 spec-driven、bugfix、spike
@@ -103,6 +108,8 @@
   - `{{AI_CONFIG_DIR}}/skills/*/SKILL.md` 均存在且非空
   - 关键安装文件中不得出现 `TODO`、`TBD`、`placeholder`、`stub`、`mock`、`待补充`、`未实现`
   - 不存在旧的 `command/`（单数）目录
+  - `{{TERMINAL_RESULT_CARD_PATH}}` 存在且非空
+  - 若 `EXECUTION_PATH = new_lane`，`{{CONFORMANCE_REPORT_PATH}}` 与 `{{CONFORMANCE_JSON_PATH}}` 均存在且非空
   - CI/CD 配置文件存在
   - 若 `TEST_STATUS = pending`，在完成摘要中展示后续动作
 

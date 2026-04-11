@@ -68,6 +68,8 @@ pre_check:
         action: "将 T7 从 [-] 改为 [ ]"
       - if: "INSTALL_LANE_ID == node-ts"
         action: "设置 EXECUTION_PATH = new_lane、TERMINAL_RESULT_CARD_PATH = openspec/install-result.txt、CONFORMANCE_REPORT_PATH = openspec/install-report.md、CONFORMANCE_JSON_PATH = openspec/install-report.json；后续 gate 顺序固定为 lint -> test -> typecheck，并要求生成 terminal result card、human report、machine JSON"
+      - if: "INSTALL_LANE_ID != node-ts"
+        action: "设置 EXECUTION_PATH = legacy_fallback、TERMINAL_RESULT_CARD_PATH = openspec/install-result.txt；legacy fallback 仍必须输出主结果卡，但不要求生成 new lane 的 report/json artifact"
 
 core_tasks:
   - id: T0
@@ -182,6 +184,21 @@ core_tasks:
       expected: "已生成的模板文件中不存在未替换的 {{变量名}}"
     on_complete: "标记 T5 [x]"
 
+  - id: T5.5
+    name: "写出安装结果产物"
+    action: "若 EXECUTION_PATH == new_lane，则基于真实 gate 结果构造 canonical result，并写入 {{TERMINAL_RESULT_CARD_PATH}}、{{CONFORMANCE_REPORT_PATH}}、{{CONFORMANCE_JSON_PATH}}；若 EXECUTION_PATH == legacy_fallback，则仍必须写出 {{TERMINAL_RESULT_CARD_PATH}} 作为主输出，并明确显示 legacy_fallback，而不是伪造 new lane report/json"
+    verify:
+      command: |
+        test -s "{{TERMINAL_RESULT_CARD_PATH}}" && \
+        ! grep -E '\\{\\{[A-Z_]+\\}\\}' "{{TERMINAL_RESULT_CARD_PATH}}" && \
+        { [ "{{EXECUTION_PATH}}" != "new_lane" ] || { \
+          test -s "{{CONFORMANCE_REPORT_PATH}}" && \
+          test -s "{{CONFORMANCE_JSON_PATH}}" && \
+          ! grep -E '\\{\\{[A-Z_]+\\}\\}' "{{CONFORMANCE_REPORT_PATH}}" "{{CONFORMANCE_JSON_PATH}}"; \
+        }; }
+      expected: "主结果卡必须总是先写出；若命中 new lane，则 human report 与 machine JSON 也必须在进入 T6 前已经生成"
+    on_complete: "标记 T5.5 [x]"
+
   - id: T6
     name: "运行 conformance 校验并验证安装清单"
     checks:
@@ -195,8 +212,16 @@ core_tasks:
         file_exists: ".opencode/opencode.json"
       - if: "TEST_STATUS == pending"
         action: "记录测试框架尚未完成，不阻塞安装完成"
+      - file_exists: "{{TERMINAL_RESULT_CARD_PATH}}"
+        desc: "主结果卡已生成"
       - if: "INSTALL_LANE_ID == node-ts"
-        action: "必须基于真实 gate 结果生成 canonical result，并写入 TERMINAL_RESULT_CARD_PATH、CONFORMANCE_REPORT_PATH、CONFORMANCE_JSON_PATH；仅命令存在不算 success"
+        file_exists: "{{CONFORMANCE_REPORT_PATH}}"
+        desc: "human-readable conformance report 已生成"
+      - if: "INSTALL_LANE_ID == node-ts"
+        file_exists: "{{CONFORMANCE_JSON_PATH}}"
+        desc: "machine JSON conformance bundle 已生成"
+      - if: "INSTALL_LANE_ID == node-ts"
+        action: "必须验证真实 gate 结果与 new lane artifact；仅命令存在不算 success"
     verify:
       command: |
         ! rg -n -i 'TODO|TBD|placeholder|stub|mock|待补充|未实现' \
@@ -211,6 +236,8 @@ core_tasks:
           { [ ! -f .git/hooks/pre-commit ] || { test -s .git/hooks/pre-commit && ! grep -E '\\{\\{[A-Z_]+\\}\\}' .git/hooks/pre-commit; }; } && \
           { [ ! -f .husky/pre-commit ] || { test -s .husky/pre-commit && ! grep -E '\\{\\{[A-Z_]+\\}\\}' .husky/pre-commit; }; }; \
         }; } && \
+        test -s "{{TERMINAL_RESULT_CARD_PATH}}" && \
+        ! grep -E '\\{\\{[A-Z_]+\\}\\}' "{{TERMINAL_RESULT_CARD_PATH}}" && \
         [ "$(find {{AI_CONFIG_DIR}}/commands -type f -name '*.md' | wc -l | tr -d ' ')" = "6" ] && \
         [ "$(find {{AI_CONFIG_DIR}}/commands -type f -name '*.md' -size +0c | wc -l | tr -d ' ')" = "6" ] && \
         [ "$(find {{AI_CONFIG_DIR}}/skills -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')" = "6" ] && \
@@ -230,7 +257,7 @@ core_tasks:
           ! grep -E '\\{\\{[A-Z_]+\\}\\}' "{{TERMINAL_RESULT_CARD_PATH}}" "{{CONFORMANCE_REPORT_PATH}}" "{{CONFORMANCE_JSON_PATH}}"; \
         }; }
       expected: "退出码为 0，且不存在 TODO/占位/空壳命令或缺失 SKILL.md 的技能目录；若目标是 OpenCode，则 .opencode/opencode.json 至少包含官方 schema、plugin 字段和 @openspec-opc/opencode-plugin；若命中 Node/TS lane，则 lint/test/typecheck 都必须具备真实 conformance 命令，且 terminal result card、human report、machine JSON 三类结果产物都已实际写出"
-    on_complete: "若 INSTALL_LANE_ID == node-ts，则基于真实 gate 结果构造 canonical result，写入 {{TERMINAL_RESULT_CARD_PATH}}、{{CONFORMANCE_REPORT_PATH}}、{{CONFORMANCE_JSON_PATH}} 后再标记 T6 [x]"
+    on_complete: "标记 T6 [x]"
 
 conditional_tasks:
   - id: T2.5

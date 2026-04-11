@@ -1,0 +1,21 @@
+OpenSpec OPC install result
+overall result: success
+execution path: new_lane (node-ts/library)
+gate results:
+- lint: passed | npm run lint
+- test: passed | npm test
+- typecheck: passed | npm run typecheck
+written changes:
+- openspec/config.yaml
+- openspec/schemas/
+- AGENTS.md
+- .opencode/commands/
+- .opencode/skills/
+- .opencode/opencode.json
+next actions:
+- 查看 openspec/config.yaml 确认配置
+- 阅读 AGENTS.md 了解 AI 助手的工作方式
+- 运行默认首条路径：/opsx-propose my-first-feature
+artifact paths:
+- human report: openspec/install-report.md
+- machine json: openspec/install-report.json

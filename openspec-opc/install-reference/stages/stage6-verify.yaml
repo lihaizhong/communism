@@ -48,8 +48,7 @@ steps:
       - if: "AI_TOOL_NAME == opencode"
         file_exists: ".opencode/opencode.json"
         desc: "OpenCode 配置文件存在"
-      - if: "INSTALL_LANE_ID == node-ts"
-        file_exists: "{{TERMINAL_RESULT_CARD_PATH}}"
+      - file_exists: "{{TERMINAL_RESULT_CARD_PATH}}"
         desc: "terminal result card 已生成"
       - if: "INSTALL_LANE_ID == node-ts"
         file_exists: "{{CONFORMANCE_REPORT_PATH}}"
@@ -86,6 +85,8 @@ steps:
         [ "$(find {{AI_CONFIG_DIR}}/commands -type f -name '*.md' -size +0c | wc -l | tr -d ' ')" = "6" ] && \
         [ "$(find {{AI_CONFIG_DIR}}/skills -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')" = "6" ] && \
         [ "$(find {{AI_CONFIG_DIR}}/skills -mindepth 1 -maxdepth 1 -type d -exec test -s '{}/SKILL.md' ';' -print | wc -l | tr -d ' ')" = "6" ] && \
+        test -s "{{TERMINAL_RESULT_CARD_PATH}}" && \
+        ! grep -E '\\{\\{[A-Z_]+\\}\\}' "{{TERMINAL_RESULT_CARD_PATH}}" && \
         { [ "{{AI_TOOL_NAME}}" != "opencode" ] || { \
           test -s .opencode/opencode.json && \
           rg -q '"\\$schema"\\s*:\\s*"https://opencode.ai/config.json"' .opencode/opencode.json && \
@@ -104,14 +105,14 @@ steps:
     name: "显示 render contract 生成的 terminal result card"
     template: |
       source of truth:
-      - render exactly the contents of {{TERMINAL_RESULT_CARD_PATH}}
+      - always render exactly the contents of {{TERMINAL_RESULT_CARD_PATH}}
       - do not reconstruct overall result, execution path, gate lines, written changes, next actions, or artifact paths inside stage6
       - if {{TERMINAL_RESULT_CARD_PATH}} is missing, treat verification as failed
       artifact bundle:
       - terminal result card: {{TERMINAL_RESULT_CARD_PATH}}
-      - human report: {{CONFORMANCE_REPORT_PATH}}
-      - machine json: {{CONFORMANCE_JSON_PATH}}
-      note: stage6 only displays the render-contract artifact; canonical_result.gates and execution path formatting must come from render_contract, not handwritten template lines
+      - if EXECUTION_PATH == new_lane, also surface {{CONFORMANCE_REPORT_PATH}} and {{CONFORMANCE_JSON_PATH}}
+      - if EXECUTION_PATH == legacy_fallback, the terminal result card remains the primary output and no new lane conformance bundle is required
+      note: stage6 only displays the render-contract artifact; canonical_result.gates and execution path formatting must come from render_contract, not handwritten template lines, including legacy_fallback
 
 on_complete:
   action: "仅在最终验证通过时标记 harness-install-tasks.md 任务完成并保留 pending 项说明；若发现伪完成痕迹，则将 INSTALL_RESULT 记录为 failed，并回写具体失败文件与原因"
