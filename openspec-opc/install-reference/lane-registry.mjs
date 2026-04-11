@@ -66,9 +66,9 @@ export function resolveNodeTsProfile(snapshot = {}) {
   const hasServiceMarkers = SERVICE_MARKERS.some((name) => packageNames.has(name));
   const hasLibraryMarkers = Boolean(packageJson.exports || packageJson.main || packageJson.module || packageJson.types);
 
-  if (hasAppMarkers || scripts.dev || scripts.build) {
+  if (hasAppMarkers || scripts.dev) {
     candidates.push("app");
-    reasons.push("frontend framework or app-style scripts detected");
+    reasons.push("frontend framework or app-style dev scripts detected");
   }
   if (hasServiceMarkers || scripts.start || scripts["start:dev"]) {
     candidates.push("service");

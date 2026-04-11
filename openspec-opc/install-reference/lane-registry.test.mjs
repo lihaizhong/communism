@@ -45,6 +45,22 @@ test("resolveNodeTsProfile returns ambiguous when app and service markers overla
   assert.deepEqual(resolution.candidates, ["app", "service"]);
 });
 
+test("resolveNodeTsProfile keeps TypeScript libraries with build scripts on library profile", () => {
+  const resolution = resolveNodeTsProfile({
+    packageJson: {
+      main: "dist/index.js",
+      types: "dist/index.d.ts",
+      scripts: {
+        build: "tsc -p tsconfig.json",
+      },
+    },
+  });
+
+  assert.equal(resolution.status, "resolved");
+  assert.equal(resolution.profile, "library");
+  assert.deepEqual(resolution.candidates, ["library"]);
+});
+
 test("planNodeTsConformance reports missing gates", () => {
   const plan = planNodeTsConformance({
     packageJson: {
