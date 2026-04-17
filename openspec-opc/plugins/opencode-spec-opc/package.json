@@ -1,6 +1,6 @@
 {
   "name": "@openspec-opc/opencode-plugin",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "OpenCode runtime guard plugin for OpenSpec OPC workflows",
   "type": "module",
   "homepage": "https://github.com/lihaizhong/communism/tree/main/openspec-opc",
@@ -15,7 +15,7 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "dependencies": {
-    "@openspec-opc/guard-core": "0.2.0"
+    "@openspec-opc/guard-core": "0.2.1"
   },
   "scripts": {
     "clean": "node -e \"require('node:fs').rmSync('dist', { recursive: true, force: true })\"",

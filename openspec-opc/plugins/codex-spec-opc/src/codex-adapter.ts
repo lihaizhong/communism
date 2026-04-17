@@ -15,6 +15,7 @@ import {
 import {
   APPLY_STATE_PATH,
   extractSelectionFromFile,
+  reconcileApplyState,
   readApplyState,
   writeApplyState,
 } from "@openspec-opc/guard-core/state-io"
@@ -111,11 +112,14 @@ export function createCodexAdapter(
     })
   }
 
-  async function buildGuardContext(context: CodexEventContext): Promise<CodexGuardContext> {
+  async function buildGuardContext(
+    context: CodexEventContext,
+    applyStateOverride?: ApplyState | null,
+  ): Promise<CodexGuardContext> {
     return {
       ...context,
       selection: resolveSelection(context.sessionId),
-      applyState: await readApplyState(context.rootDir),
+      applyState: typeof applyStateOverride === "undefined" ? await readApplyState(context.rootDir) : applyStateOverride,
     }
   }
 
@@ -191,13 +195,14 @@ export function createCodexAdapter(
         rememberSelection(context.sessionId, capturedSelection)
       }
 
-      const guardContext = await buildGuardContext(context)
-      if (hooks.beforeMutation) {
-        const hookDecision = await hooks.beforeMutation(guardContext)
-        if (hookDecision) return hookDecision
+      if (!isToolMutation(context.tool, context.args || {})) {
+        const guardContext = await buildGuardContext(context)
+        if (hooks.beforeMutation) {
+          const hookDecision = await hooks.beforeMutation(guardContext)
+          if (hookDecision) return hookDecision
+        }
+        return null
       }
-
-      if (!isToolMutation(context.tool, context.args || {})) return null
 
       const targetPaths = resolveTargetPaths(context.tool, context.args || {})
       const allPathsAlwaysAllowed =
@@ -205,8 +210,17 @@ export function createCodexAdapter(
         targetPaths.every((filePath) => isAlwaysAllowedPath(filePath, resolvedOptions))
 
       const workflowState = await collectWorkflowState(context.rootDir)
-      const selection = guardContext.selection
-      const applyState = guardContext.applyState
+      const selection = resolveSelection(context.sessionId)
+      const applyState = await reconcileApplyState(
+        context.rootDir,
+        await readApplyState(context.rootDir),
+        workflowState,
+      )
+      const guardContext = await buildGuardContext(context, applyState)
+      if (hooks.beforeMutation) {
+        const hookDecision = await hooks.beforeMutation(guardContext)
+        if (hookDecision) return hookDecision
+      }
 
       const hasActiveApplySelection =
         selection &&

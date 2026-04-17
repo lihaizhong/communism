@@ -2,6 +2,24 @@
 
 All notable changes to `openspec-opc` are documented in this file.
 
+## 0.2.1 - 2026-04-17
+
+This patch release hardens apply-state consistency and streamlines multi-plugin maintenance.
+
+### Added
+
+- Added apply-state metadata normalization with `stateVersion` and `targetId`.
+- Added atomic apply-state writes with lock-file coordination in `state-io`.
+- Added `reconcileApplyState()` to recover stale apply state when selected work items no longer exist.
+- Added workspace-level plugin maintenance helpers:
+  `npm run build:plugins`, `npm run test:plugins`, and `npm run check:plugins`.
+- Added cross-plugin maintenance checklist at `plugins/CHANGE-CHECKLIST.md`.
+
+### Changed
+
+- Updated both runtime adapters (`codex` and `opencode`) to reconcile apply state against live workflow scans before guard enforcement.
+- Updated `README.md` to document plugin aggregate scripts and checklist entry points.
+
 ## 0.2.0 - 2026-04-11
 
 This release turns `openspec-opc` into a publishable multi-package workspace with

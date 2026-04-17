@@ -18,6 +18,7 @@ import {
 import {
   APPLY_STATE_PATH,
   extractSelectionFromFile,
+  reconcileApplyState,
   readApplyState,
   writeApplyState,
 } from "@openspec-opc/guard-core/state-io"
@@ -267,7 +268,7 @@ async function enforceWorkflow(
   const state = await collectWorkflowState(rootDir)
   const sessionId = getSessionId(input)
   const selection = sessionSelections.get(sessionId) || null
-  const applyState = await readApplyState(rootDir)
+  const applyState = await reconcileApplyState(rootDir, await readApplyState(rootDir), state)
 
   const hasActiveApplySelection =
     selection &&

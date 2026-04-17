@@ -20,6 +20,8 @@ export interface PhaseEvidence {
 }
 
 export interface ApplyState {
+  stateVersion?: number
+  targetId?: string
   mode: "apply"
   kind: WorkItemKind
   name: string

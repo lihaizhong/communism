@@ -5,7 +5,7 @@ import path from "node:path"
 import test from "node:test"
 
 import { APPLY_STATE_PATH, LEGACY_APPLY_STATE_PATH } from "./constants.js"
-import { readApplyState, writeApplyState } from "./state-io.js"
+import { reconcileApplyState, readApplyState, writeApplyState } from "./state-io.js"
 import type { ApplyState } from "./types.js"
 
 async function makeTempWorktree(): Promise<string> {
@@ -48,4 +48,42 @@ test("prefers the openspec-opc apply state when both state files exist", async (
   await writeJson(rootDir, APPLY_STATE_PATH, applyState("new-path"))
 
   assert.equal((await readApplyState(rootDir))?.name, "new-path")
+})
+
+test("writeApplyState backfills metadata fields", async () => {
+  const rootDir = await makeTempWorktree()
+  await writeApplyState(rootDir, applyState("meta-path"))
+  const state = await readApplyState(rootDir)
+
+  assert.equal(state?.stateVersion, 1)
+  assert.equal(state?.targetId, "change:meta-path")
+  assert.ok(state?.updatedAt)
+})
+
+test("reconcileApplyState resets phase evidence for missing work items", async () => {
+  const rootDir = await makeTempWorktree()
+  await writeApplyState(rootDir, {
+    ...applyState("stale"),
+    phase: "verify",
+    redSessionId: "sess-red",
+    greenSessionId: "sess-green",
+    verifySessionId: "sess-verify",
+    phaseEvidence: {
+      redTouchedTestFiles: ["src/app.test.ts"],
+      greenTouchedImplFiles: ["src/app.ts"],
+      verifyCommands: ["npm test"],
+    },
+  })
+
+  const reconciled = await reconcileApplyState(rootDir, await readApplyState(rootDir), {
+    changes: [],
+    bugfixes: [],
+    readyItems: [],
+  })
+
+  assert.equal(reconciled?.phase, "red")
+  assert.equal(reconciled?.redSessionId, undefined)
+  assert.equal(reconciled?.greenSessionId, undefined)
+  assert.equal(reconciled?.verifySessionId, undefined)
+  assert.deepEqual(reconciled?.phaseEvidence, {})
 })

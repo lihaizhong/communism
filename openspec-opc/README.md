@@ -141,6 +141,12 @@ OpenSpec OPC 由三层组成：
 - 共享 enforcement 规则在 `opc-guard-core`
 - 不同执行器只保留各自的 runtime glue
 
+多运行时并行维护时，建议使用 workspace 聚合脚本和统一检查清单：
+
+- `npm run build:plugins`
+- `npm run test:plugins`
+- `plugins/CHANGE-CHECKLIST.md`
+
 ## 为什么不是只用 OpenSpec
 
 OpenSpec 很适合做 planning layer。OpenSpec OPC 做的是再往前走一步：
