@@ -26,7 +26,11 @@
     "test:opencode": "npm --prefix plugins/opencode-spec-opc run test",
     "test:preview": "node --test scripts/*.test.mjs",
     "pack:dry-run": "node ./scripts/pack-dry-run.mjs",
-    "release:check": "node ./scripts/check-workspace-versions.mjs && npm run validate:stages && npm test && npm run pack:dry-run"
+    "release:check": "node ./scripts/check-workspace-versions.mjs && npm run validate:stages && npm test && npm run pack:dry-run",
+    "changeset": "changeset",
+    "version": "changeset version",
+    "release": "npm run check:plugins && npm run build && changeset publish",
+    "release:dry-run": "npm run pack:dry-run && echo 'Dry run complete'"
   },
   "devDependencies": {
     "@types/node": "^25.5.2",
