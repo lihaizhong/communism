@@ -15,6 +15,7 @@ import { APPLY_STATE_PATH } from "./constants.js"
 export const DEFAULT_GUARD_CONFIG: GuardConfig = {
   minProposalChars: 120,
   minDesignChars: 200,
+  minTestContractChars: 180,
   minBugDocChars: 120,
   minChecklistItems: 2,
   minTaskTextChars: 8,
@@ -32,6 +33,14 @@ export const DEFAULT_GUARD_CONFIG: GuardConfig = {
 }
 
 export const TEST_PATH_MARKERS = ["/test/", "/tests/", "__tests__", ".spec.", ".test.", "regression-test"]
+const TEST_CONTRACT_PLACEHOLDER_PATTERNS = [
+  /<!--\s*What testing problem this contract constrains\s*-->/i,
+  /<!--\s*Reference the spec requirements or scenarios this contract is derived from\s*-->/i,
+  /{{\s*anchor_name\s*}}/i,
+  /{{\s*case_name\s*}}/i,
+  /{{\s*boundary_name\s*}}/i,
+  /_Test contract for OpenSpec spec-driven workflow_/i,
+]
 
 export function normalizePath(filePath: string | null | undefined): string {
   return String(filePath || "").replace(/\\/g, "/").replace(/^\.\/+/, "")
@@ -82,6 +91,20 @@ export function hasSpecStructure(content: string | null | undefined): boolean {
     /\bSHALL\b/.test(value) ||
     /\bGIVEN\b[\s\S]*\bWHEN\b[\s\S]*\bTHEN\b/i.test(value)
   )
+}
+
+export function hasUntouchedTestContractScaffold(content: string | null | undefined): boolean {
+  const value = String(content || "")
+  if (!value) return false
+
+  const placeholderSignals = TEST_CONTRACT_PLACEHOLDER_PATTERNS.filter((pattern) => pattern.test(value)).length
+  const emptyFieldSignals = (
+    value.match(
+      /^-\s+(proves|maps_to|minimum_expected_signal|trigger|expected_failure_or_guard|boundary_dimension|input_or_state|expected_behavior):\s*$/gim,
+    ) || []
+  ).length
+
+  return placeholderSignals >= 3 || (placeholderSignals >= 1 && emptyFieldSignals >= 3) || emptyFieldSignals >= 6
 }
 
 export function evaluateChangeQuality(
@@ -136,6 +159,33 @@ export function evaluateChangeQuality(
   }
   if (!/(constraints|约束)/i.test(design)) {
     failures.push('design.md is missing a "Constraints" section or equivalent')
+  }
+
+  const testContract = docs.testContract || ""
+  const testContractChars = countMeaningfulChars(testContract)
+  if (testContractChars < config.minTestContractChars) {
+    failures.push(
+      `test-contract.md is too short, found ${testContractChars} chars, need at least ${config.minTestContractChars}`,
+    )
+  }
+  const testContractSections = countHeadingMatches(testContract, [
+    ["purpose", "目的"],
+    ["derived from", "来源", "derived"],
+    ["positive anchors", "正向锚点", "positive anchor"],
+    ["negative obligations", "负向约束", "negative obligation"],
+    ["boundary obligations", "边界约束", "boundary obligation"],
+    ["must-not-expand", "禁止扩展", "must not expand"],
+    ["verify evidence", "验证证据", "verification evidence"],
+  ])
+  if (testContractSections < 6) {
+    failures.push(
+      'test-contract.md is missing structure, need at least the core sections such as "Purpose", "Derived From", "Positive Anchors", "Negative Obligations", "Boundary Obligations", "Must-Not-Expand", and "Verify Evidence"',
+    )
+  }
+  if (hasUntouchedTestContractScaffold(testContract)) {
+    failures.push(
+      "test-contract.md still contains untouched scaffold placeholders; replace template markers and guidance comments with change-specific obligations and evidence",
+    )
   }
 
   const specContents = docs.specContents || []
@@ -267,7 +317,7 @@ export function buildApplyReadyFailureDecision(context: ApplyReadyContext): Guar
         label: "next_steps",
         items: [
           "Create or select exactly one active change or bugfix",
-          "Finish proposal/design/tasks or bug-report/fix until the quality gates pass",
+          "Finish proposal/specs/test-contract/design/tasks or bug-report/fix until the quality gates pass",
           "Rerun /opsx-apply for that work item before writing business code",
         ],
       },
