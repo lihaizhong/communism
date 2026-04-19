@@ -14,6 +14,7 @@ Propose a new change - create the change and generate all artifacts in one step.
 I'll create a change with artifacts:
 - proposal.md (what & why)
 - design.md (how)
+- test-contract.md (what must be tested and what must not expand)
 - tasks.md (implementation steps)
 
 When ready to implement, run /opsx-apply

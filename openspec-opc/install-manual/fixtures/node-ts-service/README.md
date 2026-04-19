@@ -9,6 +9,7 @@
 3. `lint / test / typecheck` 都来自 fixture 自己的真实命令
 4. `smoke` 命令能承载最小 API smoke contract
 5. 统一 conformance 结果卡可以覆盖 service 形态，而不是只覆盖 library
+6. 这个 fixture 只覆盖 install-manual 的 conformance contract，不承担 `spec-driven` 的 `test-contract.md` 示例职责
 
 ## Fixture 输入
 

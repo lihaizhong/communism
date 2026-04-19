@@ -4,7 +4,7 @@
 
 OpenSpec OPC 是一个基于 OpenSpec 的个人 AI 开发 Harness。
 
-它不只负责生成 `proposal.md`、`design.md`、`tasks.md` 这类 planning 工件。它还会在执行期把关，防止 AI 跳过流程直接修改业务代码。
+它不只负责生成 `proposal.md`、`design.md`、`test-contract.md`、`tasks.md` 这类 planning 工件。它还会在执行期把关，防止 AI 跳过流程直接修改业务代码。
 
 如果你想要的不是“让 AI 随便写点代码试试”，而是“让 AI 在一个可追溯、可约束、可验证的流程里工作”，这就是它的目标。
 
@@ -39,6 +39,7 @@ OpenSpec OPC 的核心差异就在这里：
 
 - `proposal.md`
 - `design.md`
+- `test-contract.md`
 - `specs/`
 - `tasks.md`
 
@@ -70,6 +71,7 @@ OpenSpec OPC 的核心差异就在这里：
 2. 生成并完善：
    - `proposal.md`
    - `design.md`
+   - `test-contract.md`
    - `specs/`
    - `tasks.md`
 3. 进入 `/opsx-apply`

@@ -21,8 +21,9 @@
 预期结果：
 
 - 创建 proposal
-- 补充 design
 - 生成 specs
+- 产出 test-contract
+- 补充 design
 - 形成 tasks 清单
 
 随后进入：

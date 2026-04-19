@@ -54,6 +54,7 @@ export interface QualityCheckResult {
 export interface WorkItemQualityDocuments {
   proposal?: string
   design?: string
+  testContract?: string
   bugReport?: string
   fix?: string
   specContents?: string[]
@@ -102,6 +103,7 @@ export interface SessionSelection {
 export interface GuardThresholds {
   minProposalChars: number
   minDesignChars: number
+  minTestContractChars: number
   minBugDocChars: number
   minChecklistItems: number
   minTaskTextChars: number

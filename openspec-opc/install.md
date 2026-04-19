@@ -5,6 +5,8 @@
 > 除非文档明确要求，否则不要跨阶段推断、不要跳步、不要提前修改业务文件。
 > AI 助手必须把它当成文档驱动、文本反馈优先的安装器，不要假设浏览器页面或图形化安装向导。
 
+当前安装入口版本：`0.2.2`
+
 ## 执行规则
 
 1. 阶段 `prerequisite` 到 `stage4` 允许读取、检测、提问、记录，但默认不修改业务文件。
@@ -110,7 +112,7 @@ Codex 侧当前仍处于本地插件 scaffold 阶段；仓库里有 `plugins/cod
 2. **读取时不能假设文件一定是 UTF-8**
    - 下游项目中的 `openspec/**/*.md` 可能来自 Windows 编辑器、PowerShell 或旧工具链，实际编码可能是 GBK/GB18030
    - 读取 markdown 文档时应优先严格按 UTF-8 解码；如果失败，再 fallback 到 GB18030
-   - 如果直接把 GBK/GB18030 文件按 UTF-8 读取，中文标题可能变成 `����`，导致 proposal/design/tasks 被质量门误判为缺少结构或内容太短
+   - 如果直接把 GBK/GB18030 文件按 UTF-8 读取，中文标题可能变成 `����`，导致 proposal/specs/test-contract/design/tasks 被质量门误判为缺少结构或内容太短
    - JSON 状态文件仍应按 UTF-8 写入和读取，例如 `openspec/.openspec-opc-state.json`
 
 3. **YAML 结构必须符合 schema 定义**

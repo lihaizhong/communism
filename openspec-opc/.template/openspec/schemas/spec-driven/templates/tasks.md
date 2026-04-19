@@ -4,6 +4,8 @@
 
 **Owner:** red subagent
 
+Red tasks should be derived from `test-contract.md`, especially Negative Obligations, Boundary Obligations, and selected Positive Anchors.
+
 {{#tasks.red}}
 
 ### {{number}}. {{title}}

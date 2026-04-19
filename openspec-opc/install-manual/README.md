@@ -3,6 +3,7 @@
 本目录是 [`install.md`](../install.md) 的扩展说明书。
 它包含 OpenSpec OPC 安装流程的阶段定义、lane contract、canonical result/rendering contract，以及对应校验工具。
 它服务的是 AI 驱动、文档驱动、文本反馈优先的安装器，不假设浏览器页面或图形安装界面。
+如果你要看 `spec-driven` 变更从 proposal 到 test-contract 再到 design/tasks 的完整示例，先看 [`docs/07-examples.md`](../docs/07-examples.md)。
 
 ## 文件说明
 

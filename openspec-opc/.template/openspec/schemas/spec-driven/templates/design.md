@@ -27,6 +27,10 @@
 [Component A] --> [Component B] --> [Component C]
 ```
 
+## Test Contract Alignment
+
+<!-- How this design respects test-contract.md and the test boundaries it defines -->
+
 ## Implementation Notes
 
 <!-- Key technical details -->

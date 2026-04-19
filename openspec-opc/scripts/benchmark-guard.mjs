@@ -41,6 +41,45 @@ function changeDesign(index) {
   ].join("\n");
 }
 
+function testContract(name) {
+  return [
+    "# Test Contract",
+    "",
+    "## Purpose",
+    "Constrain the test scope for a benchmark change.",
+    "",
+    "## Derived From",
+    `- Requirement: ${name} coverage`,
+    "",
+    "## Positive Anchors",
+    "### Anchor: readiness",
+    "- proves: the work item can become apply-ready",
+    "- maps_to: workflow state collection",
+    "- minimum_expected_signal: guard quality passes",
+    "",
+    "## Negative Obligations",
+    "### Case: placeholder coverage",
+    "- trigger: shallow or placeholder content",
+    "- expected_failure_or_guard: quality gate blocks readiness",
+    "- maps_to: runtime guard quality check",
+    "",
+    "## Boundary Obligations",
+    "### Boundary: minimal supported content",
+    "- boundary_dimension: artifact completeness",
+    "- input_or_state: benchmark fixture work item",
+    "- expected_behavior: contract stays readable and specific",
+    "- maps_to: workflow state collection",
+    "",
+    "## Must-Not-Expand",
+    "- do not invent unrelated tests",
+    "- do not turn the contract into implementation notes",
+    "",
+    "## Verify Evidence",
+    "- collectWorkflowState()",
+    "- guard quality evaluation",
+  ].join("\n");
+}
+
 function bugReport(name) {
   return [
     "## Summary",
@@ -92,6 +131,7 @@ async function createChangeWorkItem(rootDir, name, index) {
   await writeFile(path.join(workItemDir, ".openspec.yaml"), `kind: change\nname: ${name}\n`);
   await writeFile(path.join(workItemDir, "proposal.md"), changeProposal(name));
   await writeFile(path.join(workItemDir, "design.md"), changeDesign(index));
+  await writeFile(path.join(workItemDir, "test-contract.md"), testContract(name));
   await writeFile(path.join(workItemDir, "tasks.md"), tasks());
   await writeFile(path.join(workItemDir, "specs", "behavior.md"), spec());
 }

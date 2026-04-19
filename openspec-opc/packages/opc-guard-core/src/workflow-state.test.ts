@@ -32,6 +32,46 @@ test("collects GB18030-encoded Windows OpenSpec markdown files", async () => {
     ),
   )
   await writeFile(
+    path.join(workItemDir, "test-contract.md"),
+    [
+      "# Test Contract",
+      "",
+      "## Purpose",
+      "Constrain test scope for the workflow guard.",
+      "",
+      "## Derived From",
+      "- Requirement: Windows Encoding",
+      "",
+      "## Positive Anchors",
+      "### Anchor: decoded markdown",
+      "- proves: GB18030 markdown is read correctly",
+      "- maps_to: workflow state collection",
+      "- minimum_expected_signal: decoded headings are visible",
+      "",
+      "## Negative Obligations",
+      "### Case: malformed markdown",
+      "- trigger: unreadable or placeholder content",
+      "- expected_failure_or_guard: quality gate blocks readiness",
+      "- maps_to: runtime guard quality check",
+      "",
+      "## Boundary Obligations",
+      "### Boundary: non-UTF8 content",
+      "- boundary_dimension: encoding",
+      "- input_or_state: GB18030 markdown",
+      "- expected_behavior: fallback decoding still yields readable text",
+      "- maps_to: workflow state collection",
+      "",
+      "## Must-Not-Expand",
+      "- do not invent new schemas",
+      "- do not treat the contract as a happy-path spec",
+      "",
+      "## Verify Evidence",
+      "- collectWorkflowState()",
+      "- guard quality evaluation",
+      "- ready item reporting",
+    ].join("\n"),
+  )
+  await writeFile(
     path.join(workItemDir, "tasks.md"),
     gb18030(
       "2d205b205d20d4f6bcd32057696e646f777320b1e0c2ebb6c1c8a1bbd8b9e9b2e2cad40a2d205b205d20b1a3b3d6205554462d3820cec4b5b5b6c1c8a1d0d0ceaab2bbb1e40a",
@@ -60,4 +100,49 @@ test("collects GB18030-encoded Windows OpenSpec markdown files", async () => {
   assert.equal(state.changes[0]?.ready, true)
   assert.deepEqual(state.changes[0]?.quality.failures, [])
   assert.equal(state.readyItems[0]?.name, "win-encoding")
+})
+
+test("missing test-contract blocks spec-driven readiness", async () => {
+  const rootDir = await fs.mkdtemp(path.join(os.tmpdir(), "opc-guard-core-"))
+  const workItemDir = path.join(rootDir, "openspec/changes/missing-test-contract")
+
+  await writeFile(path.join(workItemDir, ".openspec.yaml"), "kind: change\nname: missing-test-contract\n")
+  await writeFile(
+    path.join(workItemDir, "proposal.md"),
+    [
+      "## Why",
+      "The workflow needs stronger test obligations.",
+      "",
+      "## What Changes",
+      "Add a first-class test contract artifact.",
+    ].join("\n"),
+  )
+  await writeFile(
+    path.join(workItemDir, "design.md"),
+    [
+      "## Affected Modules",
+      "- src/workflow-state.ts",
+      "",
+      "## Constraints",
+      "- Keep the workflow deterministic",
+      "",
+      "## Approach",
+      "Require a dedicated test-contract artifact before implementation starts.",
+    ].join("\n"),
+  )
+  await writeFile(
+    path.join(workItemDir, "tasks.md"),
+    ["- [ ] Add the new artifact", "- [ ] Update runtime quality gates"].join("\n"),
+  )
+  await writeFile(
+    path.join(workItemDir, "specs/ui.md"),
+    [
+      "### Requirement: Test Contract",
+      "The workflow SHALL require a dedicated test contract artifact.",
+    ].join("\n"),
+  )
+
+  const state = await collectWorkflowState(rootDir)
+  assert.equal(state.changes[0]?.ready, false)
+  assert.ok(state.changes[0]?.missing.includes("test-contract.md"))
 })

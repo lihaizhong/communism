@@ -24,6 +24,13 @@ The system {{keyword}} {{description}}.
 - THEN {{then}}
   {{/requirements}}
 
+## Test Contract Boundary
+
+<!--
+Keep this spec focused on behavior truth.
+Test obligations, negative paths, boundary cases, and must-not-expand rules belong in test-contract.md.
+-->
+
 ## Notes
 
 <!-- Additional context, constraints, or references -->

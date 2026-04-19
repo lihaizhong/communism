@@ -2,6 +2,21 @@
 
 All notable changes to `openspec-opc` are documented in this file.
 
+## 0.2.2 - 2026-04-19
+
+This patch release adds the new spec-driven test-contract artifact to the shipped template set and tightens readiness validation so untouched scaffolds no longer pass as authored work.
+
+### Added
+
+- Added the tracked `test-contract.md` template under `.template/openspec/schemas/spec-driven/templates/` so new spec-driven work items can generate the required artifact end-to-end.
+- Added a regression test in `packages/opc-guard-core/src/guard-engine.test.ts` to keep untouched `test-contract.md` scaffolds blocked by the quality gate.
+
+### Changed
+
+- Bumped the lockstep workspace package versions to `0.2.2` for `@openspec-opc/guard-core`, `@openspec-opc/opencode-plugin`, and `@openspec-opc/codex-plugin`.
+- Tightened `test-contract.md` readiness checks so placeholder markers, guidance comments, and unfilled scaffold fields fail apply-readiness instead of passing on structure alone.
+- Marked `install.md` with the current installer entry version `0.2.2` to keep installation entrypoints aligned with the released workspace packages.
+
 ## 0.2.1 - 2026-04-17
 
 This patch release hardens apply-state consistency and streamlines multi-plugin maintenance.

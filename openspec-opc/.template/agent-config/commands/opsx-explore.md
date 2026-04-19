@@ -114,6 +114,8 @@ If the user mentions a change or you detect one is relevant:
 
 1. **Read existing artifacts for context**
    - `openspec/changes/<name>/proposal.md`
+   - `openspec/changes/<name>/specs/<capability>/spec.md`
+   - `openspec/changes/<name>/test-contract.md`
    - `openspec/changes/<name>/design.md`
    - `openspec/changes/<name>/tasks.md`
    - etc.
@@ -128,6 +130,7 @@ If the user mentions a change or you detect one is relevant:
    | -------------------------- | ---------------------------- |
    | New requirement discovered | `specs/<capability>/spec.md` |
    | Requirement changed        | `specs/<capability>/spec.md` |
+   | Test boundary discovered   | `test-contract.md`           |
    | Design decision made       | `design.md`                  |
    | Scope changed              | `proposal.md`                |
    | New work identified        | `tasks.md`                   |

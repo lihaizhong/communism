@@ -81,6 +81,7 @@ export async function evaluateWorkItemQuality(
       {
         proposal: await readIfExists(path.join(dir, "proposal.md")),
         design: await readIfExists(path.join(dir, "design.md")),
+        testContract: await readIfExists(path.join(dir, "test-contract.md")),
         specContents: await collectSpecContents(path.join(dir, "specs")),
       },
       tasksSummary,
@@ -149,6 +150,7 @@ export async function collectWorkflowState(
   const changes = await listWorkItems(rootDir, SPEC_CHANGE_ROOT, "change", [
     "proposal.md",
     "design.md",
+    "test-contract.md",
     "tasks.md",
   ], config)
 

@@ -54,6 +54,7 @@ Archive a completed change in the experimental workflow.
 
    **If delta specs exist:**
    - Compare each delta spec with its corresponding main spec at `openspec/specs/<capability>/spec.md`
+   - If the work item has `test-contract.md`, read it as part of the sync check so the test boundaries stay aligned with the delta specs
    - Determine what changes would be applied (adds, modifications, removals, renames)
    - Show a combined summary before prompting
 
@@ -68,6 +69,7 @@ Archive a completed change in the experimental workflow.
    Determine source directory based on workflow:
    - spec-driven: `openspec/changes/<name>`
    - bugfix: `openspec/bugs/<name>`
+   - For spec-driven changes, archive `test-contract.md` together with the other change artifacts.
 
    Create the archive directory if it doesn't exist:
 

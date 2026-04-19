@@ -26,7 +26,7 @@
 
 只靠提示词和文档约束，AI 很容易在下面这些时候失控：
 
-- `proposal.md`、`design.md`、`tasks.md` 还没准备好，就直接开始改代码
+- `proposal.md`、`design.md`、`test-contract.md`、`tasks.md` 还没准备好，就直接开始改代码
 - 测试还没立住，就先把实现写进去了
 - 会话压缩后，AI 忘了当前 work item，开始写错文件
 - 文档上看起来走了流程，执行时却没有硬约束
@@ -61,6 +61,8 @@
 - `proposal.md` 是否包含至少 2 个关键 section
 - `design.md` 是否达到最小长度
 - `design.md` 是否包含 `Affected Modules`、`Constraints` 等设计信号
+- `test-contract.md` 是否达到最小长度
+- `test-contract.md` 是否包含 `Purpose`、`Derived From`、`Negative Obligations`、`Boundary Obligations`、`Verify Evidence` 等结构信号
 - `specs/` 下是否至少存在一个带 Requirement/Scenario 结构的 spec
 - `tasks.md` 是否至少包含 2 个 checklist item
 - `tasks.md` 是否仍有未完成任务
@@ -107,7 +109,7 @@
 - `CLAUDE.md`
 - `opencode.json`
 
-原因很简单，proposal、design、tasks、规则配置本来就应该继续写，不应该和业务代码混在一起管。
+原因很简单，proposal、specs、test-contract、design、tasks、规则配置本来就应该继续写，不应该和业务代码混在一起管。
 
 ## 为什么这和普通 planning 工具不同
 

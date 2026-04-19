@@ -50,6 +50,46 @@ async function createChangeFixture(rootDir: string, overrides: Record<string, st
       ].join("\n"),
   )
   await writeFile(
+    path.join(workItemDir, "test-contract.md"),
+    overrides.testContract ??
+      [
+        "# Test Contract",
+        "",
+        "## Purpose",
+        "Constrain how the change is tested.",
+        "",
+        "## Derived From",
+        "- Requirement: Theme Preference",
+        "",
+        "## Positive Anchors",
+        "### Anchor: theme persistence",
+        "- proves: the selected theme survives a reload",
+        "- maps_to: theme preference scenario",
+        "- minimum_expected_signal: the UI still renders the chosen mode",
+        "",
+        "## Negative Obligations",
+        "### Case: placeholder tests",
+        "- trigger: placeholder or shallow coverage",
+        "- expected_failure_or_guard: apply-ready gate blocks implementation",
+        "- maps_to: runtime guard quality check",
+        "",
+        "## Boundary Obligations",
+        "### Boundary: first-load state",
+        "- boundary_dimension: initial state",
+        "- input_or_state: no cached theme selection",
+        "- expected_behavior: default theme is still valid",
+        "- maps_to: theme bootstrap",
+        "",
+        "## Must-Not-Expand",
+        "- do not invent unrelated test suites",
+        "- do not test UI redesigns outside this change",
+        "",
+        "## Verify Evidence",
+        "- npm test",
+        "- guard quality evaluation",
+      ].join("\n"),
+  )
+  await writeFile(
     path.join(workItemDir, "tasks.md"),
     overrides.tasks ??
       [

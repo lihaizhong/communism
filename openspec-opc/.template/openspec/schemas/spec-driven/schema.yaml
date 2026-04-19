@@ -1,6 +1,6 @@
 name: spec-driven
 version: 1.0
-description: Specification-driven development workflow with TDD integration
+description: Specification-driven development workflow with TDD and test-contract integration
 
 artifacts:
   - id: proposal
@@ -16,12 +16,20 @@ artifacts:
     requires:
       - proposal
 
+  - id: test-contract
+    generates: test-contract.md
+    description: Test obligations, boundaries, and verification evidence
+    template: test-contract.md
+    requires:
+      - specs
+
   - id: design
     generates: design.md
     description: Technical design decisions and trade-offs
     template: design.md
     requires:
       - specs
+      - test-contract
 
   - id: tasks
     generates: tasks.md
@@ -78,6 +86,9 @@ extensions:
       required_sections: [Purpose, Requirements]
       keywords: [SHALL, MUST]
       scenarios: required
+    test_contract:
+      required_sections:
+        [Purpose, Derived From, Positive Anchors, Negative Obligations, Boundary Obligations, Must-Not-Expand, Verify Evidence]
     design:
       diagrams: ASCII
       content: [design decisions, trade-offs]

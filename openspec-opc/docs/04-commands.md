@@ -4,11 +4,11 @@
 
 ### `/opsx-propose <name>`
 
-用于创建新功能或较大变更的方案和任务拆解。
+用于创建新功能或较大变更的方案和任务拆解，默认产出 proposal、specs、test-contract、design、tasks。
 
 ### `/opsx-apply`
 
-用于进入实现阶段，按已有 proposal/design/tasks 执行变更。
+用于进入实现阶段，按已有 proposal/specs/test-contract/design/tasks 执行变更。
 
 ### `/opsx-bugfix <id>`
 
@@ -24,7 +24,7 @@
 
 ### `/opsx-archive`
 
-用于把已完成变更归档，保留可追溯记录。
+用于把已完成变更归档，保留可追溯记录，并在 spec-driven 变更里连同 test-contract 一起保留工作项证据。
 
 ## 使用建议
 

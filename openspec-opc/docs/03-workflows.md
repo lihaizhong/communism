@@ -10,8 +10,31 @@
 
 - `proposal.md`
 - `design.md`
+- `test-contract.md`
 - `specs/`
 - `tasks.md`
+
+推荐顺序：
+
+1. `proposal.md`
+2. `specs/`
+3. `test-contract.md`
+4. `design.md`
+5. `tasks.md`
+
+分工是这样的：
+
+- `proposal.md` 说明为什么做、做什么
+- `specs/` 说明行为本身
+- `test-contract.md` 说明必须测什么、边界在哪、不要扩什么
+- `design.md` 说明怎么落地，前提是先看过 spec 和 test-contract
+- `tasks.md` 说明怎么实施，红绿验证都从前面三者派生
+
+一个直观的流转可以理解成：
+
+```text
+proposal -> specs -> test-contract -> design -> tasks -> apply
+```
 
 ### `bugfix`
 

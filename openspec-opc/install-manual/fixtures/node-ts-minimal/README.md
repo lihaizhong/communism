@@ -10,6 +10,7 @@
 3. 安装完成后会写出文本优先的主结果卡
 4. `new_lane` 会额外写出人类可读报告和机器 JSON
 5. 仓库测试会真实执行 fixture 自己的 `lint / test / typecheck` 命令
+6. 这个 fixture 只覆盖安装 contract，不承担 `spec-driven` 里的 `test-contract.md` 示例职责
 
 ## Fixture 输入
 
