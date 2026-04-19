@@ -34,7 +34,7 @@
 ## 手动 walkthrough
 
 1. 在 AI 执行器里把 `openspec-opc/install.md` 作为入口文档交给安装器。
-2. 将当前目录 `openspec-opc/install-reference/fixtures/node-ts-minimal/` 视为目标项目根目录。
+2. 将当前目录 `openspec-opc/install-manual/fixtures/node-ts-minimal/` 视为目标项目根目录。
 3. 在阶段 3 确认检测结果为 `node-ts/library`，并且 `lint / test / typecheck` 三个 gate 都来自真实命令。
 4. 在阶段 5 确认先写出 `openspec/install-result.txt`，再进入最终 conformance 校验。
 5. 在阶段 6 确认主输出直接展示 `openspec/install-result.txt`，而不是手写摘要。

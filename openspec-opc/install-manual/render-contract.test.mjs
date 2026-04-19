@@ -106,7 +106,7 @@ test("stage5 node-ts contract requires real commands and rendered artifacts", ()
   const verifyT55 = taskT55?.verify?.command || "";
   const verifyCommand = taskT6?.verify?.command || "";
 
-  assert.equal(stage5.contracts?.profile_smoke_contract, "openspec-opc/install-reference/profile-smoke-contract.mjs");
+  assert.equal(stage5.contracts?.profile_smoke_contract, "openspec-opc/install-manual/profile-smoke-contract.mjs");
   assert.ok(stage5.outputs.includes("PROFILE_SMOKE_STATUS"));
   assert.ok(stage5.outputs.includes("PROFILE_SMOKE_COMMAND"));
   assert.ok(stage5.outputs.includes("PROFILE_SMOKE_SUMMARY"));
@@ -152,12 +152,12 @@ test("stage6 summary delegates to the rendered terminal card artifact", () => {
   const summaryStep = stage6.steps.find((step) => step.id === "show_summary");
   const template = summaryStep?.template || "";
 
-  assert.equal(stage6.contracts?.canonical_result, "openspec-opc/install-reference/conformance-contract.mjs");
-  assert.equal(stage6.contracts?.profile_smoke_contract, "openspec-opc/install-reference/profile-smoke-contract.mjs");
+  assert.equal(stage6.contracts?.canonical_result, "openspec-opc/install-manual/conformance-contract.mjs");
+  assert.equal(stage6.contracts?.profile_smoke_contract, "openspec-opc/install-manual/profile-smoke-contract.mjs");
   assert.ok(stage6.inputs.includes("PROFILE_SMOKE_STATUS"));
   assert.ok(stage6.inputs.includes("PROFILE_SMOKE_COMMAND"));
   assert.ok(stage6.inputs.includes("PROFILE_SMOKE_SUMMARY"));
-  assert.equal(stage6.contracts?.render_contract, "openspec-opc/install-reference/render-contract.mjs");
+  assert.equal(stage6.contracts?.render_contract, "openspec-opc/install-manual/render-contract.mjs");
   assert.ok(stage6.inputs.includes("TERMINAL_RESULT_CARD_PATH"));
   assert.match(template, /always render exactly the contents of \{\{TERMINAL_RESULT_CARD_PATH\}\}/);
   assert.match(template, /terminal result card: \{\{TERMINAL_RESULT_CARD_PATH\}\}/);

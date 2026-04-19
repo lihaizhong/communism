@@ -15,7 +15,7 @@ test("stage3 publishes profile smoke planning variables for node-ts lanes", () =
   const reportTemplate = stage3.branches?.existing_project?.report_template || "";
   const onComplete = stage3.on_complete?.action || "";
 
-  assert.equal(stage3.contracts?.profile_smoke_contract, "openspec-opc/install-reference/profile-smoke-contract.mjs");
+  assert.equal(stage3.contracts?.profile_smoke_contract, "openspec-opc/install-manual/profile-smoke-contract.mjs");
   assert.ok(stage3.outputs.includes("PROFILE_SMOKE_STATUS"));
   assert.ok(stage3.outputs.includes("PROFILE_SMOKE_COMMAND"));
   assert.ok(stage3.outputs.includes("PROFILE_SMOKE_SUMMARY"));

@@ -20,8 +20,8 @@ openspec-opc/
 ├── plugins/
 │   ├── opencode-spec-opc/
 │   └── codex-spec-opc/
-├── guide/
-├── install-reference/
+├── docs/
+├── install-manual/
 └── .template/
 ```
 
@@ -132,7 +132,7 @@ npm test
 等价于：
 
 ```bash
-npm run test:install-reference
+npm run test:install-manual
 npm run test:core
 npm --prefix plugins/codex-spec-opc run test
 npm --prefix plugins/opencode-spec-opc run test
@@ -141,7 +141,7 @@ npm --prefix plugins/opencode-spec-opc run test
 单独跑某一层：
 
 ```bash
-npm run test:install-reference
+npm run test:install-manual
 npm run test:core
 npm run test:codex
 npm run test:opencode
@@ -172,9 +172,9 @@ npm run benchmark:guard
 
 - `packages/*/src`
 - `plugins/*/src`
-- `install-reference/*.mjs`
-- `install-reference/*.test.mjs`
-- `install-reference/stages/*.yaml`
+- `install-manual/*.mjs`
+- `install-manual/*.test.mjs`
+- `install-manual/stages/*.yaml`
 - `hooks/`
 - `scripts/`
 - `.template/`
@@ -234,16 +234,16 @@ npm install @openspec-opc/opencode-plugin
 
 如果你在改 installer contract / stage flow：
 
-1. 先改 `install-reference/*.mjs`、`install-reference/*.test.mjs` 或 `install-reference/stages/*.yaml`
-2. 先跑 `npm run test:install-reference`
+1. 先改 `install-manual/*.mjs`、`install-manual/*.test.mjs` 或 `install-manual/stages/*.yaml`
+2. 先跑 `npm run test:install-manual`
 3. 再跑 `npm test`
-4. 最后同步 `install-reference/README.md` 和相关 guide 文档
+4. 最后同步 `install-manual/README.md` 和相关 guide 文档
 
 如果你在改 Node/TS profile 级 runtime smoke contract：
 
-1. 先改 `install-reference/profile-smoke-contract.mjs`
+1. 先改 `install-manual/profile-smoke-contract.mjs`
 2. 再改对应 fixture 的 `scripts/smoke.mjs`
-3. 先跑 `npm run test:install-reference`
+3. 先跑 `npm run test:install-manual`
 4. 再跑 `npm test`
 
 如果你在改目标项目接入方式：

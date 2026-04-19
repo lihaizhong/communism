@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://example.com/openspec-opc/install-reference/stage.schema.json",
+  "$id": "https://example.com/openspec-opc/install-manual/stage.schema.json",
   "title": "OpenSpec OPC Stage Schema",
-  "description": "Schema for validating stage YAML files under openspec-opc/install-reference/stages/.",
+  "description": "Schema for validating stage YAML files under openspec-opc/install-manual/stages/.",
   "type": "object",
   "required": [
     "version",

@@ -8,6 +8,9 @@ OpenSpec OPC 是一个基于 OpenSpec 的个人 AI 开发 Harness。
 
 如果你想要的不是“让 AI 随便写点代码试试”，而是“让 AI 在一个可追溯、可约束、可验证的流程里工作”，这就是它的目标。
 
+人类文档请先看 [`docs/README.md`](docs/README.md)，按顺序阅读。
+AI 安装入口是 [`install.md`](install.md)，它的扩展说明书在 [`install-manual/README.md`](install-manual/README.md)。
+
 ## 它解决的不是写代码，而是管住 AI 什么时候能写代码
 
 大多数同类工具主要做 planning：
@@ -206,7 +209,7 @@ npm run preview:demo
 node ./scripts/preview-demo.mjs --profile app
 ```
 
-这个 preview 直接重放 `install-reference/fixtures/*/expected/install-result.txt`，所以它和当前 contract tests 锁定的是同一份 first-success 输出，而不是单独维护一套 marketing 文案。
+这个 preview 直接重放 `install-manual/fixtures/*/expected/install-result.txt`，所以它和当前 contract tests 锁定的是同一份 first-success 输出，而不是单独维护一套 marketing 文案。
 
 ## 核心概念
 
@@ -241,21 +244,21 @@ AI 辅助实现代码 -> 让测试通过
 
 | 文档 | 内容 | 建议顺序 |
 | ---- | ---- | -------- |
-| [00-快速开始](guide/00-quick-start.md) | 5 分钟入门教程 | 第 1 步 |
-| [01-概览](guide/01-overview.md) | 系统整体介绍、核心概念 | 第 2 步 |
-| [02-配置体系](guide/02-config-system.md) | `AGENTS.md`、`config.yaml`、`schemas` 详解 | 第 3 步 |
-| [03-工作流](guide/03-workflows.md) | `spec-driven`、`bugfix`、`spike` 详解 | 第 4 步 |
+| [00-快速开始](docs/00-quick-start.md) | 5 分钟入门教程 | 第 1 步 |
+| [01-概览](docs/01-overview.md) | 系统整体介绍、核心概念 | 第 2 步 |
+| [02-配置体系](docs/02-config-system.md) | `AGENTS.md`、`config.yaml`、`schemas` 详解 | 第 3 步 |
+| [03-工作流](docs/03-workflows.md) | `spec-driven`、`bugfix`、`spike` 详解 | 第 4 步 |
 
 ### 使用参考
 
 | 文档 | 内容 | 使用时机 |
 | ---- | ---- | -------- |
-| [04-命令参考](guide/04-commands.md) | 所有 `/opsx-*` 命令速查 | 日常使用 |
-| [05-目录结构](guide/05-directory-structure.md) | 完整目录说明 | 需要了解组织方式 |
-| [06-最佳实践](guide/06-best-practices.md) | 模式与反模式 | 进阶使用 |
-| [07-示例演示](guide/07-examples.md) | 端到端完整示例 | 需要完整流程参考 |
-| [08-Workspace 开发](guide/08-workspace-development.md) | workspace 包结构、build/test、dist 消费方式 | 维护这个仓库本身时 |
-| [09-发布说明](guide/09-release.md) | 版本策略、发布前检查、消费边界 | 准备发布这些包时 |
+| [04-命令参考](docs/04-commands.md) | 所有 `/opsx-*` 命令速查 | 日常使用 |
+| [05-目录结构](docs/05-directory-structure.md) | 完整目录说明 | 需要了解组织方式 |
+| [06-最佳实践](docs/06-best-practices.md) | 模式与反模式 | 进阶使用 |
+| [07-示例演示](docs/07-examples.md) | 端到端完整示例 | 需要完整流程参考 |
+| [08-Workspace 开发](docs/08-workspace-development.md) | workspace 包结构、build/test、dist 消费方式 | 维护这个仓库本身时 |
+| [09-发布说明](docs/09-release.md) | 版本策略、发布前检查、消费边界 | 准备发布这些包时 |
 | [CHANGELOG.md](CHANGELOG.md) | 已发布版本的摘要与手动发布顺序 | 准备发版或回看变更时 |
 | [DESIGN.md](DESIGN.md) | 安装器、结果卡、报告和 stop-point 的设计基线 | 扩展新 lane 或调整输出语言前 |
 
@@ -263,5 +266,5 @@ AI 辅助实现代码 -> 让测试通过
 
 | 文档 | 内容 | 适用场景 |
 | ---- | ---- | -------- |
-| [03-工作流](guide/03-workflows.md) | Schema 选择和决策树 | 不确定用哪个工作流 |
-| [03-工作流](guide/03-workflows.md) | Spike 与 Explore 的使用边界 | 不确定用 `spike` 还是 `explore` |
+| [03-工作流](docs/03-workflows.md) | Schema 选择和决策树 | 不确定用哪个工作流 |
+| [03-工作流](docs/03-workflows.md) | Spike 与 Explore 的使用边界 | 不确定用 `spike` 还是 `explore` |

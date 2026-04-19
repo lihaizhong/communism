@@ -33,18 +33,18 @@ installer contracts, runtime guard adapters, and a documented manual release pat
   `@openspec-opc/codex-plugin` as the experimental Codex scaffold adapter.
 - Added installer contract coverage for lane detection, profile smoke, rendered
   result cards, stop-point handling, and fixture walkthroughs.
-- Added `node-ts-minimal`, `node-ts-app`, and `node-ts-service` install-reference
+- Added `node-ts-minimal`, `node-ts-app`, and `node-ts-service` install-manual
   fixtures with expected artifacts and real smoke/lint commands.
 - Added preview and release utility scripts:
   `scripts/preview-demo.mjs`, `scripts/check-workspace-versions.mjs`,
   `scripts/pack-dry-run.mjs`, and `scripts/benchmark-guard.mjs`.
 - Added workspace development and release documentation in
-  `guide/08-workspace-development.md` and `guide/09-release.md`.
+  `docs/08-workspace-development.md` and `docs/09-release.md`.
 
 ### Changed
 
 - Reworked the installer flow and result-card contracts so stage validation and
-  install-reference output stay aligned.
+  install-manual output stay aligned.
 - Tightened lane and result contract rules, including correct `node-ts` library
   profile resolution and explicit profile-smoke gating.
 - Simplified package builds to compile directly with `tsc`.

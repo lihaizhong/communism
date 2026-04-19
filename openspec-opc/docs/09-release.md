@@ -78,7 +78,7 @@ node ./scripts/build-installer-bundle.mjs --with-local-packages
 
 - `install.md`
 - `.template/`
-- 安装运行时所需的 `install-reference/` 子集
+- 安装运行时所需的 `install-manual/` 子集
 - `README.md`、`CHANGELOG.md`
 - 可选的 `vendor/npm/*.tgz` fallback 包
 
@@ -123,7 +123,7 @@ npm publish --workspace plugins/codex-spec-opc --access public
 - `@openspec-opc/codex-plugin`
   当前发布 `dist/`、`hooks/`、`.codex-plugin/`、`hooks.json`
 - installer bundle
-  当前发布 `install.md`、`.template/`、运行时必需的 `install-reference/` 子集，以及可选的本地 npm tarball fallback
+  当前发布 `install.md`、`.template/`、运行时必需的 `install-manual/` 子集，以及可选的本地 npm tarball fallback
 
 ## 当前注意事项
 

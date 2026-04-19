@@ -29,9 +29,9 @@ variable_conventions:
   case: "UPPER_SNAKE_CASE for task variables"
   write_scope: "Verification and summary only"
 contracts:
-  canonical_result: "openspec-opc/install-reference/conformance-contract.mjs"
-  profile_smoke_contract: "openspec-opc/install-reference/profile-smoke-contract.mjs"
-  render_contract: "openspec-opc/install-reference/render-contract.mjs"
+  canonical_result: "openspec-opc/install-manual/conformance-contract.mjs"
+  profile_smoke_contract: "openspec-opc/install-manual/profile-smoke-contract.mjs"
+  render_contract: "openspec-opc/install-manual/render-contract.mjs"
 
 steps:
   - id: final_check

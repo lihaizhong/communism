@@ -29,7 +29,7 @@ variable_conventions:
   case: "UPPER_SNAKE_CASE for task variables"
   write_scope: "Only task file and staging metadata before stage5"
 contracts:
-  stop_point_contract: "openspec-opc/install-reference/stop-points.mjs"
+  stop_point_contract: "openspec-opc/install-manual/stop-points.mjs"
 
 steps:
   - id: scan_config_dirs

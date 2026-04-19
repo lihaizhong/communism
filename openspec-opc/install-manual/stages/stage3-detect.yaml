@@ -43,10 +43,10 @@ variable_conventions:
   case: "UPPER_SNAKE_CASE for task variables"
   mapping_rule: "auto-detected values override guesses, but explicit user confirmation overrides both"
 contracts:
-  lane_registry: "openspec-opc/install-reference/lanes/registry.json"
-  lane_runtime: "openspec-opc/install-reference/lane-registry.mjs"
-  profile_smoke_contract: "openspec-opc/install-reference/profile-smoke-contract.mjs"
-  stop_point_contract: "openspec-opc/install-reference/stop-points.mjs"
+  lane_registry: "openspec-opc/install-manual/lanes/registry.json"
+  lane_runtime: "openspec-opc/install-manual/lane-registry.mjs"
+  profile_smoke_contract: "openspec-opc/install-manual/profile-smoke-contract.mjs"
+  stop_point_contract: "openspec-opc/install-manual/stop-points.mjs"
 
 branches:
   new_project:

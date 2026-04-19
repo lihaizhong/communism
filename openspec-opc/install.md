@@ -27,7 +27,7 @@
 
 **示例**
 - 本文档 URL：`https://github.com/user/repo/blob/feature-x/openspec-opc/install.md`
-- stages YAML：`https://raw.githubusercontent.com/user/repo/feature-x/openspec-opc/install-reference/stages/prerequisite.yaml`
+- stages YAML：`https://raw.githubusercontent.com/user/repo/feature-x/openspec-opc/install-manual/stages/prerequisite.yaml`
 - 模板文件：`https://raw.githubusercontent.com/user/repo/feature-x/openspec-opc/.template/AGENTS.md`
 
 ## 文件结构
@@ -36,7 +36,7 @@
 openspec-opc/
 ├── install.md                  ← AI 执行入口
 ├── README.md                   ← 产品介绍
-├── install-reference/
+├── install-manual/
 │   └── stages/                 ← 各阶段 YAML 定义（按需加载）
 │       ├── prerequisite.yaml
 │       ├── stage0-init.yaml

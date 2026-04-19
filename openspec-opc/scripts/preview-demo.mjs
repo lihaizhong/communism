@@ -88,7 +88,7 @@ async function readFixtureOutput(profile) {
   const fixture = PROFILES[profile];
   const outputPath = path.join(
     ROOT_DIR,
-    "install-reference",
+    "install-manual",
     "fixtures",
     fixture.fixture,
     "expected",

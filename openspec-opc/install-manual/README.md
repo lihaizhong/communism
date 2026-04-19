@@ -1,6 +1,7 @@
-# Install Reference
+# Install Manual
 
-本目录包含 OpenSpec OPC 安装流程的阶段定义、lane contract、canonical result/rendering contract，以及对应校验工具。
+本目录是 [`install.md`](../install.md) 的扩展说明书。
+它包含 OpenSpec OPC 安装流程的阶段定义、lane contract、canonical result/rendering contract，以及对应校验工具。
 它服务的是 AI 驱动、文档驱动、文本反馈优先的安装器，不假设浏览器页面或图形安装界面。
 
 ## 文件说明
@@ -50,7 +51,7 @@
 
 ```bash
 npm --prefix openspec-opc run validate:stages
-npm --prefix openspec-opc run test:install-reference
+npm --prefix openspec-opc run test:install-manual
 ```
 
 成功时会输出：
@@ -59,4 +60,4 @@ npm --prefix openspec-opc run test:install-reference
 Validated 8 stage files against stage.schema.json.
 ```
 
-失败时会输出逐条错误，包含文件路径和字段位置。`test:install-reference` 还会把 gate 顺序、结果态、stop-point 动作顺序这类 contract drift 当成测试失败处理。
+失败时会输出逐条错误，包含文件路径和字段位置。`test:install-manual` 还会把 gate 顺序、结果态、stop-point 动作顺序这类 contract drift 当成测试失败处理。

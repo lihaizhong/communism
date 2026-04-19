@@ -31,8 +31,8 @@ openspec-opc/
 ├── plugins/
 │   ├── opencode-spec-opc/
 │   └── codex-spec-opc/
-├── guide/
-├── install-reference/
+├── docs/
+├── install-manual/
 └── .template/
 ```
 
@@ -70,7 +70,7 @@ openspec-opc/
 
 - `install.md`
   AI 安装入口。
-- `install-reference/stages/*.yaml`
+- `install-manual/stages/*.yaml`
   阶段定义。
-- `install-reference/stage.schema.json`
+- `install-manual/stage.schema.json`
   阶段结构约束。

@@ -4,7 +4,7 @@
 
 如果你想先验证安装器本身，而不是直接在真实项目里试，先看：
 
-- `install-reference/fixtures/node-ts-minimal/README.md`
+- `install-manual/fixtures/node-ts-minimal/README.md`
 
 这个样例展示的是最小 Node/TS library 项目如何通过文档驱动安装流产出：
 
