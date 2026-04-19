@@ -2,11 +2,11 @@
 
 这份文档给第一次真正上手 gstack 的人。
 
-如果你不想看完整手册，先看这份。等你开始频繁用到设计、安全、部署、DX 审查时，再去看 [完整使用指南](./gstack-complete-guide.md)。
+如果你不想看完整手册，先看这份。等你开始频繁用到设计、安全、部署、DX 审查时，再去看 [完整使用指南](./02-complete-guide.md)。
 
 相关文档：
-- [技能速查表](./gstack-skills-cheatsheet.md)
-- [完整使用指南](./gstack-complete-guide.md)
+- [技能速查表](./03-skills-cheatsheet.md)
+- [完整使用指南](./02-complete-guide.md)
 
 ## 先理解一件事
 
@@ -94,9 +94,9 @@ gstack 不是“很多命令”，而是一套交付流程：
 | 我是不是要把所有 skill 都学会？ | 不用。大多数人高频只会反复用十个以内。 |
 | 我是不是每次都必须从 `/office-hours` 开始？ | 不是。只有在需求不清楚、方向不稳时才值得从这里开始。 |
 | 我什么时候用 `/autoplan`，什么时候单独跑 review？ | 不确定时先用 `/autoplan`；你很明确只缺某一类审查时，再单独跑对应的 plan review。 |
-| 我需要记住所有命令吗？ | 不用。先记住场景和流程，再用 [技能速查表](./gstack-skills-cheatsheet.md) 查。 |
+| 我需要记住所有命令吗？ | 不用。先记住场景和流程，再用 [技能速查表](./03-skills-cheatsheet.md) 查。 |
 
 ## 下一步
 
-- 想快速查命令：看 [技能速查表](./gstack-skills-cheatsheet.md)
-- 想系统理解所有 skill：看 [完整使用指南](./gstack-complete-guide.md)
+- 想快速查命令：看 [技能速查表](./03-skills-cheatsheet.md)
+- 想系统理解所有 skill：看 [完整使用指南](./02-complete-guide.md)

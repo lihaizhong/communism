@@ -7,8 +7,8 @@
 `新东西用 /office-hours，定方案用 /autoplan，出问题用 /investigate，写完后用 /review，验收用 /qa，要发版用 /ship，上线后用 /canary。`
 
 相关文档：
-- [快速使用指南](./gstack-quickstart.md)
-- [完整使用指南](./gstack-complete-guide.md)
+- [快速使用指南](./01-quickstart.md)
+- [完整使用指南](./02-complete-guide.md)
 
 ## 一句话判断法
 

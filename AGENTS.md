@@ -14,13 +14,15 @@ When instructions conflict, follow this order:
 
 ## Repository Stance
 
-This repository is scaffold infrastructure for other projects.
+This repository is a plugin repository and scaffold infrastructure for other projects.
 
 Required stance:
+- MUST treat this repository as a reusable plugin source for downstream AI Coding projects, not as the end product itself.
 - MUST optimize for downstream consumer projects, not this repository as if it were the end product.
 - MUST prefer reusable, template-safe, project-agnostic decisions by default.
 - MUST NOT infer product architecture, domain rules, or long-term structure from incidental files or folder names unless the user explicitly says to.
 - MUST treat examples, placeholders, and local conventions as scaffolding unless clearly marked otherwise.
+- MUST keep the top-level README directory inventory aligned with the live repository contents when directories are added or removed.
 
 ## How To Read Repository Docs
 
@@ -48,3 +50,13 @@ Required stance:
 - Surface uncertainty when documentation appears stale, contradictory, or incomplete.
 - Default to the narrowest correct interpretation of repository-specific policy.
 - Keep changes and recommendations general enough to remain useful in downstream scaffold consumers unless the user asks for repository-specific behavior.
+
+## Execution Discipline
+
+These rules supplement, but do not replace, the `gstack` workflow and stage-based skills.
+
+- Before implementing, restate the assumptions you are making. If the request is ambiguous, ask or call out the ambiguity before coding.
+- Prefer the smallest change that solves the actual request. Do not add flexibility, abstractions, or adjacent cleanups unless they are clearly required.
+- Keep edits surgical. Do not refactor unrelated code, comments, or formatting.
+- Define success in verifiable terms. If the task changes code, name the check that proves it worked.
+- Match the existing style and structure unless the user explicitly asks for a different direction.

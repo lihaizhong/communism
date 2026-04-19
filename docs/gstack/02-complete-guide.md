@@ -3,8 +3,8 @@
 这是一份面向日常使用者的中文版完整指南，基于仓库内的 `gstack/README.md` 与 `gstack/docs/skills.md` 重组而成。
 
 如果你只想快速上手，先看：
-- [技能速查表](./gstack-skills-cheatsheet.md)
-- [快速使用指南](./gstack-quickstart.md)
+- [技能速查表](./03-skills-cheatsheet.md)
+- [快速使用指南](./01-quickstart.md)
 
 ## 什么是 gstack
 
