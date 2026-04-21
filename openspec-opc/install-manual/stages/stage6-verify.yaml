@@ -15,6 +15,9 @@ inputs:
   - INSTALL_LANE_ID
   - INSTALL_LANE_PROFILE
   - EXECUTION_PATH
+  - INSTALL_EXECUTION_MODE
+  - TEMPLATE_LOCK_PATH
+  - TEMPLATE_UPGRADE_PLAN_PATH
   - PROFILE_SMOKE_STATUS
   - PROFILE_SMOKE_COMMAND
   - PROFILE_SMOKE_SUMMARY
@@ -43,6 +46,12 @@ steps:
         desc: "包含 spec-driven、bugfix、spike"
       - file_exists: "AGENTS.md"
         desc: "AI 行为指南存在"
+      - if: "INSTALL_EXECUTION_MODE == template_upgrade"
+        file_exists: "{{TEMPLATE_LOCK_PATH}}"
+        desc: "template upgrade lock 文件存在"
+      - if: "INSTALL_EXECUTION_MODE == template_upgrade"
+        file_exists: "{{TEMPLATE_UPGRADE_PLAN_PATH}}"
+        desc: "upgrade plan artifact 已写出"
       - files_count: "{{AI_CONFIG_DIR}}/commands/*.md == 6"
         desc: "6 个命令文件"
       - dirs_count: "{{AI_CONFIG_DIR}}/skills/"

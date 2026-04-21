@@ -170,3 +170,9 @@ Target archive directory already exists.
 - Show clear summary of what happened
 - If sync is requested, use the repository's available spec-sync workflow instead of assuming a specific tool name
 - If delta specs exist, always run the sync assessment and show the combined summary before prompting
+
+## Repository Overrides
+
+<!-- OPENSPEC-PRESERVE:BEGIN repository-overrides -->
+Add repository-specific command guidance here. This block is preserved across template upgrades.
+<!-- OPENSPEC-PRESERVE:END repository-overrides -->

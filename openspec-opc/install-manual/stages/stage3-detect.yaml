@@ -18,6 +18,9 @@ outputs:
   - PRIMARY_FRAMEWORK
   - INSTALL_LANE_ID
   - INSTALL_LANE_PROFILE
+  - INSTALL_EXECUTION_MODE
+  - TEMPLATE_UPGRADE_REASON
+  - TEMPLATE_LOCK_PATH
   - PROFILE_SMOKE_STATUS
   - PROFILE_SMOKE_COMMAND
   - PROFILE_SMOKE_SUMMARY
@@ -85,8 +88,12 @@ branches:
         method: "检查 tsconfig.json"
       - id: detect_runtime
         method: "检查 engines 或语言版本文件"
+      - id: detect_template_upgrade_traces
+        method: "检查 openspec/.openspec-opc-template-lock.json（兼容 legacy `.openspec-opc/template-lock.json`）、AGENTS.md 模板签名、openspec/config.yaml 结构，以及 {{AI_CONFIG_DIR}} 下的托管 commands/skills 是否存在；若命中任一证据，则记录 INSTALL_EXECUTION_MODE = template_upgrade、TEMPLATE_LOCK_PATH = openspec/.openspec-opc-template-lock.json，并把命中原因写入 TEMPLATE_UPGRADE_REASON；否则记录 INSTALL_EXECUTION_MODE = fresh_install"
     report_template: |
       🔍 技术栈检测报告
+      ├─ 执行模式: {{INSTALL_EXECUTION_MODE}}
+      ├─ Upgrade 触发原因: {{TEMPLATE_UPGRADE_REASON}}
       ├─ 安装路径: {{EXECUTION_PATH}}
       ├─ Lane: {{INSTALL_LANE_ID}}
       ├─ Profile: {{INSTALL_LANE_PROFILE}}
@@ -135,5 +142,5 @@ test_framework_recommendations:
   "Java": { framework: "JUnit", command: "通过 Maven/Gradle 添加" }
 
 on_complete:
-  action: "将所有检测结果映射并写入 harness-install-tasks.md 配置变量表；统一输出 INSTALL_LANE_ID、INSTALL_LANE_PROFILE、PRIMARY_FRAMEWORK、SRC_DIR、TEST_DIR 和项目命令变量。若命中 Node/TS lane，则还必须通过 profile_smoke_contract 预先写入 PROFILE_SMOKE_STATUS、PROFILE_SMOKE_COMMAND、PROFILE_SMOKE_SUMMARY；library 必须显式写入 not_applicable，app/service 若已检测到 smoke 命令则写 ready 风格的规划值，未检测到则写 missing 与缺失原因。如 profile 命中冲突，必须进入共享 stop-point，使用 recommended/custom/abort 动作标签"
+  action: "将所有检测结果映射并写入 harness-install-tasks.md 配置变量表；统一输出 INSTALL_LANE_ID、INSTALL_LANE_PROFILE、INSTALL_EXECUTION_MODE、TEMPLATE_UPGRADE_REASON、TEMPLATE_LOCK_PATH、PRIMARY_FRAMEWORK、SRC_DIR、TEST_DIR 和项目命令变量。若命中 Node/TS lane，则还必须通过 profile_smoke_contract 预先写入 PROFILE_SMOKE_STATUS、PROFILE_SMOKE_COMMAND、PROFILE_SMOKE_SUMMARY；library 必须显式写入 not_applicable，app/service 若已检测到 smoke 命令则写 ready 风格的规划值，未检测到则写 missing 与缺失原因。如检测到历史安装痕迹，existing project 必须优先切换到 template_upgrade，而不是继续沿用泛化 merge/coexist 安装语义。如 profile 命中冲突，必须进入共享 stop-point，使用 recommended/custom/abort 动作标签"
   next: "stage4"

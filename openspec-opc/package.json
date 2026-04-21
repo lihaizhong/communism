@@ -7,6 +7,9 @@
     "packages/*",
     "plugins/*"
   ],
+  "dependencies": {
+    "yaml": "^2.8.3"
+  },
   "scripts": {
     "build": "npm run build:core && npm run build:plugins",
     "build:installer-bundle": "node ./scripts/build-installer-bundle.mjs",
@@ -19,7 +22,8 @@
     "build:opencode": "npm --prefix plugins/opencode-spec-opc run build",
     "validate:stages": "node ./install-manual/validate-stages.mjs",
     "test:install-manual": "npm run validate:stages && node --test install-manual/*.test.mjs",
-    "test": "npm run test:install-manual && npm run test:preview && npm run test:core && npm run test:plugins",
+    "test:upgrade": "node --test install-manual/upgrade/tests/*.test.mjs",
+    "test": "npm run test:install-manual && npm run test:upgrade && npm run test:preview && npm run test:core && npm run test:plugins",
     "test:core": "npm --prefix packages/opc-guard-core run test",
     "test:plugins": "npm run test:codex && npm run test:opencode",
     "test:codex": "npm --prefix plugins/codex-spec-opc run test",
@@ -34,7 +38,6 @@
   },
   "devDependencies": {
     "@types/node": "^25.5.2",
-    "typescript": "^6.0.2",
-    "yaml": "^2.8.3"
+    "typescript": "^6.0.2"
   }
 }

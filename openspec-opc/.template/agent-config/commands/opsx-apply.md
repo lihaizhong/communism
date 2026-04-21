@@ -181,3 +181,9 @@ This skill supports the "actions on a change" model:
 
 - **Can be invoked anytime**: Before all artifacts are done (if tasks exist), after partial implementation, interleaved with other actions
 - **Allows artifact updates**: If implementation reveals design issues, suggest updating artifacts - not phase-locked, work fluidly
+
+## Repository Overrides
+
+<!-- OPENSPEC-PRESERVE:BEGIN repository-overrides -->
+Add repository-specific command guidance here. This block is preserved across template upgrades.
+<!-- OPENSPEC-PRESERVE:END repository-overrides -->

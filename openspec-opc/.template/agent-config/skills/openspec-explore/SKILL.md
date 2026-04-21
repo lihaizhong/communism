@@ -289,3 +289,9 @@ But this summary is optional. Sometimes the thinking IS the value.
 - **Do visualize** - A good diagram is worth many paragraphs
 - **Do explore the codebase** - Ground discussions in reality
 - **Do question assumptions** - Including the user's and your own
+
+## Repository Overrides
+
+<!-- OPENSPEC-PRESERVE:BEGIN repository-overrides -->
+Add repository-specific skill guidance here. This block is preserved across template upgrades.
+<!-- OPENSPEC-PRESERVE:END repository-overrides -->

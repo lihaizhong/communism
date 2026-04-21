@@ -179,3 +179,9 @@ When things crystallize, you might offer a summary - but it's optional. Sometime
 - **Do visualize** - A good diagram is worth many paragraphs
 - **Do explore the codebase** - Ground discussions in reality
 - **Do question assumptions** - Including the user's and your own
+
+## Repository Overrides
+
+<!-- OPENSPEC-PRESERVE:BEGIN repository-overrides -->
+Add repository-specific command guidance here. This block is preserved across template upgrades.
+<!-- OPENSPEC-PRESERVE:END repository-overrides -->

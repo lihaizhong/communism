@@ -130,3 +130,9 @@ I'll help you fix bugs efficiently with minimal overhead and proper regression t
 - Always refresh `openspec/.opencode-spec-opc-state.json` before each phase
 - Document the root cause for future prevention
 - For P0 critical bugs, use hotfix override
+
+## Repository Overrides
+
+<!-- OPENSPEC-PRESERVE:BEGIN repository-overrides -->
+Add repository-specific command guidance here. This block is preserved across template upgrades.
+<!-- OPENSPEC-PRESERVE:END repository-overrides -->

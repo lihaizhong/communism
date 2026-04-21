@@ -45,6 +45,13 @@
 - `*.test.mjs`
   - 对 lane 检测、profile smoke contract、canonical result、rendering、stop-point 顺序做 contract tests
   - fixture walkthrough tests 还会真实执行 fixture 自己的 conformance gates 和 smoke 命令
+- `upgrade/`
+  - 模板升级运行时
+  - 管理已安装模板的生命周期（check、dry-run、adopt、apply、rollback）
+  - `stage5-upgrade-driver.mjs` 会把 stage 变量渲染成固定命令序列，也能输出 machine-readable 执行计划 JSON，避免 AI 执行器手工拼接 upgrade 命令
+  - existing-project 路径的推荐顺序是 `check --plan-out` → `adopt --confirm-suspected`（仅缺 lock 时）→ `dry-run --plan-out` → 用户确认 → `apply`
+  - 供 `install.md` 的 existing-project/template-upgrade 路径调用；不是下游用户的主入口
+  - 详细说明见 [`upgrade/README.md`](upgrade/README.md)
 
 ## 使用方式
 

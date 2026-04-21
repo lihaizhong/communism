@@ -83,5 +83,6 @@ cp -r .template/agent-config/skills/* <your-ai-config-dir>/skills/
 ## 说明
 
 - `agent-config/commands/` 和 `agent-config/skills/` 提供的是流程模板，不保证绑定某个特定 agent runtime 的专有工具名。
+- 这些 markdown 模板现在包含显式的 `Repository Overrides` preserve block；如果目标项目需要仓库级补充规则，优先写在该块内，后续 template upgrade 会保留这部分内容。
 - 不同 AI 工具的实际接线方式，应该由安装流程或目标工具自己的配置机制决定。
 - 运行时守卫状态文件仍然是 `openspec/.opencode-spec-opc-state.json`，由 `/opsx-apply` 或 `/opsx-bugfix` 的执行阶段刷新。

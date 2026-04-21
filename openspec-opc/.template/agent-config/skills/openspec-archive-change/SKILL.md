@@ -147,3 +147,9 @@ All artifacts complete. All tasks complete.
 - If delta specs exist, always run the sync assessment and show the combined summary before prompting
 - For bugfixes with Spec_Impact, always prompt before applying spec changes
 - Support both spec-driven (changes/) and bugfix (bugs/) directory structures
+
+## Repository Overrides
+
+<!-- OPENSPEC-PRESERVE:BEGIN repository-overrides -->
+Add repository-specific skill guidance here. This block is preserved across template upgrades.
+<!-- OPENSPEC-PRESERVE:END repository-overrides -->

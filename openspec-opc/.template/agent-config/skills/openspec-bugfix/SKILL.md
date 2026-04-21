@@ -177,3 +177,9 @@ When committing:
 - Branch naming: `fix/<bug-id>`
 - Commit message prefix: `fix:`
 - Reference issue if applicable: `Fixes #123`
+
+## Repository Overrides
+
+<!-- OPENSPEC-PRESERVE:BEGIN repository-overrides -->
+Add repository-specific skill guidance here. This block is preserved across template upgrades.
+<!-- OPENSPEC-PRESERVE:END repository-overrides -->

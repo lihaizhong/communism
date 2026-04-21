@@ -28,6 +28,12 @@ const bundlePaths = [
   "install-manual/render-contract.mjs",
   "install-manual/stop-points.mjs",
   "install-manual/stages",
+  "install-manual/upgrade/README.md",
+  "install-manual/upgrade/GETTING_STARTED.md",
+  "install-manual/upgrade/cli.mjs",
+  "install-manual/upgrade/build-source-bundle.mjs",
+  "install-manual/upgrade/stage5-upgrade-driver.mjs",
+  "install-manual/upgrade/src",
 ]
 
 const localPackageDirs = [

@@ -7,6 +7,12 @@
 
 当前安装入口版本：`0.2.2`
 
+## 入口约束
+
+- 对下游项目，正式入口始终是 `install.md`。
+- `install-manual/upgrade/` 下的 runtime 是安装器内部使用的升级执行引擎，不是面向最终用户的主入口。
+- 当目标项目已经安装过 OpenSpec OPC 时，AI 执行器仍应从 `install.md` 进入，再由阶段流程决定是否切换到 `template_upgrade` 执行路径。
+
 ## 执行规则
 
 1. 阶段 `prerequisite` 到 `stage4` 允许读取、检测、提问、记录，但默认不修改业务文件。
@@ -39,15 +45,19 @@ openspec-opc/
 ├── install.md                  ← AI 执行入口
 ├── README.md                   ← 产品介绍
 ├── install-manual/
-│   └── stages/                 ← 各阶段 YAML 定义（按需加载）
-│       ├── prerequisite.yaml
-│       ├── stage0-init.yaml
-│       ├── stage1-status.yaml
-│       ├── stage2-collect.yaml
-│       ├── stage3-detect.yaml
-│       ├── stage4-config.yaml
-│       ├── stage5-execute.yaml
-│       └── stage6-verify.yaml
+    │   ├── stages/                 ← 各阶段 YAML 定义（按需加载）
+    │   │   ├── prerequisite.yaml
+    │   │   ├── stage0-init.yaml
+    │   │   ├── stage1-status.yaml
+    │   │   ├── stage2-collect.yaml
+    │   │   ├── stage3-detect.yaml
+    │   │   ├── stage4-config.yaml
+    │   │   ├── stage5-execute.yaml
+    │   │   └── stage6-verify.yaml
+    │   └── upgrade/                ← existing-project template upgrade 执行引擎
+    │       ├── build-source-bundle.mjs
+    │       ├── cli.mjs
+    │       └── src/
 └── .template/                  ← 安装模板源
     ├── AGENTS.md               → 目标项目: AGENTS.md
     ├── harness-install-tasks.md → 目标项目: harness-install-tasks.md（先创建工作副本，再持续更新）
@@ -167,6 +177,38 @@ Codex 侧当前仍处于本地插件 scaffold 阶段；仓库里有 `plugins/cod
 2. 若用户未说明，再结合目录状态辅助判断。
 3. 判断冲突时，必须向用户确认，不能自行推断。
 
+### 何时进入 template upgrade
+
+当 `PROJECT_TYPE == existing` 且检测到历史 OpenSpec OPC 安装痕迹时，不再把它当成一次普通“重新安装”：
+
+- `openspec/.openspec-opc-template-lock.json` 存在
+- 兼容检测到 legacy 锁文件 `.openspec-opc/template-lock.json`
+- `AGENTS.md` 含 OpenSpec OPC 模板签名
+- `openspec/config.yaml` 与模板结构匹配
+- `{{AI_CONFIG_DIR}}/commands/opsx-propose.md` 等托管 command 存在
+- `{{AI_CONFIG_DIR}}/skills/openspec-propose/SKILL.md` 等托管 skill 存在
+
+命中上述任一证据后，应记录 `INSTALL_EXECUTION_MODE = template_upgrade`，并继续走阶段 3-6 的 upgrade 分支，而不是回到泛化的 `backup_overwrite / merge / coexist` 安装语义。
+
+### Existing-Project Upgrade 执行顺序
+
+一旦进入 `template_upgrade`，执行顺序必须固定为：
+
+1. 先调用 `install-manual/upgrade/stage5-upgrade-driver.mjs`，让它按当前变量渲染完整命令序列，必要时通过 `--format json` 或 `--execution-out` 产出 machine-readable 执行计划。
+2. 按该序列执行 `build-source-bundle.mjs` 生成当前源码对应的临时 bundle。
+3. 先执行 `check --plan-out <TEMPLATE_UPGRADE_PLAN_PATH>`。
+4. 如果 `check` 返回 “No lock file found”，且阶段 3 已经确认存在历史安装痕迹，则执行 `adopt --confirm-suspected` 初始化 lock。
+5. adopt 完成后，重新执行 `dry-run --plan-out <TEMPLATE_UPGRADE_PLAN_PATH>`，拿到最终升级摘要。
+6. 向用户展示摘要中的 `replace / preserve categories / delete stale managed files / conflicts`。
+7. 只有在用户明确确认后，才允许执行 `apply`。
+8. 如果 `apply` 失败，必须保留 rollback 包，并把结果写回任务账本，而不是回退成普通模板复制。
+
+这里的关键约束是：
+
+- `adopt` 只在“检测到历史安装痕迹但 lock 缺失”时作为兜底步骤执行。
+- `check` / `dry-run` 必须通过 `--plan-out` 把摘要真正写到 `TEMPLATE_UPGRADE_PLAN_PATH`。
+- `apply` 永远不能在没有最新摘要和用户确认的情况下直接执行。
+
 ## 单一任务账本
 
 `harness-install-tasks.md` 是安装过程的单一事实来源。
@@ -199,6 +241,7 @@ Codex 侧当前仍处于本地插件 scaffold 阶段；仓库里有 `plugins/cod
 4. 安装过程允许存在 `pending` 项，但必须明确记录原因和下一步。
 5. 已有 AI 配置、命令、技能、文档默认视为用户资产，禁止无确认覆盖。
 6. 检测结果优先于猜测；用户明确选择优先于自动检测。
+7. 已安装过 OpenSpec OPC 的项目，默认优先走 `template_upgrade`，由安装器展示升级 plan，再决定是否执行。
 
 ## 安全策略
 

@@ -41,6 +41,11 @@
 | `EXISTING_AI_DOCS` | | 阶段 4 检测到的已有 AI 文档列表 |
 | `INSTALL_LANE_ID` | | 阶段 3 lane router 解析结果（如 `node-ts`） |
 | `INSTALL_LANE_PROFILE` | | 阶段 3/4 确认的 lane profile（如 `app`/`service`/`library`） |
+| `INSTALL_EXECUTION_MODE` | | 阶段 3/4/5 决定 (`fresh_install`/`template_upgrade`) |
+| `TEMPLATE_UPGRADE_REASON` | | 阶段 3 记录触发 template upgrade 的证据 |
+| `TEMPLATE_LOCK_PATH` | | 阶段 3/5 记录当前模板锁文件路径（canonical 为 `openspec/.openspec-opc-template-lock.json`，legacy `.openspec-opc/template-lock.json` 仅兼容读取） |
+| `TEMPLATE_BUNDLE_PATH` | | 阶段 5 为 upgrade runtime 生成的临时 bundle 路径 |
+| `TEMPLATE_UPGRADE_PLAN_PATH` | | 阶段 5 写出的 upgrade dry-run / plan 摘要路径 |
 | `EXECUTION_PATH` | | 阶段 5/6 记录 (`new_lane`/`legacy_fallback`) |
 | `PROFILE_SMOKE_STATUS` | | 阶段 5/6 记录 profile smoke 结果（如 `passed`/`failed`/`not_applicable`） |
 | `PROFILE_SMOKE_COMMAND` | | 阶段 5/6 记录的 profile smoke 命令；`app/service` 必须显式写出，`library` 可留空 |
@@ -73,6 +78,7 @@
 - 若已经发生仓库写入，但 gate 或 artifact 失败，必须记录为 `partial_install`
 - 若没有进入新 lane，而是退回旧路径，必须记录为 `legacy_fallback`
 - 只要存在伪完成或关键校验失败，就不得把结果记为 `success`
+- 若 `INSTALL_EXECUTION_MODE = template_upgrade`，必须先写出真实 upgrade plan，再执行任何模板替换
 
 ## 执行任务
 
@@ -86,6 +92,7 @@
 
 - [ ] **T1**: 执行 `openspec init`
 - [ ] **T2**: 复制 Harness 模板文件
+  - 仅当 `INSTALL_EXECUTION_MODE != template_upgrade` 时执行
   - `.template/openspec/config.yaml` → `openspec/config.yaml`
   - `.template/openspec/schemas/*` → `openspec/schemas/*`
   - `.template/AGENTS.md` → `AGENTS.md`
@@ -121,6 +128,21 @@
   - 若 `INSTALL_LANE_PROFILE = app/service`，`PROFILE_SMOKE_COMMAND` 不得为空
   - CI/CD 配置文件存在
   - 若 `TEST_STATUS = pending`，在完成摘要中展示后续动作
+
+- [ ] **T2U**: 执行 existing-project template upgrade
+  - 触发：`INSTALL_EXECUTION_MODE = template_upgrade`
+  - 步骤：
+    - 先调用 `install-manual/upgrade/stage5-upgrade-driver.mjs`，通过 `--format json` 或 `--execution-out` 生成结构化执行计划
+    - 按生成序列执行 `build-source-bundle.mjs`
+    - 先执行 `check --plan-out {{TEMPLATE_UPGRADE_PLAN_PATH}}`
+    - 若 `check` 提示缺少 lock，且阶段 3 已确认历史安装痕迹，则执行 `adopt --confirm-suspected`
+    - adopt 完成后，重新执行 `dry-run --plan-out {{TEMPLATE_UPGRADE_PLAN_PATH}}`
+    - 向用户展示 will replace，以及具体 preserve 类型：AGENTS 仓库约束区、commands/skills frontmatter、Repository Overrides body blocks、CI job merge；同时说明 will delete stale managed files / will ignore user-owned files
+    - 仅在用户确认后执行 `apply`
+  - 要求：
+    - `AGENTS.md`、托管 commands、托管 skills、`openspec/config.yaml`、`openspec/schemas/` 必须作为托管资产进入 upgrade plan
+    - `{{TEMPLATE_LOCK_PATH}}` 必须在成功 apply 后存在
+    - 若 `apply` 失败，必须保留 rollback 包并把结果记为 `partial_install` 或 `failed`
 
 ### 条件任务（根据用户选择执行）
 

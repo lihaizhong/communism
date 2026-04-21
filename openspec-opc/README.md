@@ -240,6 +240,51 @@ AI 辅助实现代码 -> 让测试通过
 | `openspec/schemas/`   | 定义工作流阶段、产物、检查点 |
 | AI 工具 commands/skills | 把工作流暴露成可执行命令 |
 
+## Template Upgrade Runtime
+
+OpenSpec OPC now includes a template upgrade system that manages the lifecycle of installed templates. Instead of re-running the installer and hoping nothing breaks, you can now:
+
+- **Check** current state against the template
+- **Preview** changes before applying them
+- **Adopt** legacy projects that were installed without a lock file
+- **Apply** upgrades with rollback safety
+- **Rollback** to previous state if something goes wrong
+
+For downstream projects, keep using `openspec-opc/install.md` as the AI executor entrypoint. The upgrade runtime is the execution engine behind the existing-project upgrade path, and the CLI is mainly for local debugging, fixture work, or direct runtime verification.
+
+Current upgrade semantics:
+- Canonical lock path is `openspec/.openspec-opc-template-lock.json` and the older `.openspec-opc/template-lock.json` path is only kept for read compatibility.
+- `AGENTS.md` upgrades preserve the repository-specific constraints block instead of hard-overwriting the whole file.
+- Supported CI assets (`.github/workflows/openspec-archive.yml` and `.gitlab-ci.yml`) upgrade with job-level merge so unrelated user jobs are not deleted.
+- Managed markdown commands and `SKILL.md` files preserve user-added frontmatter keys, while local body edits remain conflict-protected.
+- Commands and `SKILL.md` templates now also expose a `Repository Overrides` preserve block for repository-specific body guidance that should survive template upgrades.
+
+### Quick Usage
+
+```bash
+# Check if project needs updates
+cd install-manual/upgrade
+./cli.mjs check --project /path/to/project --bundle /path/to/template-bundle
+
+# Preview what would change (shows top 50 by default)
+./cli.mjs dry-run --project /path/to/project --bundle /path/to/template-bundle
+./cli.mjs dry-run --full --project /path/to/project --bundle /path/to/template-bundle  # Show all
+./cli.mjs dry-run --project /path/to/project --bundle /path/to/template-bundle --plan-out /path/to/project/openspec/install-upgrade-plan.txt
+
+# Adopt a legacy project (no lock file)
+./cli.mjs adopt --project /path/to/project --bundle /path/to/template-bundle
+./cli.mjs adopt --project /path/to/project --bundle /path/to/template-bundle --confirm-suspected
+
+# Apply upgrade (creates rollback package automatically)
+./cli.mjs apply --project /path/to/project --bundle /path/to/template-bundle
+
+# Rollback if needed
+./cli.mjs rollback --project /path/to/project
+./cli.mjs list-rollbacks --project /path/to/project
+```
+
+See [`install-manual/upgrade/README.md`](install-manual/upgrade/README.md) for full documentation.
+
 ## 文档导航
 
 ### 入门必读

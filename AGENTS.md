@@ -22,6 +22,9 @@ Required stance:
 - MUST prefer reusable, template-safe, project-agnostic decisions by default.
 - MUST NOT infer product architecture, domain rules, or long-term structure from incidental files or folder names unless the user explicitly says to.
 - MUST treat examples, placeholders, and local conventions as scaffolding unless clearly marked otherwise.
+- MUST treat `release-assets/` as published, stable release output rather than an editable workspace.
+- MUST NOT modify files under `release-assets/` unless the user explicitly asks for a release artifact refresh or release rebuild.
+- MUST make source changes in the canonical workspace files first, then regenerate `release-assets/` only as an explicit release step.
 - MUST keep the top-level README directory inventory aligned with the live repository contents when directories are added or removed.
 
 ## How To Read Repository Docs

@@ -8,6 +8,9 @@ inputs:
   - AI_TOOL_NAME
   - AI_CONFIG_DIR
   - EXISTING_AI_DOCS
+  - INSTALL_EXECUTION_MODE
+  - TEMPLATE_UPGRADE_REASON
+  - TEMPLATE_LOCK_PATH
   - INSTALL_LANE_ID
   - INSTALL_LANE_PROFILE
   - PROFILE_SMOKE_STATUS
@@ -19,6 +22,9 @@ outputs:
   - CONFIG_CONFLICT
   - INTEGRATE_AI_DOCS
   - EXISTING_AI_DOCS
+  - INSTALL_EXECUTION_MODE
+  - TEMPLATE_UPGRADE_REASON
+  - TEMPLATE_LOCK_PATH
   - PROFILE_SMOKE_STATUS
   - PROFILE_SMOKE_COMMAND
   - PROFILE_SMOKE_SUMMARY
@@ -122,5 +128,5 @@ steps:
         action: "记录 INTEGRATE_AI_DOCS 和 EXISTING_AI_DOCS 到 harness-install-tasks.md"
 
 on_complete:
-  action: "确认 harness-install-tasks.md 中 AI_TOOL_NAME、AI_CONFIG_DIR、INTEGRATE_AI_DOCS 已填写；若 INSTALL_LANE_ID == node-ts，则必须保留 stage3 规划出的 PROFILE_SMOKE_STATUS、PROFILE_SMOKE_COMMAND、PROFILE_SMOKE_SUMMARY，不得在 stage4 静默清空或覆盖；若存在 CONFIG_CONFLICT，阶段 5 前必须再次确认处理策略"
+  action: "确认 harness-install-tasks.md 中 AI_TOOL_NAME、AI_CONFIG_DIR、INTEGRATE_AI_DOCS 已填写；若 INSTALL_LANE_ID == node-ts，则必须保留 stage3 规划出的 PROFILE_SMOKE_STATUS、PROFILE_SMOKE_COMMAND、PROFILE_SMOKE_SUMMARY，不得在 stage4 静默清空或覆盖；若 INSTALL_EXECUTION_MODE == template_upgrade，则还必须原样保留 TEMPLATE_UPGRADE_REASON 与 TEMPLATE_LOCK_PATH，并在阶段 5 转入 upgrade runtime 路径，而不是退回普通模板复制；若存在 CONFIG_CONFLICT 且 INSTALL_EXECUTION_MODE != template_upgrade，阶段 5 前必须再次确认处理策略"
   next: "stage5"

@@ -187,3 +187,9 @@ When the spike recommends implementation:
 - "Investigate slow dashboard rendering"
 - "Compare CSS-in-JS solutions"
 - "Explore WebSocket vs Server-Sent Events for real-time features"
+
+## Repository Overrides
+
+<!-- OPENSPEC-PRESERVE:BEGIN repository-overrides -->
+Add repository-specific skill guidance here. This block is preserved across template upgrades.
+<!-- OPENSPEC-PRESERVE:END repository-overrides -->

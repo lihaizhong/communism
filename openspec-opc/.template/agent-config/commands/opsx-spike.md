@@ -123,3 +123,9 @@ I'll help you explore technical questions, evaluate options, and reach a clear d
 - Investigating performance issues
 - Researching unfamiliar domains
 - Prototyping before committing to implementation
+
+## Repository Overrides
+
+<!-- OPENSPEC-PRESERVE:BEGIN repository-overrides -->
+Add repository-specific command guidance here. This block is preserved across template upgrades.
+<!-- OPENSPEC-PRESERVE:END repository-overrides -->

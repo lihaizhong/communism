@@ -18,11 +18,16 @@ inputs:
   - TYPE_CHECK_COMMAND
   - INSTALL_LANE_ID
   - INSTALL_LANE_PROFILE
+  - INSTALL_EXECUTION_MODE
+  - TEMPLATE_UPGRADE_REASON
+  - TEMPLATE_LOCK_PATH
 outputs:
   - CI_TYPE
   - CI_CONFIG_PATH
   - GENERATE_PRE_COMMIT
   - EXECUTION_PATH
+  - TEMPLATE_BUNDLE_PATH
+  - TEMPLATE_UPGRADE_PLAN_PATH
   - PROFILE_SMOKE_STATUS
   - PROFILE_SMOKE_COMMAND
   - PROFILE_SMOKE_SUMMARY
@@ -70,6 +75,8 @@ pre_check:
     rules:
       - if: "INTEGRATE_AI_DOCS == yes"
         action: "将 T7 从 [-] 改为 [ ]"
+      - if: "INSTALL_EXECUTION_MODE == template_upgrade"
+        action: "设置 TEMPLATE_BUNDLE_PATH = .openspec/.cache/openspec-opc-upgrade-bundle、TEMPLATE_UPGRADE_PLAN_PATH = openspec/install-upgrade-plan.txt；existing-project 安装路径切换为 upgrade runtime，普通 T2 模板复制仅保留给 fresh_install"
       - if: "INSTALL_LANE_ID == node-ts"
         action: "设置 EXECUTION_PATH = new_lane、TERMINAL_RESULT_CARD_PATH = openspec/install-result.txt、CONFORMANCE_REPORT_PATH = openspec/install-report.md、CONFORMANCE_JSON_PATH = openspec/install-report.json；后续 gate 顺序固定为 lint -> test -> typecheck。若 INSTALL_LANE_PROFILE == app/service，则还必须通过 profile_smoke_contract 解析并记录 PROFILE_SMOKE_STATUS、PROFILE_SMOKE_COMMAND、PROFILE_SMOKE_SUMMARY；若 INSTALL_LANE_PROFILE == library，则必须显式记录 PROFILE_SMOKE_STATUS = not_applicable"
       - if: "INSTALL_LANE_ID != node-ts"
@@ -111,6 +118,7 @@ core_tasks:
 
   - id: T2
     name: "复制 Harness 模板文件"
+    condition: "INSTALL_EXECUTION_MODE != template_upgrade"
     stop_point: true
     stop_prompt: |
       ⚠️ 文件变更确认
@@ -152,6 +160,43 @@ core_tasks:
         dest: "{{AI_CONFIG_DIR}}/"
         rename: true
     on_complete: "标记 T2 [x]"
+
+  - id: T2.1
+    name: "执行 existing-project template upgrade"
+    condition: "INSTALL_EXECUTION_MODE == template_upgrade"
+    stop_point: true
+    stop_prompt: |
+      ⚠️ Existing-project template upgrade
+
+      当前项目已检测到 OpenSpec OPC 历史安装痕迹：
+      {{TEMPLATE_UPGRADE_REASON}}
+
+      接下来必须：
+      ├─ 先用 stage5-upgrade-driver.mjs 渲染固定命令序列
+      ├─ 生成临时 template bundle：{{TEMPLATE_BUNDLE_PATH}}
+      ├─ 先执行 check --plan-out {{TEMPLATE_UPGRADE_PLAN_PATH}}
+      ├─ 若 check 提示缺少 lock 且阶段 3 已确认历史安装痕迹，则执行 adopt --confirm-suspected
+      ├─ adopt 后重新执行 dry-run --plan-out {{TEMPLATE_UPGRADE_PLAN_PATH}}
+      ├─ 向用户展示 will replace，以及具体 preserve 类型：AGENTS 仓库约束区、commands/skills frontmatter、Repository Overrides body blocks、CI job merge；同时说明 will delete stale managed files / will ignore user-owned files
+      └─ 仅在用户确认后执行 apply
+
+      注意：
+      - 这一步替代普通 T2 模板复制
+      - adopt 只用于“已有安装痕迹但缺少 lock”的兜底初始化，不能替代正常 dry-run
+      - 若 apply 失败，必须保留 rollback 包并停止
+    options:
+      - id: confirm
+        label: "确认继续"
+      - id: cancel
+        label: "取消"
+        action: "终止流程"
+    action: "先调用 install-manual/upgrade/stage5-upgrade-driver.mjs，传入项目路径、{{AI_CONFIG_DIR}}、{{CI_TYPE}}、{{TEMPLATE_BUNDLE_PATH}}、{{TEMPLATE_UPGRADE_PLAN_PATH}}，并通过 --format json 或 --execution-out 生成 machine-readable 执行计划。然后严格按该结构化步骤执行，其中真正的 runtime 入口仍然是 install-manual/upgrade/cli.mjs：使用 build-source-bundle.mjs 基于当前源码模板生成 bundle；执行 check --plan-out {{TEMPLATE_UPGRADE_PLAN_PATH}}；若返回缺少 lock 且已确认历史安装痕迹，则执行 adopt --confirm-suspected；adopt 后必须重新执行 dry-run --plan-out {{TEMPLATE_UPGRADE_PLAN_PATH}}；只有在摘要和用户确认都到位后，才允许执行 apply。执行器必须以计划 JSON 中的 runtimeStatusContract / resultMapping 为准解释退出结果，不得自行猜测 CLI exit code 语义。AI 执行器仍从 install.md 驱动，只把 runtime 当作底层升级引擎。"
+    verify:
+      command: |
+        test -s "{{TEMPLATE_UPGRADE_PLAN_PATH}}" && \
+        test -s "{{TEMPLATE_LOCK_PATH}}"
+      expected: "upgrade plan 已写出，且模板锁文件存在"
+    on_complete: "标记 T2.1 [x]"
 
   - id: T3
     name: "安装测试框架"
@@ -215,6 +260,9 @@ core_tasks:
       - files_count: "{{AI_CONFIG_DIR}}/commands/*.md == 6"
       - dirs_count: "{{AI_CONFIG_DIR}}/skills/ == 6"
       - not_exists: "{{AI_CONFIG_DIR}}/../command/"
+      - if: "INSTALL_EXECUTION_MODE == template_upgrade"
+        file_exists: "{{TEMPLATE_LOCK_PATH}}"
+        desc: "template upgrade lock 文件存在"
       - if: "AI_TOOL_NAME == opencode"
         file_exists: ".opencode/opencode.json"
       - if: "TEST_STATUS == pending"
