@@ -1,6 +1,6 @@
 {
   "name": "@openspec-opc/opencode-plugin",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "description": "OpenCode runtime guard plugin for OpenSpec OPC workflows",
   "type": "module",
   "homepage": "https://github.com/lihaizhong/communism/tree/main/openspec-opc",

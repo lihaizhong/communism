@@ -45,8 +45,8 @@
     "运行默认首条路径：/opsx-propose add-health-endpoint"
   ],
   "artifacts": {
-    "reportPath": "openspec/install-report.md",
-    "jsonPath": "openspec/install-report.json"
+    "reportPath": ".openspec-opc/install-report.md",
+    "jsonPath": ".openspec-opc/install-report.json"
   },
   "rawDetails": []
 }

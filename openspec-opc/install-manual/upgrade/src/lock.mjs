@@ -10,7 +10,8 @@ import { computeDigest } from './manifest.mjs';
 import { AssetGroups } from './types.mjs';
 import { computeMarkdownPartDigests, supportsMarkdownFrontmatterMerge } from './frontmatter-files.mjs';
 
-const CANONICAL_LOCK_PATH = 'openspec/.openspec-opc-template-lock.json';
+const CANONICAL_LOCK_PATH = '.openspec-opc/.openspec-opc-template-lock.json';
+const OLD_CANONICAL_LOCK_PATH = 'openspec/.openspec-opc-template-lock.json';
 const LEGACY_LOCK_PATH = '.openspec-opc/template-lock.json';
 
 function inferManagedKind(path) {
@@ -129,6 +130,10 @@ export function getLegacyLockPath(projectPath) {
   return join(projectPath, LEGACY_LOCK_PATH);
 }
 
+export function getOldCanonicalLockPath(projectPath) {
+  return join(projectPath, OLD_CANONICAL_LOCK_PATH);
+}
+
 export function getExistingLockInfo(projectPath) {
   const canonicalPath = getLockPath(projectPath);
   if (existsSync(canonicalPath)) {
@@ -136,6 +141,15 @@ export function getExistingLockInfo(projectPath) {
       path: canonicalPath,
       relativePath: CANONICAL_LOCK_PATH,
       legacy: false
+    };
+  }
+
+  const oldCanonicalPath = getOldCanonicalLockPath(projectPath);
+  if (existsSync(oldCanonicalPath)) {
+    return {
+      path: oldCanonicalPath,
+      relativePath: OLD_CANONICAL_LOCK_PATH,
+      legacy: true
     };
   }
 
@@ -199,6 +213,11 @@ export function writeLock(projectPath, lock) {
   }, CANONICAL_LOCK_PATH, false);
 
   writeFileSync(lockPath, JSON.stringify(nextLock, null, 2));
+
+  const oldCanonicalPath = getOldCanonicalLockPath(projectPath);
+  if (oldCanonicalPath !== lockPath && existsSync(oldCanonicalPath)) {
+    rmSync(oldCanonicalPath, { force: true });
+  }
 
   const legacyPath = getLegacyLockPath(projectPath);
   if (legacyPath !== lockPath && existsSync(legacyPath)) {
@@ -321,6 +340,7 @@ export function calculateDrift(projectPath, lock) {
 export default {
   getLockPath,
   getLegacyLockPath,
+  getOldCanonicalLockPath,
   getExistingLockInfo,
   readLock,
   writeLock,

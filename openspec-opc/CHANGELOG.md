@@ -2,6 +2,23 @@
 
 All notable changes to `openspec-opc` are documented in this file.
 
+## 0.3.0 - 2026-04-22
+
+This release unifies all OpenSpec OPC internal state under a single hidden directory and simplifies the task ledger filename.
+
+### Changed
+
+- **BREAKING**: Unified all openspec-opc internal state (lock, plan, bundle cache, apply state, rollback) under `.openspec-opc/` instead of scattering across `.openspec/`, `openspec/`, and `.openspec-opc/`.
+  - Canonical lock path: `.openspec-opc/.openspec-opc-template-lock.json` (was `openspec/.openspec-opc-template-lock.json`)
+  - Bundle cache: `.openspec-opc/.cache/openspec-opc-upgrade-bundle` (was `.openspec/.cache/...`)
+  - Upgrade plan: `.openspec-opc/install-upgrade-plan.txt` (was `openspec/install-upgrade-plan.txt`)
+  - Apply state: `.openspec-opc/.openspec-opc-state.json` (was `openspec/.openspec-opc-state.json`)
+  - Install result/report/json: `.openspec-opc/install-result.txt`, `.openspec-opc/install-report.md`, `.openspec-opc/install-report.json` (was `openspec/...`)
+  - Rollback remains at `.openspec-opc/rollback/`
+  - Old canonical and legacy paths are still read for backward compatibility and migrated on the next successful apply.
+- **BREAKING**: Renamed the task ledger from `harness-install-tasks.md` to `install-tasks.md` across all stages, templates, schema, and documentation.
+- Bumped the lockstep workspace package versions to `0.3.0` for `@openspec-opc/guard-core`, `@openspec-opc/opencode-plugin`, and `@openspec-opc/codex-plugin`.
+
 ## 0.2.2 - 2026-04-19
 
 This patch release adds the new spec-driven test-contract artifact to the shipped template set and tightens readiness validation so untouched scaffolds no longer pass as authored work.

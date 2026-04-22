@@ -3,7 +3,7 @@ schema_version: "2.0"
 stage: "prerequisite"
 name: "前置要求"
 description: "验证 CLI 与当前目录状态，并决定进入项目初始化、继续安装或停止。"
-task_file: "harness-install-tasks.md"
+task_file: "install-tasks.md"
 inputs:
   - CURRENT_WORKING_DIRECTORY
   - OPENSPEC_CLI

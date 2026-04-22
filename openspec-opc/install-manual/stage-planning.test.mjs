@@ -61,7 +61,7 @@ test("stage3 and stage5 route installed projects into template upgrade mode", ()
   assert.ok(stage5.inputs.includes("TEMPLATE_LOCK_PATH"));
   assert.ok(stage5.outputs.includes("TEMPLATE_BUNDLE_PATH"));
   assert.ok(stage5.outputs.includes("TEMPLATE_UPGRADE_PLAN_PATH"));
-  assert.match(stage5PreCheck, /TEMPLATE_BUNDLE_PATH = \.openspec\/\.cache\/openspec-opc-upgrade-bundle/);
+  assert.match(stage5PreCheck, /TEMPLATE_BUNDLE_PATH = \.openspec-opc\/\.cache\/openspec-opc-upgrade-bundle/);
   assert.ok(upgradeTask, "expected stage5 template upgrade task");
   assert.equal(upgradeTask.condition, "INSTALL_EXECUTION_MODE == template_upgrade");
   assert.match(upgradeTask.action || "", /stage5-upgrade-driver\.mjs/);

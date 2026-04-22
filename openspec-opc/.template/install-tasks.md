@@ -43,7 +43,7 @@
 | `INSTALL_LANE_PROFILE` | | 阶段 3/4 确认的 lane profile（如 `app`/`service`/`library`） |
 | `INSTALL_EXECUTION_MODE` | | 阶段 3/4/5 决定 (`fresh_install`/`template_upgrade`) |
 | `TEMPLATE_UPGRADE_REASON` | | 阶段 3 记录触发 template upgrade 的证据 |
-| `TEMPLATE_LOCK_PATH` | | 阶段 3/5 记录当前模板锁文件路径（canonical 为 `openspec/.openspec-opc-template-lock.json`，legacy `.openspec-opc/template-lock.json` 仅兼容读取） |
+| `TEMPLATE_LOCK_PATH` | | 阶段 3/5 记录当前模板锁文件路径（canonical 为 `.openspec-opc/.openspec-opc-template-lock.json`，legacy `.openspec-opc/template-lock.json` 与旧版 `openspec/.openspec-opc-template-lock.json` 仅兼容读取） |
 | `TEMPLATE_BUNDLE_PATH` | | 阶段 5 为 upgrade runtime 生成的临时 bundle 路径 |
 | `TEMPLATE_UPGRADE_PLAN_PATH` | | 阶段 5 写出的 upgrade dry-run / plan 摘要路径 |
 | `EXECUTION_PATH` | | 阶段 5/6 记录 (`new_lane`/`legacy_fallback`) |

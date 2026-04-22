@@ -3,7 +3,7 @@ schema_version: "2.0"
 stage: "stage2"
 name: "收集项目信息"
 description: "收集项目基础信息，并写入任务账本作为后续检测和安装的输入。"
-task_file: "harness-install-tasks.md"
+task_file: "install-tasks.md"
 inputs:
   - PROJECT_TYPE
   - TECH_CATEGORY
@@ -185,8 +185,8 @@ common_questions:
 
 on_complete:
   new_project:
-    action: "将所有信息映射并写入 harness-install-tasks.md 配置变量表；将 framework 或 web_framework 统一映射为 PRIMARY_FRAMEWORK；若 LANGUAGE、PACKAGE_MANAGER、PROJECT_NAME 缺失则继续追问，不进入下一阶段"
+    action: "将所有信息映射并写入 install-tasks.md 配置变量表；将 framework 或 web_framework 统一映射为 PRIMARY_FRAMEWORK；若 LANGUAGE、PACKAGE_MANAGER、PROJECT_NAME 缺失则继续追问，不进入下一阶段"
     next: "stage3"
   existing_project:
-    action: "将信息作为用户预期映射并写入 harness-install-tasks.md；将 framework 或 web_framework 统一映射为 PRIMARY_FRAMEWORK"
+    action: "将信息作为用户预期映射并写入 install-tasks.md；将 framework 或 web_framework 统一映射为 PRIMARY_FRAMEWORK"
     next: "stage3"

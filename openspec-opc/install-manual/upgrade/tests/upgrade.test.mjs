@@ -770,9 +770,9 @@ describe('Error Paths', () => {
   
   it('should handle corrupted lock file', () => {
     // Write invalid lock
-    mkdirSync(join(projectDir, 'openspec'), { recursive: true });
+    mkdirSync(join(projectDir, '.openspec-opc'), { recursive: true });
     writeFileSync(
-      join(projectDir, 'openspec', '.openspec-opc-template-lock.json'),
+      join(projectDir, '.openspec-opc', '.openspec-opc-template-lock.json'),
       'not-json'
     );
     
@@ -848,7 +848,7 @@ describe('Rollback Package', () => {
     mkdirSync(join(projectDir, 'openspec'), { recursive: true });
     writeFileSync(join(projectDir, 'package.json'), '{"name": "original"}');
     writeFileSync(join(projectDir, 'README.md'), '# Original');
-    writeFileSync(join(projectDir, 'openspec', '.openspec-opc-template-lock.json'), '{"version":"1.0.0","handler":"node-ts","assets":[]}');
+    writeFileSync(join(projectDir, '.openspec-opc', '.openspec-opc-template-lock.json'), '{"version":"1.0.0","handler":"node-ts","assets":[]}');
   });
   
   afterEach(() => {
@@ -987,7 +987,7 @@ describe('CLI', () => {
   it('dry-run should write a categorized plan report when --plan-out is provided', () => {
     const projectDir = mkdtempSync(join(tmpdir(), 'opc-project-'));
     const bundleDir = mkdtempSync(join(tmpdir(), 'opc-bundle-'));
-    const planOutPath = join(projectDir, 'openspec', 'install-upgrade-plan.txt');
+    const planOutPath = join(projectDir, '.openspec-opc', 'install-upgrade-plan.txt');
 
     try {
       mkdirSync(join(projectDir, '.opencode', 'commands'), { recursive: true });
@@ -1076,8 +1076,8 @@ describe('CLI', () => {
 
       assert.strictEqual(result.status, 0);
       const rendered = JSON.parse(result.stdout);
-      assert.strictEqual(rendered.bundleOut, join(projectDir, '.openspec', '.cache', 'openspec-opc-upgrade-bundle'));
-      assert.strictEqual(rendered.planOut, join(projectDir, 'openspec', 'install-upgrade-plan.txt'));
+      assert.strictEqual(rendered.bundleOut, join(projectDir, '.openspec-opc', '.cache', 'openspec-opc-upgrade-bundle'));
+      assert.strictEqual(rendered.planOut, join(projectDir, '.openspec-opc', 'install-upgrade-plan.txt'));
       assert.deepStrictEqual(
         rendered.commands.map((entry) => entry.id),
         ['build_bundle', 'check', 'adopt', 'dry_run', 'apply']
@@ -1184,7 +1184,7 @@ describe('CLI', () => {
 
   it('stage5-upgrade-driver should write execution JSON when --execution-out is provided', () => {
     const projectDir = mkdtempSync(join(tmpdir(), 'opc-project-'));
-    const executionOut = join(projectDir, '.openspec', 'install-upgrade-sequence.json');
+    const executionOut = join(projectDir, '.openspec-opc', 'install-upgrade-sequence.json');
 
     try {
       const result = spawnSync(
@@ -1204,7 +1204,7 @@ describe('CLI', () => {
       assert.strictEqual(result.status, 0);
       assert.ok(existsSync(executionOut));
       const rendered = JSON.parse(readFileSync(executionOut, 'utf-8'));
-      assert.strictEqual(rendered.planOut, join(projectDir, 'openspec', 'install-upgrade-plan.txt'));
+      assert.strictEqual(rendered.planOut, join(projectDir, '.openspec-opc', 'install-upgrade-plan.txt'));
       assert.strictEqual(rendered.steps[5].id, 'apply');
       assert.strictEqual(rendered.steps[4].kind, 'manual_gate');
       assert.strictEqual(rendered.steps[5].transitions[0].to, 'done');

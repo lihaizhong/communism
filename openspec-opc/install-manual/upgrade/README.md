@@ -17,7 +17,7 @@ Preview what would change (shows top 50 by default, use `--full` for all).
 ```bash
 ./cli.mjs dry-run --project ./my-project --bundle ./template-bundle
 ./cli.mjs dry-run --full --project ./my-project --bundle ./template-bundle
-./cli.mjs dry-run --project ./my-project --bundle ./template-bundle --plan-out ./openspec/install-upgrade-plan.txt
+./cli.mjs dry-run --project ./my-project --bundle ./template-bundle --plan-out ./.openspec-opc/install-upgrade-plan.txt
 ```
 
 ### `stage5-upgrade-driver`
@@ -28,9 +28,9 @@ Render the exact existing-project upgrade command sequence from stage/task varia
   --project ./my-project \
   --ai-config-dir .opencode \
   --ci-type github \
-  --bundle-out ./my-project/.openspec/.cache/openspec-opc-upgrade-bundle \
-  --plan-out ./my-project/openspec/install-upgrade-plan.txt \
-  --execution-out ./my-project/.openspec/install-upgrade-sequence.json
+  --bundle-out ./my-project/.openspec-opc/.cache/openspec-opc-upgrade-bundle \
+  --plan-out ./my-project/.openspec-opc/install-upgrade-plan.txt \
+  --execution-out ./my-project/.openspec-opc/install-upgrade-sequence.json
 ```
 
 The driver can emit either:
@@ -86,7 +86,7 @@ upgrade/
 ## Key Features
 
 - **Two-phase execution**: Changes are staged first, then applied
-- **Per-project state**: Canonical lock state lives at `openspec/.openspec-opc-template-lock.json` with legacy `.openspec-opc/template-lock.json` compatibility
+- **Per-project state**: Canonical lock state lives at `.openspec-opc/.openspec-opc-template-lock.json` with legacy `.openspec-opc/template-lock.json` compatibility
 - **Trust root verification**: Validates bundle integrity before operations
 - **Conflict detection**: Identifies user-modified assets
 - **Suspected-managed assets**: Adopt workflow for legacy projects

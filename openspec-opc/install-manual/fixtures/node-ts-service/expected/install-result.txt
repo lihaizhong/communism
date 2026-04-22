@@ -19,5 +19,5 @@ next actions:
 - 阅读 AGENTS.md 了解 AI 助手的工作方式
 - 运行默认首条路径：/opsx-propose add-health-endpoint
 artifact paths:
-- human report: openspec/install-report.md
-- machine json: openspec/install-report.json
+- human report: .openspec-opc/install-report.md
+- machine json: .openspec-opc/install-report.json

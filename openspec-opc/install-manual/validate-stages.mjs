@@ -267,8 +267,8 @@ function validateStageFile(filePath, schema, errors) {
   if (data.schema_version !== "2.0") {
     fail(errors, `${relativePath}.schema_version`, "must equal 2.0");
   }
-  if (data.task_file !== "harness-install-tasks.md") {
-    fail(errors, `${relativePath}.task_file`, "must equal harness-install-tasks.md");
+  if (data.task_file !== "install-tasks.md") {
+    fail(errors, `${relativePath}.task_file`, "must equal install-tasks.md");
   }
 
   const stage = data.stage;

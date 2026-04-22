@@ -3,7 +3,7 @@ schema_version: "2.0"
 stage: "stage0"
 name: "项目初始化"
 description: "仅在用户明确要求初始化项目时执行，帮助创建或切换到可安装的项目根目录。"
-task_file: "harness-install-tasks.md"
+task_file: "install-tasks.md"
 inputs:
   - USER_REQUESTED_PROJECT_INIT
   - CURRENT_WORKING_DIRECTORY

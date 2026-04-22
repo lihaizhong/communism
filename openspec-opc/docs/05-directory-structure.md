@@ -17,7 +17,7 @@ project-root/
 ├── .claude/ 或其他 AI 目录
 │   ├── commands/
 │   └── skills/
-└── harness-install-tasks.md
+└── install-tasks.md
 ```
 
 这是**安装到目标项目之后**的结构。

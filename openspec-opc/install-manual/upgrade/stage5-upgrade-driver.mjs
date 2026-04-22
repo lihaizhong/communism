@@ -77,10 +77,10 @@ function parseArgs(argv) {
     throw new Error('--ai-config-dir is required');
   }
   if (!options.bundleOut) {
-    options.bundleOut = path.join(options.project, '.openspec', '.cache', 'openspec-opc-upgrade-bundle');
+    options.bundleOut = path.join(options.project, '.openspec-opc', '.cache', 'openspec-opc-upgrade-bundle');
   }
   if (!options.planOut) {
-    options.planOut = path.join(options.project, 'openspec', 'install-upgrade-plan.txt');
+    options.planOut = path.join(options.project, '.openspec-opc', 'install-upgrade-plan.txt');
   }
   if (!['shell', 'json'].includes(options.format)) {
     throw new Error(`unsupported format: ${options.format}`);
@@ -99,8 +99,8 @@ Options:
   --project       Target project root (required)
   --ai-config-dir AI config dir relative path, e.g. .opencode (required)
   --ci-type       github | gitlab | other (default: other)
-  --bundle-out    Bundle output path (default: <project>/.openspec/.cache/openspec-opc-upgrade-bundle)
-  --plan-out      Upgrade plan report path (default: <project>/openspec/install-upgrade-plan.txt)
+  --bundle-out    Bundle output path (default: <project>/.openspec-opc/.cache/openspec-opc-upgrade-bundle)
+  --plan-out      Upgrade plan report path (default: <project>/.openspec-opc/install-upgrade-plan.txt)
   --execution-out Write the machine-readable execution plan JSON to this path
   --source-root   Source workspace root for build-source-bundle (default: openspec-opc workspace root)
   --format        shell | json (default: shell)

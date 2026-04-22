@@ -63,3 +63,5 @@ These rules supplement, but do not replace, the `gstack` workflow and stage-base
 - Keep edits surgical. Do not refactor unrelated code, comments, or formatting.
 - Define success in verifiable terms. If the task changes code, name the check that proves it worked.
 - Match the existing style and structure unless the user explicitly asks for a different direction.
+- When the user reports multiple issues, tackle one at a time. If you get stuck analyzing, summarize the key open questions and ask the user rather than spinning in circles.
+- Do not make placement or naming decisions (e.g., which directory a file should go into) without confirming with the user when the request lacks sufficient detail.

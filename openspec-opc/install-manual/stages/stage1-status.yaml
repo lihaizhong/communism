@@ -3,7 +3,7 @@ schema_version: "2.0"
 stage: "stage1"
 name: "确认项目状态"
 description: "确认这是新项目还是已有项目，并建立后续阶段使用的任务账本。"
-task_file: "harness-install-tasks.md"
+task_file: "install-tasks.md"
 inputs:
   - INSTALL_TARGET_CONFIRMED
   - GIT_INITIALIZED
@@ -28,11 +28,11 @@ steps:
     options:
       - id: new
         label: "A - 新项目"
-        action: "记录 PROJECT_TYPE = new 到 harness-install-tasks.md"
+        action: "记录 PROJECT_TYPE = new 到 install-tasks.md"
         next: "ask_tech_type"
       - id: existing
         label: "B - 老项目"
-        action: "记录 PROJECT_TYPE = existing 到 harness-install-tasks.md，并创建或更新 harness-install-tasks.md 工作副本"
+        action: "记录 PROJECT_TYPE = existing 到 install-tasks.md，并创建或更新 install-tasks.md 工作副本"
         next: "stage2"
 
   - id: ask_tech_type
@@ -54,5 +54,5 @@ steps:
       - id: fullstack
         label: "4 - 全栈"
     on_select:
-      action: "记录 TECH_CATEGORY 到 harness-install-tasks.md，并创建或更新 harness-install-tasks.md 工作副本"
+      action: "记录 TECH_CATEGORY 到 install-tasks.md，并创建或更新 install-tasks.md 工作副本"
       next: "stage2"

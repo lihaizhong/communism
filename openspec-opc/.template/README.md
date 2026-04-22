@@ -19,7 +19,7 @@
 │   ├── github-workflows/
 │   ├── gitlab-ci/
 │   └── hooks/
-├── harness-install-tasks.md
+├── install-tasks.md
 ├── AGENTS.md
 └── README.md
 ```
@@ -75,7 +75,7 @@ cp -r .template/agent-config/skills/* <your-ai-config-dir>/skills/
 
 - `openspec/config.yaml`
 - `AGENTS.md`
-- `harness-install-tasks.md`
+- `install-tasks.md`
 - CI / hook 模板
 
 如果手工复制模板，也需要把这些占位符替换成目标项目的实际值。

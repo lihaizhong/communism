@@ -3,7 +3,7 @@ schema_version: "2.0"
 stage: "stage5"
 name: "执行安装任务"
 description: "根据任务账本执行实际写入、依赖安装、文件生成和验证。"
-task_file: "harness-install-tasks.md"
+task_file: "install-tasks.md"
 inputs:
   - PROJECT_NAME
   - LANGUAGE
@@ -50,7 +50,7 @@ contracts:
   stop_point_contract: "openspec-opc/install-manual/stop-points.mjs"
 
 pre_check:
-  - name: "读取 harness-install-tasks.md"
+  - name: "读取 install-tasks.md"
     action: "解析配置变量表和任务列表"
   - name: "验证变量完整性"
     required_vars:
@@ -76,11 +76,11 @@ pre_check:
       - if: "INTEGRATE_AI_DOCS == yes"
         action: "将 T7 从 [-] 改为 [ ]"
       - if: "INSTALL_EXECUTION_MODE == template_upgrade"
-        action: "设置 TEMPLATE_BUNDLE_PATH = .openspec/.cache/openspec-opc-upgrade-bundle、TEMPLATE_UPGRADE_PLAN_PATH = openspec/install-upgrade-plan.txt；existing-project 安装路径切换为 upgrade runtime，普通 T2 模板复制仅保留给 fresh_install"
+        action: "设置 TEMPLATE_BUNDLE_PATH = .openspec-opc/.cache/openspec-opc-upgrade-bundle、TEMPLATE_UPGRADE_PLAN_PATH = .openspec-opc/install-upgrade-plan.txt；existing-project 安装路径切换为 upgrade runtime，普通 T2 模板复制仅保留给 fresh_install"
       - if: "INSTALL_LANE_ID == node-ts"
-        action: "设置 EXECUTION_PATH = new_lane、TERMINAL_RESULT_CARD_PATH = openspec/install-result.txt、CONFORMANCE_REPORT_PATH = openspec/install-report.md、CONFORMANCE_JSON_PATH = openspec/install-report.json；后续 gate 顺序固定为 lint -> test -> typecheck。若 INSTALL_LANE_PROFILE == app/service，则还必须通过 profile_smoke_contract 解析并记录 PROFILE_SMOKE_STATUS、PROFILE_SMOKE_COMMAND、PROFILE_SMOKE_SUMMARY；若 INSTALL_LANE_PROFILE == library，则必须显式记录 PROFILE_SMOKE_STATUS = not_applicable"
+        action: "设置 EXECUTION_PATH = new_lane、TERMINAL_RESULT_CARD_PATH = .openspec-opc/install-result.txt、CONFORMANCE_REPORT_PATH = .openspec-opc/install-report.md、CONFORMANCE_JSON_PATH = .openspec-opc/install-report.json；后续 gate 顺序固定为 lint -> test -> typecheck。若 INSTALL_LANE_PROFILE == app/service，则还必须通过 profile_smoke_contract 解析并记录 PROFILE_SMOKE_STATUS、PROFILE_SMOKE_COMMAND、PROFILE_SMOKE_SUMMARY；若 INSTALL_LANE_PROFILE == library，则必须显式记录 PROFILE_SMOKE_STATUS = not_applicable"
       - if: "INSTALL_LANE_ID != node-ts"
-        action: "设置 EXECUTION_PATH = legacy_fallback、TERMINAL_RESULT_CARD_PATH = openspec/install-result.txt，并清空 PROFILE_SMOKE_COMMAND/PROFILE_SMOKE_SUMMARY；legacy fallback 仍必须输出主结果卡，但不要求生成 new lane 的 report/json artifact"
+        action: "设置 EXECUTION_PATH = legacy_fallback、TERMINAL_RESULT_CARD_PATH = .openspec-opc/install-result.txt，并清空 PROFILE_SMOKE_COMMAND/PROFILE_SMOKE_SUMMARY；legacy fallback 仍必须输出主结果卡，但不要求生成 new lane 的 report/json artifact"
 
 core_tasks:
   - id: T0
@@ -105,10 +105,10 @@ core_tasks:
     options:
       - id: yes
         label: "yes - 生成 pre-commit hook"
-        action: "记录 GENERATE_PRE_COMMIT = yes 到 harness-install-tasks.md"
+        action: "记录 GENERATE_PRE_COMMIT = yes 到 install-tasks.md"
       - id: no
         label: "no - 跳过 pre-commit hook"
-        action: "记录 GENERATE_PRE_COMMIT = no 到 harness-install-tasks.md"
+        action: "记录 GENERATE_PRE_COMMIT = no 到 install-tasks.md"
     on_complete: "记录 GENERATE_PRE_COMMIT 供后续条件任务与验证阶段使用；若 GENERATE_PRE_COMMIT == yes，则将 T8 从 [-] 改为 [ ]"
 
   - id: T1
@@ -215,7 +215,7 @@ core_tasks:
 
   - id: T5
     name: "填充技术栈变量"
-    action: "读取 harness-install-tasks.md 配置变量表，替换所有已生成模板文件中的 {{变量名}}，至少包括 openspec/config.yaml、AGENTS.md、CI 模板文件和 pre-commit hook（如已生成）"
+    action: "读取 install-tasks.md 配置变量表，替换所有已生成模板文件中的 {{变量名}}，至少包括 openspec/config.yaml、AGENTS.md、CI 模板文件和 pre-commit hook（如已生成）"
     target_files:
       - "openspec/config.yaml"
       - "AGENTS.md"
@@ -364,10 +364,10 @@ ci_config:
       label: "3 - 其他平台"
       output: "HARNESS_CI.md"
   on_select:
-    action: "根据选择生成 CI/CD 配置，并记录 CI_TYPE 和 CI_CONFIG_PATH 到 harness-install-tasks.md"
-  on_complete: "记录 CI_TYPE 和 CI_CONFIG_PATH 到 harness-install-tasks.md"
+    action: "根据选择生成 CI/CD 配置，并记录 CI_TYPE 和 CI_CONFIG_PATH 到 install-tasks.md"
+  on_complete: "记录 CI_TYPE 和 CI_CONFIG_PATH 到 install-tasks.md"
 
 on_complete:
-  verify: "harness-install-tasks.md 中核心任务全部 [x]，且 canonical result 状态可被 render contract 直接消费"
+  verify: "install-tasks.md 中核心任务全部 [x]，且 canonical result 状态可被 render contract 直接消费"
   action: "仅当新 lane gate 与 artifact 都通过时记录 INSTALL_RESULT = success；若写入后失败则记录 partial_install；若退回旧路径则记录 legacy_fallback；若发现占位内容、空文件或缺失关键文件，则记录 INSTALL_RESULT = failed，并将对应任务标记为 [!]"
   next: "stage6"

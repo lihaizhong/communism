@@ -12,7 +12,7 @@ The upgrade runtime manages template updates for projects that have already been
 
 ## Basic Workflow
 
-When the runtime writes or migrates lock state, the canonical path is `openspec/.openspec-opc-template-lock.json`. Older projects that still have `.openspec-opc/template-lock.json` are read as legacy input and migrated on the next successful apply.
+When the runtime writes or migrates lock state, the canonical path is `.openspec-opc/.openspec-opc-template-lock.json`. Older projects that still have `.openspec-opc/template-lock.json` are read as legacy input and migrated on the next successful apply.
 
 Recommended sequence for existing-project upgrades:
 
@@ -40,7 +40,7 @@ This verifies:
 
 ```bash
 ./cli.mjs dry-run --project /path/to/your/project --bundle /path/to/template-bundle
-./cli.mjs dry-run --project /path/to/your/project --bundle /path/to/template-bundle --plan-out /path/to/your/project/openspec/install-upgrade-plan.txt
+./cli.mjs dry-run --project /path/to/your/project --bundle /path/to/template-bundle --plan-out /path/to/your/project/.openspec-opc/install-upgrade-plan.txt
 ```
 
 Shows what would change without actually changing anything:

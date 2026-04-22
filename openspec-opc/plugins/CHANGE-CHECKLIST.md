@@ -22,6 +22,6 @@ Use this checklist whenever a change can affect both runtime plugins (`codex-spe
 
 ## 4) Release sanity
 
-- [ ] Confirm `openspec/.openspec-opc-state.json` compatibility is preserved (or migration is documented).
+- [ ] Confirm `.openspec-opc/.openspec-opc-state.json` compatibility is preserved (or migration is documented).
 - [ ] Update plugin READMEs when user-facing behavior, lock semantics, or phase invariants changed.
 - [ ] Include cross-runtime verification notes in PR description.

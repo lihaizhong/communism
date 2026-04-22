@@ -28,8 +28,8 @@ execution path: new_lane (node-ts/app)
 - 运行默认首条路径：/opsx-propose landing-page-refresh
 
 ## Artifact Paths
-- human report: openspec/install-report.md
-- machine json: openspec/install-report.json
+- human report: .openspec-opc/install-report.md
+- machine json: .openspec-opc/install-report.json
 
 ## Raw Details
 - none

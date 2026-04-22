@@ -3,7 +3,7 @@ schema_version: "2.0"
 stage: "stage6"
 name: "完成验证"
 description: "校验最终安装结果，并向用户展示完成摘要与未完成项。"
-task_file: "harness-install-tasks.md"
+task_file: "install-tasks.md"
 inputs:
   - AI_TOOL_NAME
   - AI_CONFIG_DIR
@@ -136,4 +136,4 @@ steps:
       note: stage6 only displays the render-contract artifact; canonical_result.gates, canonical_result.profileSmoke, and execution path formatting must come from render_contract, not handwritten template lines, including legacy_fallback
 
 on_complete:
-  action: "仅在最终验证通过时标记 harness-install-tasks.md 任务完成并保留 pending 项说明；若发现伪完成痕迹，则将 INSTALL_RESULT 记录为 failed，并回写具体失败文件与原因"
+  action: "仅在最终验证通过时标记 install-tasks.md 任务完成并保留 pending 项说明；若发现伪完成痕迹，则将 INSTALL_RESULT 记录为 failed，并回写具体失败文件与原因"

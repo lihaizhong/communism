@@ -28,8 +28,8 @@ execution path: new_lane (node-ts/library)
 - 运行默认首条路径：/opsx-propose my-first-feature
 
 ## Artifact Paths
-- human report: openspec/install-report.md
-- machine json: openspec/install-report.json
+- human report: .openspec-opc/install-report.md
+- machine json: .openspec-opc/install-report.json
 
 ## Raw Details
 - none

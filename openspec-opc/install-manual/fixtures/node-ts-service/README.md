@@ -28,9 +28,9 @@
 
 ## 预期安装产物
 
-- `openspec/install-result.txt`
-- `openspec/install-report.md`
-- `openspec/install-report.json`
+- `.openspec-opc/install-result.txt`
+- `.openspec-opc/install-report.md`
+- `.openspec-opc/install-report.json`
 
 本目录下的 `expected/` 给出了三类结果产物的参考内容。
 

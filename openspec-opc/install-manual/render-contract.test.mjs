@@ -31,8 +31,8 @@ test("terminal result card preserves reading order and next actions before artif
     writtenChanges: ["openspec/config.yaml"],
     nextActions: ["run the default first change flow"],
     artifacts: {
-      reportPath: "openspec/install-report.md",
-      jsonPath: "openspec/install-report.json",
+      reportPath: ".openspec-opc/install-report.md",
+      jsonPath: ".openspec-opc/install-report.json",
     },
   });
 
@@ -139,7 +139,7 @@ test("stage5 node-ts contract requires real commands and rendered artifacts", ()
 });
 
 test("task ledger template records result-card and profile-smoke variables", () => {
-  const taskTemplate = fs.readFileSync(path.join(ROOT, "..", ".template", "harness-install-tasks.md"), "utf8");
+  const taskTemplate = fs.readFileSync(path.join(ROOT, "..", ".template", "install-tasks.md"), "utf8");
 
   assert.match(taskTemplate, /\| `TERMINAL_RESULT_CARD_PATH` \| \| 阶段 5 生成的主结果卡路径；新 lane 与 legacy fallback 都必须写出 \|/);
   assert.match(taskTemplate, /\| `PROFILE_SMOKE_STATUS` \| \| 阶段 5\/6 记录 profile smoke 结果/);

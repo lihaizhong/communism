@@ -48,7 +48,7 @@
     },
     "task_file": {
       "type": "string",
-      "const": "harness-install-tasks.md"
+      "const": "install-tasks.md"
     },
     "inputs": {
       "type": "array",

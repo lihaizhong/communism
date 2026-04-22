@@ -253,7 +253,7 @@ OpenSpec OPC now includes a template upgrade system that manages the lifecycle o
 For downstream projects, keep using `openspec-opc/install.md` as the AI executor entrypoint. The upgrade runtime is the execution engine behind the existing-project upgrade path, and the CLI is mainly for local debugging, fixture work, or direct runtime verification.
 
 Current upgrade semantics:
-- Canonical lock path is `openspec/.openspec-opc-template-lock.json` and the older `.openspec-opc/template-lock.json` path is only kept for read compatibility.
+- Canonical lock path is `.openspec-opc/.openspec-opc-template-lock.json` and the older `.openspec-opc/template-lock.json` path is only kept for read compatibility.
 - `AGENTS.md` upgrades preserve the repository-specific constraints block instead of hard-overwriting the whole file.
 - Supported CI assets (`.github/workflows/openspec-archive.yml` and `.gitlab-ci.yml`) upgrade with job-level merge so unrelated user jobs are not deleted.
 - Managed markdown commands and `SKILL.md` files preserve user-added frontmatter keys, while local body edits remain conflict-protected.
@@ -269,7 +269,7 @@ cd install-manual/upgrade
 # Preview what would change (shows top 50 by default)
 ./cli.mjs dry-run --project /path/to/project --bundle /path/to/template-bundle
 ./cli.mjs dry-run --full --project /path/to/project --bundle /path/to/template-bundle  # Show all
-./cli.mjs dry-run --project /path/to/project --bundle /path/to/template-bundle --plan-out /path/to/project/openspec/install-upgrade-plan.txt
+./cli.mjs dry-run --project /path/to/project --bundle /path/to/template-bundle --plan-out /path/to/project/.openspec-opc/install-upgrade-plan.txt
 
 # Adopt a legacy project (no lock file)
 ./cli.mjs adopt --project /path/to/project --bundle /path/to/template-bundle

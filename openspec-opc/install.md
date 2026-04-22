@@ -5,7 +5,7 @@
 > 除非文档明确要求，否则不要跨阶段推断、不要跳步、不要提前修改业务文件。
 > AI 助手必须把它当成文档驱动、文本反馈优先的安装器，不要假设浏览器页面或图形化安装向导。
 
-当前安装入口版本：`0.2.2`
+当前安装入口版本：`0.3.0`
 
 ## 入口约束
 
@@ -16,10 +16,10 @@
 ## 执行规则
 
 1. 阶段 `prerequisite` 到 `stage4` 允许读取、检测、提问、记录，但默认不修改业务文件。
-2. 从阶段 `stage1` 结束开始，必须在目标项目根目录创建或更新 `harness-install-tasks.md`；后续所有阶段都以此文件为唯一任务账本。
+2. 从阶段 `stage1` 结束开始，必须在目标项目根目录创建或更新 `install-tasks.md`；后续所有阶段都以此文件为唯一任务账本。
 3. 阶段 `stage5` 才允许执行安装写入，包括复制模板、替换变量、安装依赖、生成 CI/CD 配置。
 4. 凡是涉及用户已有资产的操作，必须先获得用户明确确认；不得假设“默认覆盖”。
-5. 如果发现信息缺失、变量不完整、检测结果冲突，不要猜测；应回到对应阶段补全并更新 `harness-install-tasks.md`。
+5. 如果发现信息缺失、变量不完整、检测结果冲突，不要猜测；应回到对应阶段补全并更新 `install-tasks.md`。
 6. 默认采用保守安装策略：优先备份、合并、并存安装；只有在用户明确同意时才允许覆盖。
 7. 每个阶段只加载对应的 YAML 定义；不要一次性读取所有阶段文件。
 
@@ -60,7 +60,7 @@ openspec-opc/
     │       └── src/
 └── .template/                  ← 安装模板源
     ├── AGENTS.md               → 目标项目: AGENTS.md
-    ├── harness-install-tasks.md → 目标项目: harness-install-tasks.md（先创建工作副本，再持续更新）
+    ├── install-tasks.md → 目标项目: install-tasks.md（先创建工作副本，再持续更新）
     ├── openspec/               → 目标项目: openspec/
     │   ├── config.yaml
     │   └── schemas/
@@ -123,7 +123,7 @@ Codex 侧当前仍处于本地插件 scaffold 阶段；仓库里有 `plugins/cod
    - 下游项目中的 `openspec/**/*.md` 可能来自 Windows 编辑器、PowerShell 或旧工具链，实际编码可能是 GBK/GB18030
    - 读取 markdown 文档时应优先严格按 UTF-8 解码；如果失败，再 fallback 到 GB18030
    - 如果直接把 GBK/GB18030 文件按 UTF-8 读取，中文标题可能变成 `����`，导致 proposal/specs/test-contract/design/tasks 被质量门误判为缺少结构或内容太短
-   - JSON 状态文件仍应按 UTF-8 写入和读取，例如 `openspec/.openspec-opc-state.json`
+   - JSON 状态文件仍应按 UTF-8 写入和读取，例如 `.openspec-opc/.openspec-opc-state.json`
 
 3. **YAML 结构必须符合 schema 定义**
    - `context` 字段必须是**字符串**，不是对象
@@ -181,7 +181,7 @@ Codex 侧当前仍处于本地插件 scaffold 阶段；仓库里有 `plugins/cod
 
 当 `PROJECT_TYPE == existing` 且检测到历史 OpenSpec OPC 安装痕迹时，不再把它当成一次普通“重新安装”：
 
-- `openspec/.openspec-opc-template-lock.json` 存在
+- `.openspec-opc/.openspec-opc-template-lock.json` 存在
 - 兼容检测到 legacy 锁文件 `.openspec-opc/template-lock.json`
 - `AGENTS.md` 含 OpenSpec OPC 模板签名
 - `openspec/config.yaml` 与模板结构匹配
@@ -211,7 +211,7 @@ Codex 侧当前仍处于本地插件 scaffold 阶段；仓库里有 `plugins/cod
 
 ## 单一任务账本
 
-`harness-install-tasks.md` 是安装过程的单一事实来源。
+`install-tasks.md` 是安装过程的单一事实来源。
 
 规则如下：
 
@@ -237,7 +237,7 @@ Codex 侧当前仍处于本地插件 scaffold 阶段；仓库里有 `plugins/cod
 
 1. “当前目录不是应用项目” 不等于 “必须初始化新项目”。
 2. “新项目 / 已有项目” 必须通过用户选择或明确证据确认。
-3. `harness-install-tasks.md` 是安装过程唯一可信的任务来源。
+3. `install-tasks.md` 是安装过程唯一可信的任务来源。
 4. 安装过程允许存在 `pending` 项，但必须明确记录原因和下一步。
 5. 已有 AI 配置、命令、技能、文档默认视为用户资产，禁止无确认覆盖。
 6. 检测结果优先于猜测；用户明确选择优先于自动检测。
@@ -285,7 +285,7 @@ Codex 侧当前仍处于本地插件 scaffold 阶段；仓库里有 `plugins/cod
 
 1. 测试框架默认应被检测或补全。
 2. 若未检测到测试框架，优先引导用户选择推荐方案或自定义方案。
-3. 若用户暂时不安装，可继续流程，但必须在 `harness-install-tasks.md` 中明确记录：
+3. 若用户暂时不安装，可继续流程，但必须在 `install-tasks.md` 中明确记录：
    - `TEST_FRAMEWORK`
    - `TEST_INSTALL_CMD`
    - 当前状态（如 `pending`）
@@ -309,7 +309,7 @@ Codex 侧当前仍处于本地插件 scaffold 阶段；仓库里有 `plugins/cod
 1. 加载 prerequisite.yaml → 前置检查
 2. 仅在满足阶段 0 条件时加载 stage0-init.yaml
 3. 加载 stage1-status.yaml → 确认项目状态
-4. 创建或更新 harness-install-tasks.md 工作副本
+4. 创建或更新 install-tasks.md 工作副本
 5. 加载 stage2-collect.yaml → 收集信息 → 写入任务账本
 6. 加载 stage3-detect.yaml → 自动检测与补全 → 写入任务账本
 7. 加载 stage4-config.yaml → AI 目录与整合策略选择 → 写入任务账本
@@ -331,7 +331,7 @@ flowchart TD
     D1 --> D
     D -- 是 --> E[确认项目状态: 新项目 / 已有项目]
 
-    E --> F[创建或更新 harness-install-tasks.md]
+    E --> F[创建或更新 install-tasks.md]
     F --> G[阶段2 收集基础信息]
     G --> H[阶段3 自动检测并补全变量]
 

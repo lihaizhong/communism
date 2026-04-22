@@ -26,9 +26,9 @@
 
 ## 预期安装产物
 
-- `openspec/install-result.txt`
-- `openspec/install-report.md`
-- `openspec/install-report.json`
+- `.openspec-opc/install-result.txt`
+- `.openspec-opc/install-report.md`
+- `.openspec-opc/install-report.json`
 
 本目录下的 `expected/` 给出了这三类结果产物的参考内容。
 
@@ -37,7 +37,7 @@
 1. 在 AI 执行器里把 `openspec-opc/install.md` 作为入口文档交给安装器。
 2. 将当前目录 `openspec-opc/install-manual/fixtures/node-ts-minimal/` 视为目标项目根目录。
 3. 在阶段 3 确认检测结果为 `node-ts/library`，并且 `lint / test / typecheck` 三个 gate 都来自真实命令。
-4. 在阶段 5 确认先写出 `openspec/install-result.txt`，再进入最终 conformance 校验。
-5. 在阶段 6 确认主输出直接展示 `openspec/install-result.txt`，而不是手写摘要。
+4. 在阶段 5 确认先写出 `.openspec-opc/install-result.txt`，再进入最终 conformance 校验。
+5. 在阶段 6 确认主输出直接展示 `.openspec-opc/install-result.txt`，而不是手写摘要。
 
 如果实际安装结果和 `expected/` 目录明显偏离，应该优先修正 install contract，而不是在下游项目里做特判。

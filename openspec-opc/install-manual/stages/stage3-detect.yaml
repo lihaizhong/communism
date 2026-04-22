@@ -3,7 +3,7 @@ schema_version: "2.0"
 stage: "stage3"
 name: "技术栈检测"
 description: "补全或确认技术栈变量，解决用户输入、自动检测和安装要求之间的差异。"
-task_file: "harness-install-tasks.md"
+task_file: "install-tasks.md"
 inputs:
   - PROJECT_TYPE
   - TECH_CATEGORY
@@ -66,7 +66,7 @@ branches:
     options:
       - id: confirm
         label: "确认无误"
-        action: "如关键变量仍有缺失，继续补问并写入 harness-install-tasks.md"
+        action: "如关键变量仍有缺失，继续补问并写入 install-tasks.md"
       - id: modify
         label: "修改配置"
         action: "回到阶段 2 重新收集"
@@ -89,7 +89,7 @@ branches:
       - id: detect_runtime
         method: "检查 engines 或语言版本文件"
       - id: detect_template_upgrade_traces
-        method: "检查 openspec/.openspec-opc-template-lock.json（兼容 legacy `.openspec-opc/template-lock.json`）、AGENTS.md 模板签名、openspec/config.yaml 结构，以及 {{AI_CONFIG_DIR}} 下的托管 commands/skills 是否存在；若命中任一证据，则记录 INSTALL_EXECUTION_MODE = template_upgrade、TEMPLATE_LOCK_PATH = openspec/.openspec-opc-template-lock.json，并把命中原因写入 TEMPLATE_UPGRADE_REASON；否则记录 INSTALL_EXECUTION_MODE = fresh_install"
+        method: "检查 .openspec-opc/.openspec-opc-template-lock.json（兼容 legacy `.openspec-opc/template-lock.json`）、AGENTS.md 模板签名、openspec/config.yaml 结构，以及 {{AI_CONFIG_DIR}} 下的托管 commands/skills 是否存在；若命中任一证据，则记录 INSTALL_EXECUTION_MODE = template_upgrade、TEMPLATE_LOCK_PATH = .openspec-opc/.openspec-opc-template-lock.json，并把命中原因写入 TEMPLATE_UPGRADE_REASON；否则记录 INSTALL_EXECUTION_MODE = fresh_install"
     report_template: |
       🔍 技术栈检测报告
       ├─ 执行模式: {{INSTALL_EXECUTION_MODE}}
@@ -122,10 +122,10 @@ test_framework_missing:
   options:
     - id: recommended
       label: "1 - 安装推荐的测试框架"
-      action: "根据 TECH_CATEGORY 查找推荐框架，写入 harness-install-tasks.md 的 TEST_FRAMEWORK、TEST_INSTALL_CMD、TEST_STATUS = ready"
+      action: "根据 TECH_CATEGORY 查找推荐框架，写入 install-tasks.md 的 TEST_FRAMEWORK、TEST_INSTALL_CMD、TEST_STATUS = ready"
     - id: custom
       label: "2 - 自行选择测试框架"
-      action: "提示用户输入框架名称，写入 harness-install-tasks.md 的 TEST_FRAMEWORK、TEST_STATUS = ready"
+      action: "提示用户输入框架名称，写入 install-tasks.md 的 TEST_FRAMEWORK、TEST_STATUS = ready"
     - id: pending
       label: "3 - 暂不安装"
       action: "写入 TEST_FRAMEWORK = pending、TEST_INSTALL_CMD = pending、TEST_STATUS = pending、TEST_BLOCKER_REASON"
@@ -142,5 +142,5 @@ test_framework_recommendations:
   "Java": { framework: "JUnit", command: "通过 Maven/Gradle 添加" }
 
 on_complete:
-  action: "将所有检测结果映射并写入 harness-install-tasks.md 配置变量表；统一输出 INSTALL_LANE_ID、INSTALL_LANE_PROFILE、INSTALL_EXECUTION_MODE、TEMPLATE_UPGRADE_REASON、TEMPLATE_LOCK_PATH、PRIMARY_FRAMEWORK、SRC_DIR、TEST_DIR 和项目命令变量。若命中 Node/TS lane，则还必须通过 profile_smoke_contract 预先写入 PROFILE_SMOKE_STATUS、PROFILE_SMOKE_COMMAND、PROFILE_SMOKE_SUMMARY；library 必须显式写入 not_applicable，app/service 若已检测到 smoke 命令则写 ready 风格的规划值，未检测到则写 missing 与缺失原因。如检测到历史安装痕迹，existing project 必须优先切换到 template_upgrade，而不是继续沿用泛化 merge/coexist 安装语义。如 profile 命中冲突，必须进入共享 stop-point，使用 recommended/custom/abort 动作标签"
+  action: "将所有检测结果映射并写入 install-tasks.md 配置变量表；统一输出 INSTALL_LANE_ID、INSTALL_LANE_PROFILE、INSTALL_EXECUTION_MODE、TEMPLATE_UPGRADE_REASON、TEMPLATE_LOCK_PATH、PRIMARY_FRAMEWORK、SRC_DIR、TEST_DIR 和项目命令变量。若命中 Node/TS lane，则还必须通过 profile_smoke_contract 预先写入 PROFILE_SMOKE_STATUS、PROFILE_SMOKE_COMMAND、PROFILE_SMOKE_SUMMARY；library 必须显式写入 not_applicable，app/service 若已检测到 smoke 命令则写 ready 风格的规划值，未检测到则写 missing 与缺失原因。如检测到历史安装痕迹，existing project 必须优先切换到 template_upgrade，而不是继续沿用泛化 merge/coexist 安装语义。如 profile 命中冲突，必须进入共享 stop-point，使用 recommended/custom/abort 动作标签"
   next: "stage4"

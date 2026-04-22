@@ -8,9 +8,9 @@
 
 这个样例展示的是最小 Node/TS library 项目如何通过文档驱动安装流产出：
 
-- `openspec/install-result.txt`
-- `openspec/install-report.md`
-- `openspec/install-report.json`
+- `.openspec-opc/install-result.txt`
+- `.openspec-opc/install-report.md`
+- `.openspec-opc/install-report.json`
 
 ## 示例 1：新增功能
 
