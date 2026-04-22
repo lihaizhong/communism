@@ -3,3 +3,4 @@ node_modules/
 packages/*/dist/
 plugins/*/dist/
 release-assets/
+*.tgz
